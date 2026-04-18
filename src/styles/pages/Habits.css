@@ -89,6 +89,16 @@
   flex-shrink: 0;
 }
 
+.streak-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  background: var(--gold-glow);
+  padding: 0.15rem 0.45rem;
+  border-radius: 99px;
+  flex-shrink: 0;
+}
+
 @media (max-width: 600px) {
   .habits-stats { grid-template-columns: 1fr 1fr; }
 }

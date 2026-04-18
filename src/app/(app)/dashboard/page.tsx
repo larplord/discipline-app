@@ -3,15 +3,28 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { addDoc, collection, doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
+import { todayKey } from '@/lib/dates';
 import { calcDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
 import type { DayLog } from '@/lib/scoring';
+import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import { calcStreak } from '@/lib/streaks';
 import { getLevel } from '@/lib/levels';
 import type { Goal, IdentityDoc } from '@/lib/types';
+import '@/styles/pages/Habits.css';
 import '@/styles/pages/Dashboard.css';
+
+const EMOJIS: Record<string, string> = {
+  fitness: '\u{1F3CB}\uFE0F',
+  learning: '\u{1F4DA}',
+  business: '\u{1F4BC}',
+  mindset: '\u{1F9E0}',
+  sleep: '\u{1F634}',
+  health: '\u{1F957}',
+  other: '\u26A1',
+};
 
 const MOTIVATIONAL = {
   high: [
@@ -40,10 +53,6 @@ export default function DashboardPage() {
     bestStreak: 0,
   });
   const [shareEnabled, setShareEnabled] = useState(false);
-  const [mvpHabits, setMvpHabits] = useState<
-    { id: string; name: string; completed: boolean; createdAt?: { toDate?: () => Date } | null }[]
-  >([]);
-  const [newHabitName, setNewHabitName] = useState('');
 
   useEffect(() => {
     const db = getFirestoreDb();
@@ -71,23 +80,27 @@ export default function DashboardPage() {
       onSnapshot(doc(db, 'users', uid, 'settings', 'privacy'), (snap) => {
         setShareEnabled(!!snap.data()?.shareProgressWithFriends);
       }),
-      onSnapshot(collection(db, 'users', uid, 'mvpHabits'), (snap) => {
-        const list: { id: string; name: string; completed: boolean; createdAt?: { toDate?: () => Date } | null }[] = [];
-        snap.forEach((d) => {
-          const x = d.data();
-          list.push({
-            id: d.id,
-            name: String(x?.name ?? ''),
-            completed: Boolean(x?.completed),
-            createdAt: x?.createdAt as { toDate?: () => Date } | null,
-          });
-        });
-        list.sort((a, b) => a.name.localeCompare(b.name));
-        setMvpHabits(list);
-      }),
     ];
     return () => unsubs.forEach((u) => u());
   }, [uid]);
+
+  async function toggleHabit(habitId: string) {
+    const db = getFirestoreDb();
+    const t = todayKey();
+    const ref = doc(db, 'users', uid, 'habitLogs', t);
+    const snap = await getDoc(ref);
+    const prev = (snap.data()?.entries as DayLog) ?? {};
+    const next = { ...prev, [habitId]: !prev[habitId] };
+    await setDoc(ref, { entries: next }, { merge: true });
+    await syncSharedSummary(db, uid, {
+      habits,
+      dayLog: next,
+      logsByDate: { ...logsByDate, [t]: next },
+      focusToday,
+      journalToday: !!(journal.well || journal.freeform),
+      shareEnabled,
+    });
+  }
 
   const score = calcDailyScore({ habits, dayLog, focusToday, journal });
   const todayPct = todayProgress(habits, dayLog);
@@ -98,23 +111,6 @@ export default function DashboardPage() {
     (score >= 70 ? MOTIVATIONAL.high : score >= 40 ? MOTIVATIONAL.mid : MOTIVATIONAL.low)[
       new Date().getDay() % 3
     ];
-
-  async function addMvpHabit() {
-    const name = newHabitName.trim();
-    if (!name) return;
-    const db = getFirestoreDb();
-    await addDoc(collection(db, 'users', uid, 'mvpHabits'), {
-      name,
-      createdAt: serverTimestamp(),
-      completed: false,
-    });
-    setNewHabitName('');
-  }
-
-  async function toggleMvpHabit(habitId: string, completed: boolean) {
-    const db = getFirestoreDb();
-    await updateDoc(doc(db, 'users', uid, 'mvpHabits', habitId), { completed: !completed });
-  }
 
   const bestStreak = Math.max(
     ...habits.map((h) => calcStreak(h.id, logsByDate)),
@@ -189,75 +185,72 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="dash-section-title flex items-center justify-between mt-4 mb-2">
-          <h3>Habits</h3>
+        <div className="dash-section-title flex items-center justify-between flex-wrap gap-3 mt-4 mb-3">
+          <div>
+            <h3 className="dash-section-heading">Today&apos;s habits</h3>
+            <p className="dash-section-sub">Same list as Habit Tracker — check in from here or manage details on the Habits tab.</p>
+          </div>
+          <Link href="/habits" className="btn btn-ghost btn-sm">
+            Manage habits →
+          </Link>
         </div>
-        <div className="dash-habits card">
-          <div className="flex gap-2 mb-3" style={{ flexWrap: 'wrap' }}>
-            <input
-              className="input"
-              style={{ flex: 1, minWidth: 160 }}
-              placeholder="New habit name"
-              value={newHabitName}
-              onChange={(e) => setNewHabitName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && void addMvpHabit()}
-            />
-            <button type="button" className="btn btn-primary" onClick={() => void addMvpHabit()}>
-              Add
-            </button>
-          </div>
-          {mvpHabits.length === 0 ? (
-            <p className="text-muted text-sm">No habits yet. Add one above.</p>
+        <div className="dash-habits-panel card">
+          {habits.length === 0 ? (
+            <div className="dash-habits-empty">
+              <p className="text-muted text-sm">No habits yet. Create them in Habit Tracker to see them here.</p>
+              <Link href="/habits" className="btn btn-primary btn-sm">
+                Go to Habits
+              </Link>
+            </div>
           ) : (
-            <ul className="flex-col gap-2" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', listStyle: 'none', padding: 0 }}>
-              {mvpHabits.map((h) => (
-                <li
-                  key={h.id}
-                  className="flex items-center gap-3"
-                  style={{
-                    padding: '0.5rem 0',
-                    borderBottom: '1px solid var(--border)',
-                    opacity: h.completed ? 0.65 : 1,
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={h.completed}
-                    onChange={() => void toggleMvpHabit(h.id, h.completed)}
-                    aria-label={`Toggle ${h.name}`}
-                  />
-                  <span style={{ textDecoration: h.completed ? 'line-through' : 'none', flex: 1 }}>{h.name}</span>
-                  <span className="text-xs text-muted">
-                    {h.createdAt?.toDate ? h.createdAt.toDate().toLocaleDateString() : ''}
+            <>
+              <div className="habit-list dash-habit-list">
+                {habits.map((h) => {
+                  const done = !!dayLog[h.id];
+                  const streak = calcStreak(h.id, logsByDate);
+                  return (
+                    <div key={h.id} className={`habit-card dash-habit-card ${done ? 'done' : ''}`}>
+                      <button
+                        type="button"
+                        className={`habit-toggle ${done ? 'checked' : ''}`}
+                        onClick={() => void toggleHabit(h.id)}
+                        aria-label={done ? `Mark ${h.name} incomplete` : `Complete ${h.name}`}
+                      >
+                        {done && (
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                      <div className="habit-emoji-large">{h.emoji || EMOJIS[h.category] || '\u26A1'}</div>
+                      <div className="habit-info">
+                        <div className="habit-name-large">{h.name}</div>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className={`badge cat-${h.category}`}>{h.category}</span>
+                          {streak > 0 && (
+                            <span className="streak-pill">
+                              {'\u{1F525}'} {streak}d
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="habit-progress-footer dash-habit-footer">
+                <div className="flex justify-between text-xs text-muted mb-1">
+                  <span>Daily completion</span>
+                  <span className="font-mono">
+                    {habits.filter((h) => dayLog[h.id]).length}/{habits.length}
                   </span>
-                </li>
-              ))}
-            </ul>
+                </div>
+                <div className="progress-wrap">
+                  <div className="progress-bar green" style={{ width: `${todayPct}%` }} />
+                </div>
+              </div>
+            </>
           )}
-          <div className="habit-progress-footer">
-            <div className="progress-wrap" style={{ marginTop: '0.75rem' }}>
-              <div
-                className="progress-bar green"
-                style={{
-                  width: `${
-                    mvpHabits.length
-                      ? Math.round((mvpHabits.filter((h) => h.completed).length / mvpHabits.length) * 100)
-                      : 0
-                  }%`,
-                }}
-              />
-            </div>
-            <div className="flex justify-between text-xs text-muted mt-1">
-              <span>
-                {mvpHabits.length
-                  ? `${Math.round((mvpHabits.filter((h) => h.completed).length / mvpHabits.length) * 100)}% done`
-                  : '0% done'}
-              </span>
-              <span>
-                {mvpHabits.filter((h) => h.completed).length} / {mvpHabits.length}
-              </span>
-            </div>
-          </div>
         </div>
 
         <div className="dash-section-title flex items-center justify-between mt-4 mb-2">

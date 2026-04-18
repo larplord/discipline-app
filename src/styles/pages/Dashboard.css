@@ -55,7 +55,57 @@
 .stat-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-top: 0.2rem; }
 .stat-sub   { font-size: 0.72rem; color: var(--text-faint); }
 
-/* Habits */
+/* Section headers */
+.dash-section-heading {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.dash-section-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0.35rem 0 0;
+  max-width: 36rem;
+  line-height: 1.45;
+}
+
+/* Habits panel — matches Habit Tracker language */
+.dash-habits-panel {
+  padding: 0;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--bg-card) 0%, rgba(19, 19, 31, 0.97) 100%);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-card);
+}
+.dash-habit-list {
+  padding: 0.75rem 1rem 0;
+  gap: 0.45rem;
+}
+.dash-habit-card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  padding: 0.85rem 1rem;
+}
+.dash-habit-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--bg-elevated);
+}
+.dash-habit-footer {
+  padding: 1rem 1.25rem 1.15rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.15);
+}
+.dash-habits-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.75rem 1.25rem;
+}
+
 .dash-habits { padding: 1rem; }
 
 .habit-quick-list {
@@ -101,15 +151,6 @@
 
 .habit-emoji { font-size: 1rem; flex-shrink: 0; }
 .habit-name  { font-size: 0.875rem; font-weight: 500; }
-.streak-pill {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--gold-light);
-  background: var(--gold-glow);
-  padding: 0.15rem 0.45rem;
-  border-radius: 99px;
-  flex-shrink: 0;
-}
 
 .habit-progress-footer { margin-top: 0.5rem; }
 

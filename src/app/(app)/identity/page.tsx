@@ -146,15 +146,31 @@ export default function IdentityPage() {
 
         <h3 className="mt-4 mb-3">Rank Progression</h3>
         <div className="levels-list">
-          {LEVELS_UI.map((l) => (
-            <div key={l.title} className={`level-row ${identity.totalScore >= l.min ? 'unlocked' : ''}`}>
-              <span className="level-icon">{l.icon}</span>
-              <div>
-                <div className="level-name">{l.title}</div>
-                <div className="level-req">{l.min} XP</div>
+          {LEVELS_UI.map((l) => {
+            const unlocked = identity.totalScore >= l.min;
+            const current = level.title === l.title;
+            return (
+              <div
+                key={l.title}
+                className={`level-row ${unlocked ? 'unlocked' : 'locked'} ${current ? 'current' : ''}`}
+              >
+                <div className="level-row-glow" aria-hidden />
+                <span className="level-icon">{l.icon}</span>
+                <div className="level-row-body">
+                  <div className="level-name-row">
+                    <span className="level-name">{l.title}</span>
+                    {unlocked && <span className="level-badge-earned">Earned</span>}
+                    {current && <span className="level-badge-current">Current</span>}
+                  </div>
+                  <p className="level-desc">{l.desc}</p>
+                  <div className="level-req">
+                    <span className="level-req-val">{l.min.toLocaleString()} XP</span>
+                    <span className="level-req-label">{unlocked ? 'Reached' : 'Required'}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

@@ -29,7 +29,144 @@
 .levels-list {
   display: flex;
   flex-direction: column;
+  gap: 0.65rem;
+}
+
+.level-row {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  overflow: hidden;
+  transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.level-row-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(99, 102, 241, 0.12), rgba(245, 158, 11, 0.08));
+  transition: opacity 0.3s ease;
+}
+
+.level-row.locked {
+  opacity: 0.42;
+}
+
+.level-row.locked .level-icon {
+  filter: grayscale(0.9);
+}
+
+.level-row.unlocked {
+  opacity: 1;
+  border-color: rgba(245, 158, 11, 0.22);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.06), var(--bg-card));
+}
+
+.level-row.unlocked .level-row-glow {
+  opacity: 1;
+}
+
+.level-row.current {
+  border-color: var(--border-accent);
+  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2), var(--shadow-glow);
+  transform: translateY(-1px);
+}
+
+.level-row.current .level-row-glow {
+  opacity: 1;
+  background: linear-gradient(120deg, rgba(99, 102, 241, 0.18), rgba(245, 158, 11, 0.06));
+}
+
+.level-row .level-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  align-self: center;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.level-row-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  z-index: 1;
+}
+
+.level-name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.level-name {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.level-badge-earned,
+.level-badge-current {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 99px;
+}
+
+.level-badge-earned {
+  background: var(--gold-glow);
+  color: var(--gold-light);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.level-badge-current {
+  background: var(--accent-faint);
+  color: var(--accent-light);
+  border: 1px solid var(--border-accent);
+}
+
+.level-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  font-style: italic;
+  margin: 0;
+}
+
+.level-req {
+  display: flex;
+  align-items: baseline;
   gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.level-req-val {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.level-row.unlocked .level-req-val {
+  color: var(--gold-light);
+}
+
+.level-req-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
 }
 
 .level-item {

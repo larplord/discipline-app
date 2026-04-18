@@ -189,7 +189,7 @@ function GoalSection({
           const pct = goalProgress(g);
           const open = expanded === g.id;
           return (
-            <div key={g.id} className="card goal-card">
+            <div key={g.id} className={`card goal-card ${open ? 'expanded' : ''}`}>
               <div className="goal-header" onClick={() => setExpanded(open ? null : g.id)} role="presentation">
                 <div>
                   <div className="goal-title-row">

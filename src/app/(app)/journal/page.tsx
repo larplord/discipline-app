@@ -50,7 +50,7 @@ export default function JournalPage() {
       list.sort(([a], [b]) => b.localeCompare(a));
       setHistory(list.slice(0, 30));
     });
-  }, [uid, saved]);
+  }, [uid]);
 
   async function handleChange(key: keyof JournalEntry, val: string) {
     const updated = { ...entry, [key]: val };
@@ -69,7 +69,9 @@ export default function JournalPage() {
     const d = subDays(new Date(), i);
     const key = format(d, 'yyyy-MM-dd');
     const hasEntry = history.some(([k]) => k === key);
-    return { key, label: i === 0 ? 'Today' : format(d, 'MMM d'), hasEntry };
+    const dow = format(d, 'EEE');
+    const labelMain = i === 0 ? 'Today' : format(d, 'd');
+    return { key, dow, labelMain, hasEntry, isToday: i === 0 };
   });
 
   return (
@@ -90,25 +92,51 @@ export default function JournalPage() {
 
       <div className="page-body">
         <div className="journal-day-picker card mb-4">
-          <div className="section-label mb-2">Jump to day</div>
-          <div className="day-pills">
+          <div className="journal-day-picker-head">
+            <div>
+              <div className="section-label">Jump to day</div>
+              <p className="journal-day-picker-hint">Last 7 days · dot means saved entry</p>
+            </div>
+          </div>
+          <div className="day-pills" role="tablist" aria-label="Journal day">
             {recentDays.map((d) => (
               <button
                 key={d.key}
                 type="button"
+                role="tab"
+                aria-selected={selectedDate === d.key}
                 className={`day-pill ${selectedDate === d.key ? 'active' : ''} ${d.hasEntry ? 'has-entry' : ''}`}
                 onClick={() => setSelectedDate(d.key)}
               >
-                {d.label}
+                <span className="day-pill-dow">{d.isToday ? 'Now' : d.dow}</span>
+                <span className="day-pill-date">{d.labelMain}</span>
+                {d.hasEntry && <span className="day-pill-dot" aria-hidden />}
               </button>
             ))}
           </div>
         </div>
 
         <div className="journal-prompts">
+          <div className="card journal-free-card mb-4">
+            <div className="journal-free-head">
+              <div>
+                <div className="section-label">Open journal</div>
+                <p className="journal-free-sub">Unstructured space — thoughts, plans, or anything you need to clear your head.</p>
+              </div>
+            </div>
+            <textarea
+              className="textarea journal-free-textarea"
+              rows={6}
+              placeholder="Start typing…"
+              value={entry.freeform}
+              onChange={(e) => handleChange('freeform', e.target.value)}
+            />
+          </div>
+
+          <div className="journal-guided-label section-label mb-2">Guided reflection</div>
           {PROMPTS.map((p) => (
             <div key={p.key} className="card journal-block mb-3">
-              <label className="section-label">{p.label}</label>
+              <label className="journal-prompt-label">{p.label}</label>
               <textarea
                 className="textarea"
                 rows={3}
@@ -118,16 +146,6 @@ export default function JournalPage() {
               />
             </div>
           ))}
-          <div className="card journal-block">
-            <label className="section-label">Free writing</label>
-            <textarea
-              className="textarea"
-              rows={5}
-              placeholder="Anything on your mind..."
-              value={entry.freeform}
-              onChange={(e) => handleChange('freeform', e.target.value)}
-            />
-          </div>
         </div>
       </div>
     </div>
