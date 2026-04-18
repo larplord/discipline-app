@@ -1,0 +1,98 @@
+/* Focus timer page */
+
+.focus-modes {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.85rem;
+  font-weight: 600;
+  gap: 0.1rem;
+  font-family: inherit;
+}
+.mode-btn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+.mode-btn.active { background: transparent; font-weight: 700; }
+.mode-time { font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+
+.custom-range {
+  margin-bottom: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+.range-input {
+  width: 100%;
+  margin-top: 0.5rem;
+  accent-color: var(--accent);
+  height: 4px;
+}
+
+.timer-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.timer-ring-wrap {
+  filter: drop-shadow(0 0 24px color-mix(in srgb, var(--ring-color, var(--accent)) 25%, transparent));
+}
+
+.timer-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.timer-btn {
+  padding: 0.75rem 2.5rem;
+  font-size: 1rem;
+}
+
+.sessions-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+.session-dot {
+  font-size: 1.1rem;
+  transition: var(--transition);
+}
+.session-dot.done { filter: drop-shadow(0 0 4px var(--gold-light)); }
+
+.focus-tips { padding: 1.25rem; }
+.tips-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+.tip-item {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+.tip-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+.tip-text  { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; }
+
+.text-center { text-align: center; }
+
+@media (max-width: 600px) {
+  .tips-grid { grid-template-columns: 1fr; }
+}

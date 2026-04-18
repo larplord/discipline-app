@@ -1,0 +1,81 @@
+/* Goals page */
+
+.goal-section { margin-bottom: 2rem; }
+
+.goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.goal-card {
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+}
+.goal-card.expanded { border-color: var(--border-accent); }
+
+.goal-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.goal-priority-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.priority-high   { background: var(--red);    box-shadow: 0 0 6px rgba(239,68,68,0.5); }
+.priority-medium { background: var(--gold);   box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+.priority-low    { background: var(--text-muted); }
+
+.goal-title { font-size: 0.95rem; font-weight: 700; }
+.goal-pct   { font-size: 1.2rem; font-weight: 900; }
+
+.goal-detail { margin-top: 0.75rem; }
+
+.milestone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.milestone-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+.milestone-item:hover { background: var(--bg-elevated); }
+.milestone-item.done .milestone-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.milestone-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid var(--text-faint);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+  transition: var(--transition);
+  font-family: inherit;
+}
+.milestone-check.checked {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.milestone-text { font-size: 0.875rem; flex: 1; }

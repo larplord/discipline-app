@@ -1,0 +1,94 @@
+/* Habits page */
+
+.habits-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.hstat { padding: 1rem; }
+.hstat-val   { font-size: 2rem; font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
+.hstat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700; margin-top: 0.25rem; }
+
+.habit-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.filter-pill {
+  padding: 0.3rem 0.8rem;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+.filter-pill:hover { border-color: rgba(255,255,255,0.15); color: var(--text-primary); }
+.filter-pill.active {
+  background: var(--accent-faint);
+  border-color: var(--border-accent);
+  color: var(--accent-light);
+}
+
+.habit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.habit-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  transition: var(--transition);
+}
+.habit-card.done {
+  opacity: 0.6;
+}
+.habit-card.done .habit-name-large {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.habit-toggle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--text-faint);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: var(--transition);
+  color: white;
+  font-family: inherit;
+}
+.habit-toggle.checked {
+  background: var(--green);
+  border-color: var(--green);
+  box-shadow: 0 0 12px rgba(16,185,129,0.4);
+}
+
+.habit-emoji-large { font-size: 1.5rem; flex-shrink: 0; }
+
+.habit-info { flex: 1; min-width: 0; }
+.habit-name-large { font-size: 0.95rem; font-weight: 600; }
+
+.habit-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .habits-stats { grid-template-columns: 1fr 1fr; }
+}

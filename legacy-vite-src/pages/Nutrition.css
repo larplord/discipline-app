@@ -1,0 +1,54 @@
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.nutrition-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.macro-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.nutrition-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.macro-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.macro-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.macro-fill-fat {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.macro-fill-protein {
+  background: linear-gradient(90deg, #6366f1, #818cf8);
+}
+
+.macro-fill-carbs {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+@media (max-width: 768px) {
+  .nutrition-grid {
+    grid-template-columns: 1fr;
+  }
+}

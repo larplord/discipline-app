@@ -1,0 +1,130 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ── Helpers ───────────────────────────────────────── */
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function pairId(a, b) {
+      return a < b ? a + '_' + b : b + '_' + a;
+    }
+
+    function friendshipActiveWith(targetUid) {
+      let pid = pairId(request.auth.uid, targetUid);
+      return exists(/databases/$(database)/documents/friendships/$(pid)) &&
+        get(/databases/$(database)/documents/friendships/$(pid)).data.status == 'active';
+    }
+
+    /* ── Future: teams / challenges (deny by default, expand later) ── */
+    match /teams/{teamId} {
+      allow read, write: if false;
+    }
+    match /teamMembers/{docId} {
+      allow read, write: if false;
+    }
+    match /challenges/{challengeId} {
+      allow read, write: if false;
+    }
+    match /leaderboards/{docId} {
+      allow read, write: if false;
+    }
+
+    /* ── Friendships (pair document id = sorted uid_a_uid_b) ── */
+    match /friendships/{pairDocId} {
+      allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasAll(['memberIds', 'invitedBy', 'status', 'createdAt'])
+        && request.resource.data.memberIds is list
+        && request.resource.data.memberIds.size() == 2
+        && request.auth.uid in request.resource.data.memberIds
+        && request.resource.data.invitedBy == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && pairId(request.resource.data.memberIds[0], request.resource.data.memberIds[1]) == pairDocId;
+
+      allow update: if signedIn() && request.auth.uid in resource.data.memberIds
+        && request.resource.data.memberIds == resource.data.memberIds
+        && request.resource.data.invitedBy == resource.data.invitedBy
+        && (
+          (resource.data.status == 'pending'
+            && request.auth.uid != resource.data.invitedBy
+            && request.resource.data.status in ['active', 'declined'])
+          || (resource.data.status == 'pending'
+            && request.auth.uid == resource.data.invitedBy
+            && request.resource.data.status == 'declined')
+        );
+
+      allow delete: if false;
+    }
+
+    /* ── User-owned private data ───────────────────────── */
+    match /users/{uid} {
+      allow read, write: if isSelf(uid);
+
+      match /mvpHabits/{habitId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /habits/{habitId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /habitLogs/{dateId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /goals/{goalId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /journal/{dateId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /focusLogs/{dateId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /identity/{docId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /nutritionTargets/{docId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /nutritionIntake/{dateId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      match /settings/{docId} {
+        allow read, write: if isSelf(uid);
+      }
+
+      /* Optional denormalized profile for discovery later */
+      match /publicProfile/{docId} {
+        allow read: if signedIn();
+        allow write: if isSelf(uid);
+      }
+
+      /* Friend-visible summary when opted in + active friendship */
+      match /shared/{docId} {
+        allow write: if isSelf(uid);
+        allow read: if signedIn() && (
+          isSelf(uid)
+          || (
+            resource.data.shareEnabled == true
+            && friendshipActiveWith(uid)
+          )
+        );
+      }
+    }
+  }
+}
