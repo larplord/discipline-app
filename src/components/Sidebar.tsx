@@ -12,6 +12,7 @@ const NAV = [
   { href: '/goals', label: 'Goals', icon: TargetIcon },
   { href: '/journal', label: 'Journal', icon: BookIcon },
   { href: '/focus', label: 'Focus', icon: TimerIcon },
+  { href: '/fitness/bodybuilding', label: 'Fitness', icon: DumbbellIcon },
   { href: '/nutrition', label: 'Nutrition', icon: NutritionIcon },
   { href: '/friends', label: 'Friends', icon: UsersIcon },
   { href: '/analytics', label: 'Analytics', icon: ChartIcon },
@@ -51,17 +52,21 @@ export function Sidebar({ open, onCloseMobile, onSignOut, scoreData }: SidebarPr
 
       <nav className="sidebar-nav">
         <div className="nav-label">Navigation</div>
-        {NAV.map(({ href, label, icon: Icon }) => (
+        {NAV.map(({ href, label, icon: Icon }) => {
+          const active =
+            href === '/fitness/bodybuilding' ? pathname.startsWith('/fitness') : pathname === href;
+          return (
           <Link
             key={href}
             href={href}
-            className={`nav-item ${pathname === href ? 'active' : ''}`}
+            className={`nav-item ${active ? 'active' : ''}`}
             onClick={() => onCloseMobile()}
           >
             <Icon size={17} />
             {label}
           </Link>
-        ))}
+          );
+        })}
       </nav>
 
       <div className="sidebar-footer">
@@ -143,6 +148,17 @@ function NutritionIcon({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 21h14M7 21V10h10v11M9 10V5h6v5" />
+    </svg>
+  );
+}
+function DumbbellIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6.5 6.5h3v11h-3a2 2 0 01-2-2v-7a2 2 0 012-2zm11 0h-3v11h3a2 2 0 002-2v-7a2 2 0 00-2-2zM9.5 9h5M9.5 12h5M9.5 15h5"
+      />
     </svg>
   );
 }

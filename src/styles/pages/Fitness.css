@@ -1,0 +1,506 @@
+/* Fitness area — layout + Bodybuilding */
+
+.fitness-page-header {
+  padding: 2rem 2rem 0;
+  margin-bottom: 1rem;
+}
+
+.fitness-page-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.fitness-page-sub {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
+.fitness-subnav-wrap {
+  padding: 0 2rem;
+  margin-bottom: 1.25rem;
+}
+
+.fitness-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  max-width: 42rem;
+}
+
+.fitness-subnav-item {
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.fitness-subnav-item:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.fitness-subnav-item.active {
+  background: var(--accent-faint);
+  color: var(--accent-light);
+  border: 1px solid var(--border-accent);
+}
+
+.fitness-body-page {
+  padding: 0 2rem 2.5rem;
+}
+
+/* Nutrition & goals — elevated card */
+.bb-nutrition-card {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  background: linear-gradient(165deg, rgba(30, 30, 48, 0.98) 0%, var(--bg-card) 100%);
+  padding: 1.5rem 1.75rem 1.75rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-card);
+}
+
+.bb-nutrition-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.bb-nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem 2rem;
+}
+
+.bb-stat-block label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.bb-stat-value {
+  font-size: 1.65rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.bb-stat-value.accent-blue {
+  color: #93c5fd;
+}
+
+.bb-stat-value.accent-orange {
+  color: #fb923c;
+}
+
+.bb-stat-sub {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.bb-goal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.bb-goal-pill.cutting {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.bb-goal-pill.bulking {
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.bb-goal-pill.maintenance {
+  background: var(--accent-faint);
+  color: var(--accent-light);
+  border: 1px solid var(--border-accent);
+}
+
+.bb-macros-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.bb-macros-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.bb-macro-row {
+  margin-bottom: 1rem;
+}
+
+.bb-macro-row:last-child {
+  margin-bottom: 0;
+}
+
+.bb-macro-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.4rem;
+}
+
+.bb-macro-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.bb-macro-nums {
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.bb-macro-bar {
+  height: 10px;
+  border-radius: 99px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+
+.bb-macro-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bb-macro-fill.calories {
+  background: linear-gradient(90deg, #60a5fa, #93c5fd);
+}
+
+.bb-macro-fill.protein {
+  background: linear-gradient(90deg, #ea580c, #fb923c);
+}
+
+/* Training row */
+.bb-training-row {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(220px, 1.1fr) minmax(280px, 1.4fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.bb-hero-card {
+  border-radius: var(--radius-xl);
+  padding: 1.35rem 1.25rem 1.25rem;
+  background: linear-gradient(160deg, #4c1d95 0%, #5b21b6 45%, #4338ca 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  min-height: 280px;
+  box-shadow: 0 12px 40px rgba(76, 29, 149, 0.35);
+}
+
+.bb-hero-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.bb-hero-num {
+  font-size: 4rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  margin: 0.5rem 0 0.75rem;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+
+.bb-hero-foot {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.bb-hero-foot span {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.bb-hero-switch {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.bb-hero-switch:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.bb-analytics-card {
+  border-radius: var(--radius-xl);
+  padding: 1.25rem 1.35rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.bb-analytics-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.bb-pie-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bb-pie {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: inset 0 0 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.bb-pie-legend {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.bb-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  gap: 0.5rem;
+}
+
+.bb-legend-left {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.bb-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bb-workout-card {
+  border-radius: var(--radius-xl);
+  padding: 1.15rem 1.25rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+.bb-workout-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.bb-workout-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.bb-exercise-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.65rem;
+  background: var(--bg-secondary);
+}
+
+.bb-exercise-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.bb-exercise-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.bb-exercise-muscle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.bb-set-row {
+  display: grid;
+  grid-template-columns: 28px 52px 1fr 1fr;
+  gap: 0.45rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+}
+
+.bb-set-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--text-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: transparent;
+  color: #fff;
+  flex-shrink: 0;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.bb-set-check.done {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.bb-set-label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.bb-set-input {
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+.bb-set-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.bb-add-set {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent-light);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0.25rem 0;
+}
+
+.bb-add-set:hover {
+  text-decoration: underline;
+}
+
+.bb-profile-form .input,
+.bb-profile-form .select {
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 1100px) {
+  .bb-training-row {
+    grid-template-columns: 1fr;
+  }
+
+  .bb-hero-card {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .fitness-subnav-wrap,
+  .fitness-page-header,
+  .fitness-body-page {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .bb-nutrition-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Placeholder inner pages */
+.fitness-placeholder {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+.fitness-placeholder-card {
+  text-align: center;
+  padding: 2.5rem 2rem;
+}
+
+.fitness-placeholder h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.fitness-placeholder p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}

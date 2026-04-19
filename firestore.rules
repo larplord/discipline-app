@@ -104,6 +104,23 @@ service cloud.firestore {
         allow read, write: if isSelf(uid);
       }
 
+      /* Fitness modules (e.g. bodybuilding branch + nested logs) */
+      match /fitness/{branchId} {
+        allow read, write: if isSelf(uid);
+
+        match /workouts/{workoutId} {
+          allow read, write: if isSelf(uid);
+        }
+
+        match /macroLogs/{logId} {
+          allow read, write: if isSelf(uid);
+        }
+
+        match /goals/{goalId} {
+          allow read, write: if isSelf(uid);
+        }
+      }
+
       match /settings/{docId} {
         allow read, write: if isSelf(uid);
       }
