@@ -1,23 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
   getDoc,
-  onSnapshot,
   setDoc,
   updateDoc,
 } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
-import { isJournalCompleteForDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
+import { todayProgress, weekProgress } from '@/lib/scoring';
 import type { DayLog } from '@/lib/types';
 import { calcStreak } from '@/lib/streaks';
-import type { Habit, JournalEntry } from '@/lib/types';
+import type { Habit } from '@/lib/types';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import '@/styles/pages/Habits.css';
 
@@ -33,49 +32,22 @@ const EMOJIS: Record<string, string> = {
 };
 
 export default function HabitsPage() {
-  const { uid, habits, dayLog } = useUserData();
-  const [logsByDate, setLogsByDate] = useState<Record<string, DayLog>>({});
+  const {
+    uid,
+    habits,
+    dayLog,
+    logsByDate,
+    focusToday,
+    journal,
+    goals,
+    nutritionTargets,
+    nutritionIntake,
+    shareProgressWithFriends,
+    identityProfile,
+  } = useUserData();
   const [filter, setFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState<Habit | null>(null);
-  const [shareEnabled, setShareEnabled] = useState(false);
-  const [focusToday, setFocusToday] = useState(0);
-  const [journal, setJournal] = useState<JournalEntry>({
-    well: '',
-    avoided: '',
-    improve: '',
-    freeform: '',
-  });
-
-  useEffect(() => {
-    const db = getFirestoreDb();
-    const t = todayKey();
-    const unsubs = [
-      onSnapshot(collection(db, 'users', uid, 'habitLogs'), (snap) => {
-        const m: Record<string, DayLog> = {};
-        snap.forEach((d) => {
-          m[d.id] = (d.data()?.entries as DayLog) ?? {};
-        });
-        setLogsByDate(m);
-      }),
-      onSnapshot(doc(db, 'users', uid, 'settings', 'privacy'), (s) =>
-        setShareEnabled(!!s.data()?.shareProgressWithFriends)
-      ),
-      onSnapshot(doc(db, 'users', uid, 'focusLogs', t), (s) =>
-        setFocusToday(Number(s.data()?.count ?? 0))
-      ),
-      onSnapshot(doc(db, 'users', uid, 'journal', t), (s) => {
-        const d = s.data();
-        setJournal({
-          well: d?.well ?? '',
-          avoided: d?.avoided ?? '',
-          improve: d?.improve ?? '',
-          freeform: d?.freeform ?? '',
-        });
-      }),
-    ];
-    return () => unsubs.forEach((u) => u());
-  }, [uid]);
 
   const todayPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
@@ -94,8 +66,13 @@ export default function HabitsPage() {
       dayLog: next,
       logsByDate: { ...logsByDate, [t]: next },
       focusToday,
-      journalToday: isJournalCompleteForDailyScore(journal),
-      shareEnabled,
+      journal,
+      shareEnabled: shareProgressWithFriends,
+      goals,
+      nutritionTargets,
+      nutritionIntake,
+      identityTotalScore: identityProfile.totalScore,
+      identityBestStreak: identityProfile.bestStreak ?? 0,
     });
   }
 

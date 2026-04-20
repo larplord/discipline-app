@@ -1,22 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { collection, doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
-import {
-  calcDailyScore,
-  isJournalCompleteForDailyScore,
-  todayProgress,
-  weekProgress,
-} from '@/lib/scoring';
+import { calcDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import { calcStreak } from '@/lib/streaks';
 import { getLevel } from '@/lib/levels';
-import type { DayLog, Goal, IdentityDoc } from '@/lib/types';
+import type { DayLog, Goal } from '@/lib/types';
 import '@/styles/pages/Habits.css';
 import '@/styles/pages/Dashboard.css';
 
@@ -59,30 +53,9 @@ export default function DashboardPage() {
     logsByDate,
     nutritionTargets,
     nutritionIntake,
+    shareProgressWithFriends,
+    identityProfile,
   } = useUserData();
-  const [identity, setIdentity] = useState<IdentityDoc>({
-    totalScore: 0,
-    bestStreak: 0,
-  });
-  const [shareEnabled, setShareEnabled] = useState(false);
-
-  useEffect(() => {
-    const db = getFirestoreDb();
-    const unsubs = [
-      onSnapshot(doc(db, 'users', uid, 'identity', 'profile'), (snap) => {
-        const d = snap.data();
-        setIdentity({
-          totalScore: Number(d?.totalScore ?? 0),
-          bestStreak: Number(d?.bestStreak ?? 0),
-          lastScoreDate: d?.lastScoreDate as string | undefined,
-        });
-      }),
-      onSnapshot(doc(db, 'users', uid, 'settings', 'privacy'), (snap) => {
-        setShareEnabled(!!snap.data()?.shareProgressWithFriends);
-      }),
-    ];
-    return () => unsubs.forEach((u) => u());
-  }, [uid]);
 
   async function toggleHabit(habitId: string) {
     const db = getFirestoreDb();
@@ -97,8 +70,13 @@ export default function DashboardPage() {
       dayLog: next,
       logsByDate: { ...logsByDate, [t]: next },
       focusToday,
-      journalToday: isJournalCompleteForDailyScore(journal),
-      shareEnabled,
+      journal,
+      shareEnabled: shareProgressWithFriends,
+      goals,
+      nutritionTargets,
+      nutritionIntake,
+      identityTotalScore: identityProfile.totalScore,
+      identityBestStreak: identityProfile.bestStreak ?? 0,
     });
   }
 
@@ -114,7 +92,7 @@ export default function DashboardPage() {
   });
   const todayPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
-  const level = getLevel(identity.totalScore ?? 0);
+  const level = getLevel(identityProfile.totalScore ?? 0);
   const todayStr = format(new Date(), 'EEEE, MMMM d');
   const motivation =
     (score >= 70 ? MOTIVATIONAL.high : score >= 40 ? MOTIVATIONAL.mid : MOTIVATIONAL.low)[
@@ -123,7 +101,7 @@ export default function DashboardPage() {
 
   const bestStreak = Math.max(
     ...habits.map((h) => calcStreak(h.id, logsByDate)),
-    identity.bestStreak ?? 0,
+    identityProfile.bestStreak ?? 0,
     0
   );
   const topGoals = goals.slice(0, 3);

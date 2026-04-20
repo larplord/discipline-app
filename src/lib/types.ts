@@ -50,13 +50,25 @@ export type SharedSummary = {
   weekHabitPct: number;
   focusToday: number;
   journalToday: boolean;
+  /** Optional enriched fields for friends (safe snapshot). */
+  dailyScore?: number;
+  rankTitle?: string;
+  bestStreak?: number;
+  habitsCompletedToday?: number;
   updatedAt?: unknown;
 };
 
 export type Friendship = {
   memberIds: [string, string];
   invitedBy: string;
-  status: 'pending' | 'active' | 'declined';
+  status: 'pending' | 'active' | 'declined' | 'ended';
+  createdAt?: unknown;
+  invitedByName?: string;
+};
+
+/** Sender-only log when user “invites by email” (no server-side email lookup in MVP). */
+export type FriendEmailInviteOutbox = {
+  recipientEmail: string;
   createdAt?: unknown;
   invitedByName?: string;
 };

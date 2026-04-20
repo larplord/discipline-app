@@ -16,7 +16,7 @@ import {
 } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { todayKey } from '@/lib/dates';
-import type { DayLog, Goal, Habit, JournalEntry, MacroSnapshot } from '@/lib/types';
+import type { DayLog, Goal, Habit, IdentityDoc, JournalEntry, MacroSnapshot } from '@/lib/types';
 
 const emptyJournal: JournalEntry = {
   well: '',
@@ -37,6 +37,10 @@ export type UserDataContextValue = {
   logsByDate: Record<string, DayLog>;
   nutritionTargets: MacroSnapshot;
   nutritionIntake: MacroSnapshot;
+  /** From `settings/privacy` — drives friend-visible summary when friendship is active. */
+  shareProgressWithFriends: boolean;
+  /** From `identity/profile` — for levels + shared summary rank. */
+  identityProfile: IdentityDoc;
   loading: boolean;
 };
 
@@ -60,6 +64,11 @@ export function UserDataProvider({
     fat: 0,
     protein: 0,
     carbs: 0,
+  });
+  const [shareProgressWithFriends, setShareProgressWithFriends] = useState(false);
+  const [identityProfile, setIdentityProfile] = useState<IdentityDoc>({
+    totalScore: 0,
+    bestStreak: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -179,6 +188,31 @@ export function UserDataProvider({
       )
     );
 
+    unsubs.push(
+      onSnapshot(
+        doc(db, 'users', uid, 'settings', 'privacy'),
+        (snap) => {
+          setShareProgressWithFriends(!!snap.data()?.shareProgressWithFriends);
+        },
+        logErr('settingsPrivacy')
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
+        doc(db, 'users', uid, 'identity', 'profile'),
+        (snap) => {
+          const d = snap.data();
+          setIdentityProfile({
+            totalScore: Number(d?.totalScore ?? 0),
+            bestStreak: Number(d?.bestStreak ?? 0),
+            lastScoreDate: d?.lastScoreDate as string | undefined,
+          });
+        },
+        logErr('identityProfile')
+      )
+    );
+
     return () => {
       unsubs.forEach((u) => u());
     };
@@ -195,9 +229,24 @@ export function UserDataProvider({
       logsByDate,
       nutritionTargets,
       nutritionIntake,
+      shareProgressWithFriends,
+      identityProfile,
       loading,
     }),
-    [uid, habits, dayLog, focusToday, journal, goals, logsByDate, nutritionTargets, nutritionIntake, loading]
+    [
+      uid,
+      habits,
+      dayLog,
+      focusToday,
+      journal,
+      goals,
+      logsByDate,
+      nutritionTargets,
+      nutritionIntake,
+      shareProgressWithFriends,
+      identityProfile,
+      loading,
+    ]
   );
 
   return <UserDataContext.Provider value={value}>{children}</UserDataContext.Provider>;
