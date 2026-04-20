@@ -55,6 +55,10 @@ export type SharedSummary = {
   rankTitle?: string;
   bestStreak?: number;
   habitsCompletedToday?: number;
+  /** Average milestone % across goals that have milestones — no titles or task text. */
+  goalsAvgPct?: number;
+  /** How many goals were included in `goalsAvgPct`. */
+  goalsTrackedCount?: number;
   updatedAt?: unknown;
 };
 

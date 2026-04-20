@@ -5,6 +5,19 @@ import { calcDailyScore, isJournalCompleteForDailyScore, todayProgress, weekProg
 import { calcStreak } from './streaks';
 import { getLevel } from './levels';
 
+/** Safe aggregate for friends: average milestone %, count of goals in the average. */
+export function computeGoalsShareFields(goals: Goal[]): { goalsAvgPct: number; goalsTrackedCount: number } {
+  const withMs = goals.filter((g) => (g.milestones?.length ?? 0) > 0);
+  if (!withMs.length) return { goalsAvgPct: 0, goalsTrackedCount: 0 };
+  let sum = 0;
+  for (const g of withMs) {
+    const ms = g.milestones ?? [];
+    const done = ms.filter((m) => m.done).length;
+    sum += (done / ms.length) * 100;
+  }
+  return { goalsAvgPct: Math.round(sum / withMs.length), goalsTrackedCount: withMs.length };
+}
+
 export async function syncSharedSummary(
   db: Firestore,
   uid: string,
@@ -43,6 +56,7 @@ export async function syncSharedSummary(
       : 0;
   const bestStreak = Math.max(maxPerHabit, input.identityBestStreak, 0);
   const habitsCompletedToday = input.habits.filter((h) => input.dayLog[h.id]).length;
+  const { goalsAvgPct, goalsTrackedCount } = computeGoalsShareFields(input.goals);
 
   await setDoc(
     doc(db, 'users', uid, 'shared', 'summary'),
@@ -56,6 +70,8 @@ export async function syncSharedSummary(
       rankTitle,
       bestStreak,
       habitsCompletedToday,
+      goalsAvgPct,
+      goalsTrackedCount,
       updatedAt: serverTimestamp(),
     },
     { merge: true }

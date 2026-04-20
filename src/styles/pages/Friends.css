@@ -183,3 +183,156 @@
   color: var(--green-light);
   background: rgba(16, 185, 129, 0.08);
 }
+
+/* Compare progress */
+.friends-compare {
+  border: 1px solid var(--border);
+  border-radius: var(--radius, 12px);
+  background: linear-gradient(165deg, var(--bg-elevated) 0%, rgba(245, 158, 11, 0.04) 45%, rgba(99, 102, 241, 0.06) 100%);
+  overflow: hidden;
+}
+
+.friends-compare-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.1rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.friends-compare-title {
+  font-size: 1.05rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.friends-compare-sub {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  max-width: 36rem;
+  line-height: 1.4;
+}
+
+.friends-compare-select {
+  min-width: 12rem;
+}
+
+.friends-compare-grid {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 1fr) 1fr 1fr;
+  gap: 0;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 560px) {
+  .friends-compare-grid {
+    grid-template-columns: minmax(5rem, 0.9fr) 1fr 1fr;
+    font-size: 0.78rem;
+  }
+  .friends-compare-val {
+    font-size: 0.95rem;
+  }
+}
+
+.friends-compare-head {
+  padding: 0.65rem 0.85rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.friends-compare-head.you {
+  color: var(--accent-light);
+}
+
+.friends-compare-head.them {
+  color: var(--gold-light);
+}
+
+/* Children participate in parent grid (supported in modern browsers). */
+.friends-compare-row {
+  display: contents;
+}
+
+.friends-compare-cell {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 3.1rem;
+}
+
+.friends-compare-cell.label {
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.friends-compare-val {
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.friends-compare-val small {
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 0.15rem;
+}
+
+.friends-compare-cell.win {
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.07);
+}
+
+.friends-compare-cell.lose {
+  opacity: 0.88;
+}
+
+.friends-compare-cell.tie {
+  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.25);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.friends-compare-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--green-light);
+  margin-top: 0.2rem;
+}
+
+.friends-compare-empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.friends-compare-bar {
+  height: 4px;
+  border-radius: 99px;
+  background: var(--bg-elevated);
+  margin-top: 0.35rem;
+  overflow: hidden;
+}
+
+.friends-compare-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  transition: width 0.35s ease;
+}

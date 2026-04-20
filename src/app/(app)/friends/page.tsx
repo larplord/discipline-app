@@ -20,7 +20,10 @@ import {
   logEmailFriendInvite,
 } from '@/lib/friendships';
 import type { Friendship, FriendEmailInviteOutbox, SharedSummary } from '@/lib/types';
-import { syncSharedSummary } from '@/lib/syncSharedSummary';
+import { syncSharedSummary, computeGoalsShareFields } from '@/lib/syncSharedSummary';
+import { calcDailyScore, isJournalCompleteForDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
+import { calcStreak } from '@/lib/streaks';
+import { getLevel } from '@/lib/levels';
 import { todayKey } from '@/lib/dates';
 import '@/styles/pages/Friends.css';
 
@@ -50,6 +53,22 @@ function otherMember(f: Friendship, selfUid: string) {
   return f.memberIds.find((m) => m !== selfUid) ?? '';
 }
 
+type CmpWin = 'you' | 'them' | 'tie' | 'none';
+
+function cmpHigh(my: number, their: number | undefined, theirOk: boolean): CmpWin {
+  if (!theirOk || their === undefined || Number.isNaN(their)) return 'none';
+  if (my === their) return 'tie';
+  return my > their ? 'you' : 'them';
+}
+
+function compareCellClass(col: 'you' | 'them', win: CmpWin): string {
+  const base = 'friends-compare-cell';
+  if (win === 'none') return base;
+  if (win === 'tie') return `${base} tie`;
+  if (win === 'you') return `${base} ${col === 'you' ? 'win' : 'lose'}`;
+  return `${base} ${col === 'them' ? 'win' : 'lose'}`;
+}
+
 export default function FriendsPage() {
   const { user } = useAuth();
   const {
@@ -73,6 +92,7 @@ export default function FriendsPage() {
   const [items, setItems] = useState<{ id: string; data: Friendship }[]>([]);
   const [outbox, setOutbox] = useState<{ id: string; data: FriendEmailInviteOutbox }[]>([]);
   const [friendRows, setFriendRows] = useState<Record<string, FriendRowModel>>({});
+  const [compareFriendUid, setCompareFriendUid] = useState('');
 
   const invitedByName = user?.displayName ?? user?.email ?? 'Friend';
   const habitsDoneToday = habits.filter((h) => dayLog[h.id]).length;
@@ -110,6 +130,83 @@ export default function FriendsPage() {
     [items, uid]
   );
   const active = useMemo(() => items.filter((x) => x.data.status === 'active'), [items]);
+
+  const activeFidsKey = useMemo(
+    () =>
+      [...active]
+        .map(({ data }) => otherMember(data, uid))
+        .filter(Boolean)
+        .sort()
+        .join(','),
+    [active, uid]
+  );
+
+  useEffect(() => {
+    if (!activeFidsKey) {
+      setCompareFriendUid('');
+      return;
+    }
+    const ids = activeFidsKey.split(',');
+    setCompareFriendUid((prev) => (prev && ids.includes(prev) ? prev : ids[0] ?? ''));
+  }, [activeFidsKey]);
+
+  const myLabel = user?.displayName?.trim() || user?.email?.split('@')[0] || 'You';
+  const myStats = useMemo(() => {
+    const scoreInput = {
+      habits,
+      dayLog,
+      focusToday,
+      journal,
+      goals,
+      nutritionTargets,
+      nutritionIntake,
+      logsByDate,
+    };
+    const maxH = habits.length ? Math.max(0, ...habits.map((h) => calcStreak(h.id, logsByDate))) : 0;
+    const bestStreak = Math.max(maxH, identityProfile.bestStreak ?? 0, 0);
+    const { goalsAvgPct, goalsTrackedCount } = computeGoalsShareFields(goals);
+    return {
+      dailyScore: calcDailyScore(scoreInput),
+      bestStreak,
+      habitsDone: habits.filter((h) => dayLog[h.id]).length,
+      weekPct: weekProgress(habits, logsByDate),
+      rankTitle: getLevel(identityProfile.totalScore ?? 0).title,
+      journalDone: isJournalCompleteForDailyScore(journal),
+      goalsAvgPct,
+      goalsTrackedCount,
+    };
+  }, [
+    habits,
+    dayLog,
+    focusToday,
+    journal,
+    goals,
+    nutritionTargets,
+    nutritionIntake,
+    logsByDate,
+    identityProfile.totalScore,
+    identityProfile.bestStreak,
+  ]);
+
+  const compareRow = friendRows[compareFriendUid];
+  const theirSnap = compareRow?.summary ?? undefined;
+  const theirOk = !!compareFriendUid && !!theirSnap && !compareRow?.summaryLocked;
+  const compareFriendName = compareRow?.displayName ?? 'Friend';
+
+  const theirGoalsOk = theirOk && (theirSnap?.goalsTrackedCount ?? 0) > 0;
+  const myGoalsOk = myStats.goalsTrackedCount > 0;
+
+  const wins = useMemo(
+    () => ({
+      score: cmpHigh(myStats.dailyScore, theirSnap?.dailyScore, theirOk),
+      streak: cmpHigh(myStats.bestStreak, theirSnap?.bestStreak, theirOk),
+      habits: cmpHigh(myStats.habitsDone, theirSnap?.habitsCompletedToday, theirOk),
+      week: cmpHigh(myStats.weekPct, theirSnap?.weekHabitPct, theirOk),
+      goals: theirGoalsOk && myGoalsOk ? cmpHigh(myStats.goalsAvgPct, theirSnap?.goalsAvgPct, true) : ('none' as CmpWin),
+      journal: cmpHigh(myStats.journalDone ? 1 : 0, theirSnap?.journalToday ? 1 : 0, theirOk),
+    }),
+    [myStats, theirSnap, theirOk, theirGoalsOk, myGoalsOk]
+  );
 
   useEffect(() => {
     const db = getFirestoreDb();
@@ -347,6 +444,210 @@ export default function FriendsPage() {
           </div>
         </section>
 
+        <section className="friends-compare card" aria-label="Compare progress with a friend">
+          <div className="friends-compare-top">
+            <div>
+              <div className="friends-compare-title">Compare progress</div>
+              <p className="friends-compare-sub">
+                Side-by-side snapshot: same safe fields friends can share. Nothing here reveals habit names, journal text,
+                or nutrition details. Enable sharing so your friend can see your column in their app too.
+              </p>
+            </div>
+            {active.length > 0 && (
+              <label className="flex flex-col gap-1 text-xs text-muted" style={{ alignItems: 'flex-end' }}>
+                <span>Compare with</span>
+                <select
+                  className="input friends-compare-select"
+                  value={compareFriendUid}
+                  onChange={(e) => setCompareFriendUid(e.target.value)}
+                  aria-label="Choose friend to compare"
+                >
+                  {active.map(({ id, data }) => {
+                    const fid = otherMember(data, uid);
+                    const label = friendRows[fid]?.displayName ?? `${fid.slice(0, 8)}…`;
+                    return (
+                      <option key={id} value={fid}>
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
+              </label>
+            )}
+          </div>
+
+          {active.length === 0 ? (
+            <div className="friends-compare-empty">
+              Add an active friend to unlock head-to-head motivation — your stats are warming up on the left already.
+            </div>
+          ) : (
+            <>
+              {!theirOk && (
+                <p className="text-xs text-muted px-3 pb-2" style={{ marginTop: '-0.25rem' }}>
+                  {compareRow?.summaryLocked
+                    ? `${compareFriendName} is not sharing a summary right now (or data is still syncing).`
+                    : 'Waiting for a shared summary from this friend.'}
+                </p>
+              )}
+              <div className="friends-compare-grid" role="table">
+                <div className="friends-compare-head">Metric</div>
+                <div className="friends-compare-head you">{myLabel}</div>
+                <div className="friends-compare-head them">{compareFriendName}</div>
+
+                <div className="friends-compare-row" role="row">
+                  <div className="friends-compare-cell label">Daily score</div>
+                  <div className={compareCellClass('you', wins.score)}>
+                    <span className="friends-compare-val">{myStats.dailyScore}</span>
+                    <div className="friends-compare-bar" aria-hidden>
+                      <span style={{ width: `${Math.min(100, myStats.dailyScore)}%` }} />
+                    </div>
+                    {wins.score === 'you' && <span className="friends-compare-badge">Ahead</span>}
+                  </div>
+                  <div className={compareCellClass('them', wins.score)}>
+                    <span className="friends-compare-val">{theirOk ? (theirSnap?.dailyScore ?? 0) : '—'}</span>
+                    {theirOk && (
+                      <div className="friends-compare-bar" aria-hidden>
+                        <span style={{ width: `${Math.min(100, theirSnap?.dailyScore ?? 0)}%` }} />
+                      </div>
+                    )}
+                    {wins.score === 'them' && <span className="friends-compare-badge">Ahead</span>}
+                    {wins.score === 'tie' && theirOk && (
+                      <span className="friends-compare-badge" style={{ color: 'var(--accent-light)' }}>
+                        Tied
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="friends-compare-row" role="row">
+                  <div className="friends-compare-cell label">Best streak</div>
+                  <div className={compareCellClass('you', wins.streak)}>
+                    <span className="friends-compare-val">{myStats.bestStreak}d</span>
+                    {wins.streak === 'you' && <span className="friends-compare-badge">Ahead</span>}
+                  </div>
+                  <div className={compareCellClass('them', wins.streak)}>
+                    <span className="friends-compare-val">{theirOk ? `${theirSnap?.bestStreak ?? 0}d` : '—'}</span>
+                    {wins.streak === 'them' && <span className="friends-compare-badge">Ahead</span>}
+                    {wins.streak === 'tie' && theirOk && (
+                      <span className="friends-compare-badge" style={{ color: 'var(--accent-light)' }}>
+                        Tied
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="friends-compare-row" role="row">
+                  <div className="friends-compare-cell label">Habits done today</div>
+                  <div className={compareCellClass('you', wins.habits)}>
+                    <span className="friends-compare-val">{myStats.habitsDone}</span>
+                    <small>Your habits today</small>
+                    {wins.habits === 'you' && <span className="friends-compare-badge">Ahead</span>}
+                  </div>
+                  <div className={compareCellClass('them', wins.habits)}>
+                    <span className="friends-compare-val">
+                      {theirOk ? (theirSnap?.habitsCompletedToday ?? 0) : '—'}
+                    </span>
+                    {theirOk && <small>Their habits today</small>}
+                    {wins.habits === 'them' && <span className="friends-compare-badge">Ahead</span>}
+                    {wins.habits === 'tie' && theirOk && (
+                      <span className="friends-compare-badge" style={{ color: 'var(--accent-light)' }}>
+                        Tied
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="friends-compare-row" role="row">
+                  <div className="friends-compare-cell label">Week habits %</div>
+                  <div className={compareCellClass('you', wins.week)}>
+                    <span className="friends-compare-val">{myStats.weekPct}%</span>
+                    {wins.week === 'you' && <span className="friends-compare-badge">Ahead</span>}
+                  </div>
+                  <div className={compareCellClass('them', wins.week)}>
+                    <span className="friends-compare-val">{theirOk ? `${theirSnap?.weekHabitPct ?? 0}%` : '—'}</span>
+                    {wins.week === 'them' && <span className="friends-compare-badge">Ahead</span>}
+                    {wins.week === 'tie' && theirOk && (
+                      <span className="friends-compare-badge" style={{ color: 'var(--accent-light)' }}>
+                        Tied
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="friends-compare-row" role="row">
+                  <div className="friends-compare-cell label">Rank</div>
+                  <div className="friends-compare-cell">
+                    <span className="friends-compare-val" style={{ fontSize: '0.88rem' }}>
+                      {myStats.rankTitle}
+                    </span>
+                    <small>Lifetime level title</small>
+                  </div>
+                  <div className="friends-compare-cell">
+                    <span className="friends-compare-val" style={{ fontSize: '0.88rem' }}>
+                      {theirOk ? (theirSnap?.rankTitle ?? '—') : '—'}
+                    </span>
+                    {theirOk && <small>Their shared title</small>}
+                  </div>
+                </div>
+
+                <div className="friends-compare-row" role="row">
+                  <div className="friends-compare-cell label">Journal check-in</div>
+                  <div className={compareCellClass('you', wins.journal)}>
+                    <span className="friends-compare-val">{myStats.journalDone ? 'Yes' : 'No'}</span>
+                    <small>Logged today (you)</small>
+                    {wins.journal === 'you' && <span className="friends-compare-badge">Ahead</span>}
+                  </div>
+                  <div className={compareCellClass('them', wins.journal)}>
+                    <span className="friends-compare-val">
+                      {!theirOk ? '—' : theirSnap?.journalToday ? 'Yes' : 'No'}
+                    </span>
+                    {theirOk && <small>Flag only — no entries</small>}
+                    {wins.journal === 'them' && <span className="friends-compare-badge">Ahead</span>}
+                    {wins.journal === 'tie' && theirOk && (
+                      <span className="friends-compare-badge" style={{ color: 'var(--accent-light)' }}>
+                        Tied
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="friends-compare-row" role="row">
+                  <div className="friends-compare-cell label">Goal progress (avg.)</div>
+                  <div className={compareCellClass('you', wins.goals)}>
+                    <span className="friends-compare-val">
+                      {myGoalsOk ? `${myStats.goalsAvgPct}%` : '—'}
+                    </span>
+                    <small>
+                      {myGoalsOk
+                        ? `${myStats.goalsTrackedCount} goal${myStats.goalsTrackedCount === 1 ? '' : 's'} · titles hidden`
+                        : 'No milestones to average'}
+                    </small>
+                    {wins.goals === 'you' && <span className="friends-compare-badge">Ahead</span>}
+                  </div>
+                  <div className={compareCellClass('them', wins.goals)}>
+                    <span className="friends-compare-val">
+                      {theirGoalsOk ? `${theirSnap?.goalsAvgPct ?? 0}%` : '—'}
+                    </span>
+                    <small>
+                      {theirGoalsOk
+                        ? `${theirSnap?.goalsTrackedCount ?? 0} goal${(theirSnap?.goalsTrackedCount ?? 0) === 1 ? '' : 's'} · titles hidden`
+                        : theirOk
+                          ? 'Not sharing or no milestone goals'
+                          : '—'}
+                    </small>
+                    {wins.goals === 'them' && <span className="friends-compare-badge">Ahead</span>}
+                    {wins.goals === 'tie' && theirGoalsOk && myGoalsOk && (
+                      <span className="friends-compare-badge" style={{ color: 'var(--accent-light)' }}>
+                        Tied
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </section>
+
         {error && (
           <p className="text-red text-sm" role="alert">
             {error}
@@ -375,7 +676,10 @@ export default function FriendsPage() {
               disabled={busy}
               onChange={(e) => void toggleShare(e.target.checked)}
             />
-            <span>Allow the friend-visible summary (score snapshot, habits %, streak, rank title, focus count, journal flag).</span>
+            <span>
+              Allow the friend-visible summary (score, streak, habits %, rank title, focus count, journal flag, optional
+              goal average % — never goal titles or journal text).
+            </span>
           </label>
           <p className="text-xs text-muted mt-2">
             <span className={`friends-pill ${shareProgressWithFriends ? 'on' : ''}`}>
