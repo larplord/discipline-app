@@ -1,3 +1,6 @@
+/** Per-day habit completion map (habit id → done today). */
+export type DayLog = Record<string, boolean>;
+
 export type Habit = {
   id: string;
   name: string;
@@ -14,6 +17,13 @@ export type Goal = {
   deadline?: string;
   description?: string;
   milestones: { id: string; text: string; done: boolean }[];
+};
+
+/** Macro grams for nutrition targets / intake (scoring + nutrition page). */
+export type MacroSnapshot = {
+  fat: number;
+  protein: number;
+  carbs: number;
 };
 
 export type JournalEntry = {

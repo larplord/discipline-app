@@ -34,6 +34,10 @@ function ShellInner({ children }: { children: ReactNode }) {
           dayLog: data.dayLog,
           focusToday: data.focusToday,
           journal: data.journal,
+          goals: data.goals,
+          nutritionTargets: data.nutritionTargets,
+          nutritionIntake: data.nutritionIntake,
+          logsByDate: data.logsByDate,
         }}
         onSignOut={logout}
       />

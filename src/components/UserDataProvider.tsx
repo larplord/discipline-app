@@ -16,19 +16,7 @@ import {
 } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { todayKey } from '@/lib/dates';
-import type { DayLog } from '@/lib/scoring';
-import type { Habit, JournalEntry } from '@/lib/types';
-
-export type UserDataContextValue = {
-  uid: string;
-  habits: Habit[];
-  dayLog: DayLog;
-  focusToday: number;
-  journal: JournalEntry;
-  loading: boolean;
-};
-
-const UserDataContext = createContext<UserDataContextValue | null>(null);
+import type { DayLog, Goal, Habit, JournalEntry, MacroSnapshot } from '@/lib/types';
 
 const emptyJournal: JournalEntry = {
   well: '',
@@ -36,6 +24,23 @@ const emptyJournal: JournalEntry = {
   improve: '',
   freeform: '',
 };
+
+const DEFAULT_MACRO_TARGETS: MacroSnapshot = { fat: 70, protein: 180, carbs: 220 };
+
+export type UserDataContextValue = {
+  uid: string;
+  habits: Habit[];
+  dayLog: DayLog;
+  focusToday: number;
+  journal: JournalEntry;
+  goals: Goal[];
+  logsByDate: Record<string, DayLog>;
+  nutritionTargets: MacroSnapshot;
+  nutritionIntake: MacroSnapshot;
+  loading: boolean;
+};
+
+const UserDataContext = createContext<UserDataContextValue | null>(null);
 
 export function UserDataProvider({
   uid,
@@ -48,14 +53,20 @@ export function UserDataProvider({
   const [dayLog, setDayLog] = useState<DayLog>({});
   const [focusToday, setFocusToday] = useState(0);
   const [journal, setJournal] = useState<JournalEntry>(emptyJournal);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [logsByDate, setLogsByDate] = useState<Record<string, DayLog>>({});
+  const [nutritionTargets, setNutritionTargets] = useState<MacroSnapshot>(DEFAULT_MACRO_TARGETS);
+  const [nutritionIntake, setNutritionIntake] = useState<MacroSnapshot>({
+    fat: 0,
+    protein: 0,
+    carbs: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[DisciplineOS][UserData] attach listeners', { uid });
     const db = getFirestoreDb();
     const unsubs: Unsubscribe[] = [];
 
-    /* Do not gate UI on first snapshot — habitLogs can be slow; listeners still update state. */
     setLoading(false);
 
     const t = todayKey();
@@ -87,6 +98,20 @@ export function UserDataProvider({
 
     unsubs.push(
       onSnapshot(
+        collection(db, 'users', uid, 'habitLogs'),
+        (snap) => {
+          const m: Record<string, DayLog> = {};
+          snap.forEach((d) => {
+            m[d.id] = (d.data()?.entries as DayLog) ?? {};
+          });
+          setLogsByDate(m);
+        },
+        logErr('habitLogsCollection')
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
         doc(db, 'users', uid, 'focusLogs', t),
         (snap) => {
           const c = Number(snap.data()?.count ?? 0);
@@ -112,8 +137,49 @@ export function UserDataProvider({
       )
     );
 
+    unsubs.push(
+      onSnapshot(
+        collection(db, 'users', uid, 'goals'),
+        (snap) => {
+          const g: Goal[] = [];
+          snap.forEach((d) => g.push({ id: d.id, ...(d.data() as Omit<Goal, 'id'>) }));
+          setGoals(g);
+        },
+        logErr('goals')
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
+        doc(db, 'users', uid, 'nutritionTargets', 'default'),
+        (snap) => {
+          const d = snap.data();
+          setNutritionTargets({
+            fat: Number(d?.fat ?? DEFAULT_MACRO_TARGETS.fat),
+            protein: Number(d?.protein ?? DEFAULT_MACRO_TARGETS.protein),
+            carbs: Number(d?.carbs ?? DEFAULT_MACRO_TARGETS.carbs),
+          });
+        },
+        logErr('nutritionTargets')
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
+        doc(db, 'users', uid, 'nutritionIntake', t),
+        (snap) => {
+          const d = snap.data();
+          setNutritionIntake({
+            fat: Number(d?.fat ?? 0),
+            protein: Number(d?.protein ?? 0),
+            carbs: Number(d?.carbs ?? 0),
+          });
+        },
+        logErr('nutritionIntake')
+      )
+    );
+
     return () => {
-      console.log('[DisciplineOS][UserData] detach listeners', { uid });
       unsubs.forEach((u) => u());
     };
   }, [uid]);
@@ -125,14 +191,16 @@ export function UserDataProvider({
       dayLog,
       focusToday,
       journal,
+      goals,
+      logsByDate,
+      nutritionTargets,
+      nutritionIntake,
       loading,
     }),
-    [uid, habits, dayLog, focusToday, journal, loading]
+    [uid, habits, dayLog, focusToday, journal, goals, logsByDate, nutritionTargets, nutritionIntake, loading]
   );
 
-  return (
-    <UserDataContext.Provider value={value}>{children}</UserDataContext.Provider>
-  );
+  return <UserDataContext.Provider value={value}>{children}</UserDataContext.Provider>;
 }
 
 export function useUserData() {

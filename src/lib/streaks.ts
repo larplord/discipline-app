@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import type { DayLog } from './scoring';
+import type { DayLog } from './types';
 
 export function calcStreak(habitId: string, logsByDate: Record<string, DayLog>) {
   let streak = 0;

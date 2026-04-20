@@ -10,7 +10,6 @@ import {
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
-import type { DayLog } from '@/lib/scoring';
 import { calcDailyScore, weekProgress } from '@/lib/scoring';
 import { calcStreak } from '@/lib/streaks';
 import { getLevel } from '@/lib/levels';
@@ -28,20 +27,22 @@ const LEVELS_UI = [
 ];
 
 export default function IdentityPage() {
-  const { uid, habits, dayLog, focusToday, journal } = useUserData();
+  const {
+    uid,
+    habits,
+    dayLog,
+    focusToday,
+    journal,
+    goals,
+    logsByDate,
+    nutritionTargets,
+    nutritionIntake,
+  } = useUserData();
   const [identity, setIdentity] = useState<IdentityDoc>({ totalScore: 0, bestStreak: 0 });
-  const [logsByDate, setLogsByDate] = useState<Record<string, DayLog>>({});
   const [totalFocus, setTotalFocus] = useState(0);
 
   useEffect(() => {
     const db = getFirestoreDb();
-    const u1 = onSnapshot(collection(db, 'users', uid, 'habitLogs'), (snap) => {
-      const m: Record<string, DayLog> = {};
-      snap.forEach((d) => {
-        m[d.id] = (d.data()?.entries as DayLog) ?? {};
-      });
-      setLogsByDate(m);
-    });
     const u2 = onSnapshot(doc(db, 'users', uid, 'identity', 'profile'), (snap) => {
       const d = snap.data();
       setIdentity({
@@ -58,13 +59,21 @@ export default function IdentityPage() {
       setTotalFocus(s);
     });
     return () => {
-      u1();
       u2();
       u3();
     };
   }, [uid]);
 
-  const dailyScore = calcDailyScore({ habits, dayLog, focusToday, journal });
+  const dailyScore = calcDailyScore({
+    habits,
+    dayLog,
+    focusToday,
+    journal,
+    goals,
+    nutritionTargets,
+    nutritionIntake,
+    logsByDate,
+  });
   const weekPct = weekProgress(habits, logsByDate);
 
   useEffect(() => {
@@ -89,7 +98,19 @@ export default function IdentityPage() {
         { merge: true }
       );
     });
-  }, [uid, identity.lastScoreDate, habits, dayLog, focusToday, journal, dailyScore, logsByDate]);
+  }, [
+    uid,
+    identity.lastScoreDate,
+    habits,
+    dayLog,
+    focusToday,
+    journal,
+    goals,
+    nutritionTargets,
+    nutritionIntake,
+    logsByDate,
+    dailyScore,
+  ]);
 
   const level = getLevel(identity.totalScore ?? 0);
   const nextLevel = [...LEVELS_UI].sort((a, b) => a.min - b.min).find((l) => l.min > (identity.totalScore ?? 0));

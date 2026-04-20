@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { calcDailyScoreFromSnapshot } from '@/lib/useDailyScore';
-import type { DayLog } from '@/lib/scoring';
-import type { Habit, JournalEntry } from '@/lib/types';
+import type { DayLog, Goal, Habit, JournalEntry, MacroSnapshot } from '@/lib/types';
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: GridIcon },
@@ -12,7 +11,6 @@ const NAV = [
   { href: '/goals', label: 'Goals', icon: TargetIcon },
   { href: '/journal', label: 'Journal', icon: BookIcon },
   { href: '/focus', label: 'Focus', icon: TimerIcon },
-  { href: '/fitness/bodybuilding', label: 'Fitness', icon: DumbbellIcon },
   { href: '/nutrition', label: 'Nutrition', icon: NutritionIcon },
   { href: '/friends', label: 'Friends', icon: UsersIcon },
   { href: '/analytics', label: 'Analytics', icon: ChartIcon },
@@ -28,6 +26,10 @@ type SidebarProps = {
     dayLog: DayLog;
     focusToday: number;
     journal: JournalEntry;
+    goals: Goal[];
+    nutritionTargets: MacroSnapshot;
+    nutritionIntake: MacroSnapshot;
+    logsByDate: Record<string, DayLog>;
   };
 };
 
@@ -53,8 +55,7 @@ export function Sidebar({ open, onCloseMobile, onSignOut, scoreData }: SidebarPr
       <nav className="sidebar-nav">
         <div className="nav-label">Navigation</div>
         {NAV.map(({ href, label, icon: Icon }) => {
-          const active =
-            href === '/fitness/bodybuilding' ? pathname.startsWith('/fitness') : pathname === href;
+          const active = pathname === href;
           return (
           <Link
             key={href}
@@ -148,17 +149,6 @@ function NutritionIcon({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 21h14M7 21V10h10v11M9 10V5h6v5" />
-    </svg>
-  );
-}
-function DumbbellIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M6.5 6.5h3v11h-3a2 2 0 01-2-2v-7a2 2 0 012-2zm11 0h-3v11h3a2 2 0 002-2v-7a2 2 0 00-2-2zM9.5 9h5M9.5 12h5M9.5 15h5"
-      />
     </svg>
   );
 }

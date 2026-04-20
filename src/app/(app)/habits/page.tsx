@@ -14,10 +14,10 @@ import {
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
-import { todayProgress, weekProgress } from '@/lib/scoring';
-import type { DayLog } from '@/lib/scoring';
+import { isJournalCompleteForDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
+import type { DayLog } from '@/lib/types';
 import { calcStreak } from '@/lib/streaks';
-import type { Habit } from '@/lib/types';
+import type { Habit, JournalEntry } from '@/lib/types';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import '@/styles/pages/Habits.css';
 
@@ -40,7 +40,12 @@ export default function HabitsPage() {
   const [editTarget, setEditTarget] = useState<Habit | null>(null);
   const [shareEnabled, setShareEnabled] = useState(false);
   const [focusToday, setFocusToday] = useState(0);
-  const [journal, setJournal] = useState({ well: '', freeform: '' });
+  const [journal, setJournal] = useState<JournalEntry>({
+    well: '',
+    avoided: '',
+    improve: '',
+    freeform: '',
+  });
 
   useEffect(() => {
     const db = getFirestoreDb();
@@ -61,7 +66,12 @@ export default function HabitsPage() {
       ),
       onSnapshot(doc(db, 'users', uid, 'journal', t), (s) => {
         const d = s.data();
-        setJournal({ well: d?.well ?? '', freeform: d?.freeform ?? '' });
+        setJournal({
+          well: d?.well ?? '',
+          avoided: d?.avoided ?? '',
+          improve: d?.improve ?? '',
+          freeform: d?.freeform ?? '',
+        });
       }),
     ];
     return () => unsubs.forEach((u) => u());
@@ -84,7 +94,7 @@ export default function HabitsPage() {
       dayLog: next,
       logsByDate: { ...logsByDate, [t]: next },
       focusToday,
-      journalToday: !!(journal.well || journal.freeform),
+      journalToday: isJournalCompleteForDailyScore(journal),
       shareEnabled,
     });
   }

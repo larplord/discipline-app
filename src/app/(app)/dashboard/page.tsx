@@ -7,12 +7,16 @@ import { collection, doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore'
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
-import { calcDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
-import type { DayLog } from '@/lib/scoring';
+import {
+  calcDailyScore,
+  isJournalCompleteForDailyScore,
+  todayProgress,
+  weekProgress,
+} from '@/lib/scoring';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import { calcStreak } from '@/lib/streaks';
 import { getLevel } from '@/lib/levels';
-import type { Goal, IdentityDoc } from '@/lib/types';
+import type { DayLog, Goal, IdentityDoc } from '@/lib/types';
 import '@/styles/pages/Habits.css';
 import '@/styles/pages/Dashboard.css';
 
@@ -45,9 +49,17 @@ const MOTIVATIONAL = {
 };
 
 export default function DashboardPage() {
-  const { uid, habits, dayLog, focusToday, journal } = useUserData();
-  const [logsByDate, setLogsByDate] = useState<Record<string, DayLog>>({});
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const {
+    uid,
+    habits,
+    dayLog,
+    focusToday,
+    journal,
+    goals,
+    logsByDate,
+    nutritionTargets,
+    nutritionIntake,
+  } = useUserData();
   const [identity, setIdentity] = useState<IdentityDoc>({
     totalScore: 0,
     bestStreak: 0,
@@ -57,18 +69,6 @@ export default function DashboardPage() {
   useEffect(() => {
     const db = getFirestoreDb();
     const unsubs = [
-      onSnapshot(collection(db, 'users', uid, 'habitLogs'), (snap) => {
-        const m: Record<string, DayLog> = {};
-        snap.forEach((d) => {
-          m[d.id] = (d.data()?.entries as DayLog) ?? {};
-        });
-        setLogsByDate(m);
-      }),
-      onSnapshot(collection(db, 'users', uid, 'goals'), (snap) => {
-        const g: Goal[] = [];
-        snap.forEach((d) => g.push({ id: d.id, ...(d.data() as Omit<Goal, 'id'>) }));
-        setGoals(g);
-      }),
       onSnapshot(doc(db, 'users', uid, 'identity', 'profile'), (snap) => {
         const d = snap.data();
         setIdentity({
@@ -97,12 +97,21 @@ export default function DashboardPage() {
       dayLog: next,
       logsByDate: { ...logsByDate, [t]: next },
       focusToday,
-      journalToday: !!(journal.well || journal.freeform),
+      journalToday: isJournalCompleteForDailyScore(journal),
       shareEnabled,
     });
   }
 
-  const score = calcDailyScore({ habits, dayLog, focusToday, journal });
+  const score = calcDailyScore({
+    habits,
+    dayLog,
+    focusToday,
+    journal,
+    goals,
+    nutritionTargets,
+    nutritionIntake,
+    logsByDate,
+  });
   const todayPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
   const level = getLevel(identity.totalScore ?? 0);
