@@ -477,8 +477,62 @@
     padding-right: 1.25rem;
   }
 
+  .fitness-page-title {
+    font-size: 1.45rem;
+    line-height: 1.15;
+    word-break: break-word;
+  }
+
+  .fitness-subnav {
+    max-width: none;
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .fitness-subnav-item {
+    flex: 1 1 auto;
+    text-align: center;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 0.65rem;
+  }
+
   .bb-nutrition-grid {
     grid-template-columns: 1fr;
+  }
+
+  .bb-nutrition-card {
+    padding: 1.15rem 1.1rem 1.25rem;
+  }
+
+  .bb-exercise-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .bb-set-row {
+    min-width: min(100%, 280px);
+  }
+}
+
+@media (max-width: 480px) {
+  .bb-hero-num {
+    font-size: 2.85rem;
+  }
+
+  .bb-hero-card {
+    padding: 1.1rem 1rem;
+  }
+
+  .bb-stat-value {
+    font-size: 1.45rem;
+  }
+
+  .fitness-subnav-item {
+    flex: 1 1 100%;
+    justify-content: center;
   }
 }
 

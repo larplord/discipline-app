@@ -227,3 +227,28 @@
   .journal-layout { grid-template-columns: 1fr; }
   .journal-history { position: static; }
 }
+
+@media (max-width: 768px) {
+  .journal-day-picker {
+    padding: 1rem 1rem 1.1rem;
+  }
+  .day-pills {
+    gap: 0.4rem;
+  }
+  .day-pill {
+    min-height: 48px;
+    min-width: 3.75rem;
+    padding: 0.5rem 0.5rem 0.45rem;
+  }
+  .journal-free-card,
+  .journal-prompt-card {
+    padding: 1rem 1.05rem 1.1rem;
+  }
+  .journal-block {
+    padding: 1rem 1.05rem;
+  }
+  .history-item {
+    padding: 0.85rem 1rem;
+    min-height: 48px;
+  }
+}

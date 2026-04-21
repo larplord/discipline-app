@@ -336,3 +336,41 @@
   background: linear-gradient(90deg, var(--accent), var(--green));
   transition: width 0.35s ease;
 }
+
+@media (max-width: 768px) {
+  .friends-compare-top {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.9rem 1rem 0.75rem;
+  }
+  .friends-compare-select {
+    width: 100%;
+    max-width: none;
+  }
+  .friends-compare-title {
+    font-size: 1rem;
+  }
+  .friends-compare-grid {
+    font-size: 0.8rem;
+  }
+  .friends-compare-cell {
+    padding: 0.55rem 0.65rem;
+    min-height: auto;
+  }
+  .friends-compare-val {
+    font-size: 0.95rem;
+  }
+  .friends-friend-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .friends-friend-head .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .friends-snapshot {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

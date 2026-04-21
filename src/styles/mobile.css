@@ -1,0 +1,77 @@
+/**
+ * Mobile-only refinements (max-width: 768px).
+ * Loaded after globals.css — keep desktop visuals unchanged above this breakpoint.
+ */
+
+@media (max-width: 768px) {
+  /* Flex overflow: stop wide children from forcing horizontal scroll */
+  .main-content {
+    min-width: 0;
+  }
+
+  /* Touch targets (~44px) */
+  .btn {
+    min-height: 44px;
+    padding: 0.65rem 1.15rem;
+  }
+  .btn-sm {
+    min-height: 40px;
+    padding: 0.45rem 0.9rem;
+  }
+  .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .mobile-menu-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.45rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar.open .nav-item {
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
+  }
+
+  /* Slightly tighter cards on small screens (desktop card padding unchanged) */
+  .card {
+    padding: 1.15rem 1.2rem;
+  }
+
+  .page-header .page-title {
+    font-size: 1.45rem;
+    line-height: 1.15;
+    word-break: break-word;
+  }
+
+  .page-header .page-subtitle {
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+
+  .modal {
+    padding: 1.25rem 1.15rem;
+    max-height: min(88vh, 100dvh);
+  }
+
+  .modal-header {
+    margin-bottom: 1rem;
+  }
+
+  /* Inputs: avoid iOS zoom on focus (16px+) */
+  .input,
+  .textarea,
+  .select {
+    font-size: 16px;
+  }
+
+  /* Home indicator / thumb reach */
+  .page-body {
+    padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
+  }
+}

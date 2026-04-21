@@ -173,3 +173,35 @@
 @media (max-width: 600px) {
   .dash-quick-stats { grid-template-columns: 1fr 1fr; }
 }
+
+/* Phone-only: single column stats + centered score hero (desktop/tablet >640 unchanged) */
+@media (max-width: 640px) {
+  .dash-quick-stats {
+    grid-template-columns: 1fr;
+  }
+  .score-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.65rem;
+  }
+  .score-ring-wrap {
+    flex-shrink: 0;
+  }
+  .dash-habit-card {
+    padding: 0.75rem 0.85rem;
+    gap: 0.5rem;
+  }
+  .dash-habit-card .habit-info {
+    min-width: 0;
+  }
+  .dash-habit-card .habit-name-large {
+    word-break: break-word;
+  }
+  .dash-section-heading {
+    font-size: 1rem;
+  }
+  .dash-habit-footer {
+    padding: 0.85rem 1rem 1rem;
+  }
+}

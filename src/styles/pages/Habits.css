@@ -102,3 +102,45 @@
 @media (max-width: 600px) {
   .habits-stats { grid-template-columns: 1fr 1fr; }
 }
+
+@media (max-width: 768px) {
+  .habits-stats {
+    gap: 0.5rem;
+  }
+  .hstat {
+    padding: 0.85rem 0.75rem;
+  }
+  .hstat-val {
+    font-size: 1.65rem;
+  }
+  .habit-toggle {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+  .filter-pill {
+    padding: 0.45rem 0.95rem;
+    min-height: 40px;
+    font-size: 0.8rem;
+  }
+  .habit-card {
+    padding: 0.75rem 0.85rem;
+    align-items: flex-start;
+  }
+  .habit-info {
+    min-width: 0;
+  }
+  .habit-name-large {
+    word-break: break-word;
+  }
+  .habit-actions .btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .habits-stats {
+    grid-template-columns: 1fr;
+  }
+}
