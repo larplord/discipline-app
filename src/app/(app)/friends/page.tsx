@@ -14,6 +14,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useUserData } from '@/components/UserDataProvider';
 import {
   sendFriendInvite,
+  friendshipPairId,
   respondToInvite,
   cancelInvite,
   endFriendship,
@@ -378,14 +379,41 @@ export default function FriendsPage() {
     setError(null);
     const to = friendUidInput.trim();
     if (!to) return;
-    setBusy(true);
-    try {
-      const db = getFirestoreDb();
-      console.info('[friends][inviteByUid] Send Invite clicked', {
-        authUid: user?.uid ?? null,
+    const authUid = user?.uid;
+    if (!authUid) {
+      setError('You must be signed in to send an invite.');
+      return;
+    }
+    if (authUid !== uid) {
+      setError('Auth state mismatch. Refresh and sign in again before sending an invite.');
+      console.error('[friends][inviteByUid] auth-state-mismatch', {
+        authUid,
         stateUid: uid,
         toUid: to,
       });
+      return;
+    }
+    setBusy(true);
+    try {
+      const db = getFirestoreDb();
+      const pairId = friendshipPairId(authUid, to);
+      console.info('[friends][inviteByUid] Send Invite clicked', {
+        authUid,
+        stateUid: uid,
+        toUid: to,
+        pairId,
+      });
+
+      const existing = items.find((x) => x.id === pairId);
+      if (existing?.data.status === 'active') {
+        setUidCheck({ status: 'invalid', message: 'You are already friends with this user.' });
+        return;
+      }
+      if (existing?.data.status === 'pending') {
+        setUidCheck({ status: 'invalid', message: 'An invite already exists for this pair.' });
+        return;
+      }
+
       setUidCheck({ status: 'checking', message: 'Checking User ID…' });
       const check = await validateFriendUidTarget(db, to);
       if (!check.ok) {
@@ -401,8 +429,9 @@ export default function FriendsPage() {
           ? `User found: ${check.displayName}`
           : 'User found. You can send invite.',
       });
-      await sendFriendInvite(db, uid, to, invitedByName);
+      await sendFriendInvite(db, authUid, to, invitedByName, { targetAlreadyValidated: true });
       setFriendUidInput('');
+      setUidCheck({ status: 'valid', message: 'Invite sent.' });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Could not send invite');
     } finally {

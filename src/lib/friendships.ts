@@ -10,6 +10,16 @@ import {
 } from 'firebase/firestore';
 import type { Friendship } from './types';
 
+function firestoreErrorCode(e: unknown) {
+  return typeof e === 'object' && e != null && 'code' in e
+    ? String((e as { code?: unknown }).code ?? 'unknown')
+    : 'unknown';
+}
+
+function errorMessage(e: unknown) {
+  return e instanceof Error ? e.message : String(e);
+}
+
 /** Deterministic doc id for a pair of users (matches Firestore rules). */
 export function friendshipPairId(a: string, b: string) {
   return a < b ? `${a}_${b}` : `${b}_${a}`;
@@ -26,7 +36,13 @@ function sortedMemberIds(a: string, b: string): [string, string] {
 export async function validateFriendUidTarget(db: Firestore, targetUid: string) {
   const uid = targetUid.trim();
   if (!uid) return { ok: false as const, reason: 'empty' as const };
-  const profileSnap = await getDoc(doc(db, 'users', uid, 'publicProfile', 'me'));
+  let profileSnap;
+  try {
+    profileSnap = await getDoc(doc(db, 'users', uid, 'publicProfile', 'me'));
+  } catch (e: unknown) {
+    const code = firestoreErrorCode(e);
+    throw new Error(`Target profile read failed (${code}): ${errorMessage(e)}`);
+  }
   if (!profileSnap.exists()) return { ok: false as const, reason: 'not_found' as const };
   const displayName = (profileSnap.data()?.displayName as string | undefined)?.trim() ?? '';
   return { ok: true as const, displayName };
@@ -36,78 +52,69 @@ export async function sendFriendInvite(
   db: Firestore,
   fromUid: string,
   toUid: string,
-  invitedByName: string
+  invitedByName: string,
+  options?: { targetAlreadyValidated?: boolean }
 ) {
+  const cleanedFromUid = fromUid.trim();
   const cleanedToUid = toUid.trim();
+  if (!cleanedFromUid) throw new Error('You must be signed in to send an invite.');
   if (!cleanedToUid) throw new Error('Enter a User ID.');
-  if (fromUid === cleanedToUid) throw new Error('You cannot invite yourself.');
-  console.info('[friends][sendInvite] STEP 1 validating target UID', {
-    fromUid,
-    toUid: cleanedToUid,
-  });
-  const targetCheck = await validateFriendUidTarget(db, cleanedToUid);
-  if (!targetCheck.ok) {
-    console.warn('[friends][sendInvite] STEP 1 validation failed', {
-      fromUid,
+  if (cleanedFromUid === cleanedToUid) throw new Error('You cannot invite yourself.');
+
+  if (!options?.targetAlreadyValidated) {
+    console.info('[friends][sendInvite] target-profile-read:start', {
+      fromUid: cleanedFromUid,
       toUid: cleanedToUid,
-      reason: targetCheck.reason,
     });
-    throw new Error(
-      'User ID not found. Ask your friend to copy their User ID from Friends after they log in.'
-    );
+    const targetCheck = await validateFriendUidTarget(db, cleanedToUid);
+    if (!targetCheck.ok) {
+      console.warn('[friends][sendInvite] target-profile-read:not-found', {
+        fromUid: cleanedFromUid,
+        toUid: cleanedToUid,
+        reason: targetCheck.reason,
+      });
+      throw new Error(
+        'User ID not found. Ask your friend to copy their User ID from Friends after they log in.'
+      );
+    }
   }
-  const pid = friendshipPairId(fromUid, cleanedToUid);
+
+  const pid = friendshipPairId(cleanedFromUid, cleanedToUid);
   const ref = doc(db, 'friendships', pid);
-  const memberIds = sortedMemberIds(fromUid, cleanedToUid);
-  console.info('[friends][sendInvite] STEP 2 writing friendship invite', {
-    fromUid,
+  const memberIds = sortedMemberIds(cleanedFromUid, cleanedToUid);
+  const payload = {
+    memberIds,
+    invitedBy: cleanedFromUid,
+    invitedByName,
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  };
+
+  console.info('[friends][sendInvite] friendship-write:start', {
+    fromUid: cleanedFromUid,
     toUid: cleanedToUid,
     pairId: pid,
     memberIds,
-    invitedBy: fromUid,
-    status: 'pending',
+    invitedBy: payload.invitedBy,
+    status: payload.status,
   });
+
   try {
-    await setDoc(ref, {
-      memberIds,
-      invitedBy: fromUid,
-      invitedByName,
-      status: 'pending',
-      createdAt: serverTimestamp(),
-    });
-    console.info('[friends][sendInvite] STEP 2 write success', { pairId: pid });
+    await setDoc(ref, payload);
+    console.info('[friends][sendInvite] friendship-write:success', { pairId: pid });
   } catch (e: unknown) {
-    const code = (e as { code?: string }).code;
-    const message = e instanceof Error ? e.message : String(e);
-    const originalError = e instanceof Error ? e : new Error('Could not send invite.');
-    console.error('[friends][sendInvite] STEP 3 write failed', {
-      fromUid,
+    const code = firestoreErrorCode(e);
+    const message = errorMessage(e);
+    console.error('[friends][sendInvite] friendship-write:failed', {
+      fromUid: cleanedFromUid,
       toUid: cleanedToUid,
       pairId: pid,
       code,
       message,
     });
 
-    // Optional state check for clearer UX; never let this mask the original write error.
-    if (code === 'permission-denied') {
-      try {
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const d = snap.data() as Friendship;
-          if (d.status === 'active') throw new Error('You are already friends.');
-          if (d.status === 'pending') throw new Error('An invite already exists for this pair.');
-        }
-      } catch (readErr: unknown) {
-        console.warn('[friends][sendInvite] STEP 3 follow-up read skipped/failed', {
-          pairId: pid,
-          code: (readErr as { code?: string })?.code,
-          message: readErr instanceof Error ? readErr.message : String(readErr),
-        });
-      }
-    }
-
     throw new Error(
-      `Could not send invite (${code ?? 'unknown'}): ${originalError.message || 'unknown error'}`
+      `Could not send invite. Firestore operation failed: friendship-write (${code}). ${message}`
     );
   }
 }
