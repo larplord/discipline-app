@@ -414,21 +414,6 @@ export default function FriendsPage() {
         return;
       }
 
-      setUidCheck({ status: 'checking', message: 'Checking User ID…' });
-      const check = await validateFriendUidTarget(db, to);
-      if (!check.ok) {
-        setUidCheck({
-          status: 'invalid',
-          message: 'User ID not found. Ask your friend to copy their User ID from Friends after login.',
-        });
-        return;
-      }
-      setUidCheck({
-        status: 'valid',
-        message: check.displayName
-          ? `User found: ${check.displayName}`
-          : 'User found. You can send invite.',
-      });
       await sendFriendInvite(db, authUid, to, invitedByName, { targetAlreadyValidated: true });
       setFriendUidInput('');
       setUidCheck({ status: 'valid', message: 'Invite sent.' });
@@ -827,8 +812,9 @@ export default function FriendsPage() {
           <div className="card">
             <div className="friends-section-title">Invite by User ID</div>
             <p className="text-xs text-muted mb-2">
-              Paste their Firebase UID from their Friends page. We validate the ID before sending invite to avoid dead
-              requests. This creates <code className="font-mono">friendships/&lt;pairId&gt;</code>.
+              Paste their Firebase UID from their Friends page. Use Check ID when public profile lookup is available, or
+              send directly if they gave you their exact ID. This creates{' '}
+              <code className="font-mono">friendships/&lt;pairId&gt;</code>.
             </p>
             <div className="flex gap-2 flex-wrap">
               <input
