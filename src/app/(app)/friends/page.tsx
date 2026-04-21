@@ -18,10 +18,11 @@ import {
   cancelInvite,
   endFriendship,
   logEmailFriendInvite,
+  validateFriendUidTarget,
 } from '@/lib/friendships';
 import type { Friendship, FriendEmailInviteOutbox, SharedSummary } from '@/lib/types';
 import { syncSharedSummary, computeGoalsShareFields } from '@/lib/syncSharedSummary';
-import { calcDailyScore, isJournalCompleteForDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
+import { calcDailyScore, isJournalCompleteForDailyScore, weekProgress } from '@/lib/scoring';
 import { calcStreak } from '@/lib/streaks';
 import { getLevel } from '@/lib/levels';
 import { todayKey } from '@/lib/dates';
@@ -33,6 +34,13 @@ type FriendRowModel = {
   displayName: string;
   summary: SharedSummary | null;
   summaryLocked: boolean;
+  summaryState:
+    | 'loading'
+    | 'available'
+    | 'no_summary'
+    | 'sharing_disabled'
+    | 'permission_denied'
+    | 'read_error';
 };
 
 function fmtUpdatedAt(u: unknown): string {
@@ -93,6 +101,13 @@ export default function FriendsPage() {
   const [outbox, setOutbox] = useState<{ id: string; data: FriendEmailInviteOutbox }[]>([]);
   const [friendRows, setFriendRows] = useState<Record<string, FriendRowModel>>({});
   const [compareFriendUid, setCompareFriendUid] = useState('');
+  const [uidCheck, setUidCheck] = useState<{
+    status: 'idle' | 'checking' | 'valid' | 'invalid';
+    message: string;
+  }>({
+    status: 'idle',
+    message: '',
+  });
 
   const invitedByName = user?.displayName ?? user?.email ?? 'Friend';
   const habitsDoneToday = habits.filter((h) => dayLog[h.id]).length;
@@ -233,6 +248,7 @@ export default function FriendsPage() {
           displayName: prev[fid]?.displayName ?? `${fid.slice(0, 8)}…`,
           summary: prev[fid]?.summary ?? null,
           summaryLocked: prev[fid]?.summaryLocked ?? false,
+          summaryState: prev[fid]?.summaryState ?? 'loading',
         };
       }
       return next;
@@ -262,7 +278,14 @@ export default function FriendsPage() {
           if (!snap.exists()) {
             setFriendRows((p) => ({
               ...p,
-              [fid]: { ...p[fid], pairId, friendUid: fid, summary: null, summaryLocked: false },
+              [fid]: {
+                ...p[fid],
+                pairId,
+                friendUid: fid,
+                summary: null,
+                summaryLocked: false,
+                summaryState: 'no_summary',
+              },
             }));
             return;
           }
@@ -270,19 +293,41 @@ export default function FriendsPage() {
           if (!s.shareEnabled) {
             setFriendRows((p) => ({
               ...p,
-              [fid]: { ...p[fid], pairId, friendUid: fid, summary: null, summaryLocked: true },
+              [fid]: {
+                ...p[fid],
+                pairId,
+                friendUid: fid,
+                summary: null,
+                summaryLocked: true,
+                summaryState: 'sharing_disabled',
+              },
             }));
             return;
           }
           setFriendRows((p) => ({
             ...p,
-            [fid]: { ...p[fid], pairId, friendUid: fid, summary: s, summaryLocked: false },
+            [fid]: {
+              ...p[fid],
+              pairId,
+              friendUid: fid,
+              summary: s,
+              summaryLocked: false,
+              summaryState: 'available',
+            },
           }));
         },
-        () => {
+        (e: unknown) => {
+          const code = (e as { code?: string })?.code;
           setFriendRows((p) => ({
             ...p,
-            [fid]: { ...p[fid], pairId, friendUid: fid, summary: null, summaryLocked: true },
+            [fid]: {
+              ...p[fid],
+              pairId,
+              friendUid: fid,
+              summary: null,
+              summaryLocked: true,
+              summaryState: code === 'permission-denied' ? 'permission_denied' : 'read_error',
+            },
           }));
         }
       );
@@ -336,6 +381,21 @@ export default function FriendsPage() {
     setBusy(true);
     try {
       const db = getFirestoreDb();
+      setUidCheck({ status: 'checking', message: 'Checking User ID…' });
+      const check = await validateFriendUidTarget(db, to);
+      if (!check.ok) {
+        setUidCheck({
+          status: 'invalid',
+          message: 'User ID not found. Ask your friend to copy their User ID from Friends after login.',
+        });
+        return;
+      }
+      setUidCheck({
+        status: 'valid',
+        message: check.displayName
+          ? `User found: ${check.displayName}`
+          : 'User found. You can send invite.',
+      });
       await sendFriendInvite(db, uid, to, invitedByName);
       setFriendUidInput('');
     } catch (e: unknown) {
@@ -343,6 +403,46 @@ export default function FriendsPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function validateUidInput() {
+    const candidate = friendUidInput.trim();
+    if (!candidate) {
+      setUidCheck({ status: 'invalid', message: 'Enter a User ID to validate.' });
+      return;
+    }
+    setUidCheck({ status: 'checking', message: 'Checking User ID…' });
+    try {
+      const check = await validateFriendUidTarget(getFirestoreDb(), candidate);
+      if (!check.ok) {
+        setUidCheck({
+          status: 'invalid',
+          message: 'User ID not found. Ask your friend to open Friends and copy their ID.',
+        });
+        return;
+      }
+      setUidCheck({
+        status: 'valid',
+        message: check.displayName
+          ? `User found: ${check.displayName}`
+          : 'User found. You can send invite.',
+      });
+    } catch {
+      setUidCheck({
+        status: 'invalid',
+        message: 'Could not validate now. Check your connection and try again.',
+      });
+    }
+  }
+
+  function summaryStateMessage(row?: FriendRowModel) {
+    const st = row?.summaryState;
+    if (st === 'sharing_disabled') return 'Sharing is disabled by this friend.';
+    if (st === 'no_summary') return 'No shared summary document yet.';
+    if (st === 'permission_denied') return 'Permission denied for shared summary.';
+    if (st === 'read_error') return 'Temporary read failure while loading shared summary.';
+    if (st === 'loading') return 'Loading shared summary…';
+    return 'No shared summary available yet.';
   }
 
   async function inviteByEmail() {
@@ -366,7 +466,7 @@ export default function FriendsPage() {
     try {
       await respondToInvite(getFirestoreDb(), pairId, uid, 'accept');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      setError(e instanceof Error ? e.message : 'Could not accept invite.');
     } finally {
       setBusy(false);
     }
@@ -378,7 +478,7 @@ export default function FriendsPage() {
     try {
       await respondToInvite(getFirestoreDb(), pairId, uid, 'decline');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      setError(e instanceof Error ? e.message : 'Could not decline invite.');
     } finally {
       setBusy(false);
     }
@@ -390,7 +490,7 @@ export default function FriendsPage() {
     try {
       await cancelInvite(getFirestoreDb(), pairId, uid);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      setError(e instanceof Error ? e.message : 'Could not cancel invite.');
     } finally {
       setBusy(false);
     }
@@ -403,7 +503,7 @@ export default function FriendsPage() {
     try {
       await endFriendship(getFirestoreDb(), pairId, uid);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed');
+      setError(e instanceof Error ? e.message : 'Could not remove friend.');
     } finally {
       setBusy(false);
     }
@@ -484,9 +584,9 @@ export default function FriendsPage() {
             <>
               {!theirOk && (
                 <p className="text-xs text-muted px-3 pb-2" style={{ marginTop: '-0.25rem' }}>
-                  {compareRow?.summaryLocked
-                    ? `${compareFriendName} is not sharing a summary right now (or data is still syncing).`
-                    : 'Waiting for a shared summary from this friend.'}
+                  {compareRow
+                    ? `${compareFriendName}: ${summaryStateMessage(compareRow)}`
+                    : 'Pick a friend to compare.'}
                 </p>
               )}
               <div className="friends-compare-grid" role="table">
@@ -693,7 +793,8 @@ export default function FriendsPage() {
           <div className="card">
             <div className="friends-section-title">Invite by User ID</div>
             <p className="text-xs text-muted mb-2">
-              Paste their Firebase UID from their Friends page. This creates <code className="font-mono">friendships/&lt;pairId&gt;</code>.
+              Paste their Firebase UID from their Friends page. We validate the ID before sending invite to avoid dead
+              requests. This creates <code className="font-mono">friendships/&lt;pairId&gt;</code>.
             </p>
             <div className="flex gap-2 flex-wrap">
               <input
@@ -701,12 +802,31 @@ export default function FriendsPage() {
                 style={{ flex: 1, minWidth: 200 }}
                 placeholder="Friend User ID"
                 value={friendUidInput}
-                onChange={(e) => setFriendUidInput(e.target.value)}
+                onChange={(e) => {
+                  setFriendUidInput(e.target.value);
+                  if (uidCheck.status !== 'idle') setUidCheck({ status: 'idle', message: '' });
+                }}
               />
+              <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => void validateUidInput()}>
+                Check ID
+              </button>
               <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void inviteByUid()}>
                 Send invite
               </button>
             </div>
+            {uidCheck.status !== 'idle' && (
+              <p
+                className={`text-xs mt-2 ${
+                  uidCheck.status === 'valid'
+                    ? 'text-green'
+                    : uidCheck.status === 'checking'
+                      ? 'text-muted'
+                      : 'text-red'
+                }`}
+              >
+                {uidCheck.message}
+              </p>
+            )}
           </div>
 
           <div className="card">
@@ -866,9 +986,7 @@ export default function FriendsPage() {
                       </div>
                     ) : (
                       <p className="text-sm text-muted">
-                        {row?.summaryLocked
-                          ? 'This friend has not turned on sharing, or the summary is not visible yet.'
-                          : 'No shared summary yet — when they enable sharing and use the app, a small snapshot appears here.'}
+                        {summaryStateMessage(row)}
                       </p>
                     )}
                   </div>

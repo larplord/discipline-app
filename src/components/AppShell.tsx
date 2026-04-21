@@ -1,22 +1,83 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
-import { getFirebaseAuth } from '@/lib/firebase/client';
+import { getFirebaseAuth, getFirestoreDb } from '@/lib/firebase/client';
 import { useAuth } from '@/components/AuthProvider';
 import { UserDataProvider, useUserData } from '@/components/UserDataProvider';
 import { Sidebar } from '@/components/Sidebar';
+import { syncSharedSummary } from '@/lib/syncSharedSummary';
 
 function ShellInner({ children }: { children: ReactNode }) {
   const data = useUserData();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSyncFingerprintRef = useRef('');
 
   async function logout() {
     await signOut(getFirebaseAuth());
     router.replace('/login');
   }
+
+  useEffect(() => {
+    if (!data.shareProgressWithFriends) return;
+
+    const fingerprint = JSON.stringify({
+      uid: data.uid,
+      habits: data.habits,
+      dayLog: data.dayLog,
+      logsByDate: data.logsByDate,
+      focusToday: data.focusToday,
+      journal: data.journal,
+      goals: data.goals,
+      nutritionTargets: data.nutritionTargets,
+      nutritionIntake: data.nutritionIntake,
+      identityProfile: data.identityProfile,
+    });
+
+    if (fingerprint === lastSyncFingerprintRef.current) return;
+
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => {
+      void syncSharedSummary(getFirestoreDb(), data.uid, {
+        habits: data.habits,
+        dayLog: data.dayLog,
+        logsByDate: data.logsByDate,
+        focusToday: data.focusToday,
+        journal: data.journal,
+        shareEnabled: data.shareProgressWithFriends,
+        goals: data.goals,
+        nutritionTargets: data.nutritionTargets,
+        nutritionIntake: data.nutritionIntake,
+        identityTotalScore: data.identityProfile.totalScore,
+        identityBestStreak: data.identityProfile.bestStreak ?? 0,
+      })
+        .then(() => {
+          lastSyncFingerprintRef.current = fingerprint;
+        })
+        .catch((e) => {
+          console.warn('[DisciplineOS][SharedSummary][sync-error]', e);
+        });
+    }, 1200);
+
+    return () => {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    };
+  }, [
+    data.uid,
+    data.habits,
+    data.dayLog,
+    data.logsByDate,
+    data.focusToday,
+    data.journal,
+    data.goals,
+    data.nutritionTargets,
+    data.nutritionIntake,
+    data.identityProfile,
+    data.shareProgressWithFriends,
+  ]);
 
   return (
     <div className="app-layout">

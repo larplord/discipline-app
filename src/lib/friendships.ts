@@ -19,14 +19,35 @@ function sortedMemberIds(a: string, b: string): [string, string] {
   return a < b ? [a, b] : [b, a];
 }
 
+/**
+ * Client-safe target validation:
+ * we can read publicProfile (signed-in users) but not private /users/{uid} docs.
+ */
+export async function validateFriendUidTarget(db: Firestore, targetUid: string) {
+  const uid = targetUid.trim();
+  if (!uid) return { ok: false as const, reason: 'empty' as const };
+  const profileSnap = await getDoc(doc(db, 'users', uid, 'publicProfile', 'me'));
+  if (!profileSnap.exists()) return { ok: false as const, reason: 'not_found' as const };
+  const displayName = (profileSnap.data()?.displayName as string | undefined)?.trim() ?? '';
+  return { ok: true as const, displayName };
+}
+
 export async function sendFriendInvite(
   db: Firestore,
   fromUid: string,
   toUid: string,
   invitedByName: string
 ) {
-  if (fromUid === toUid) throw new Error('You cannot invite yourself.');
-  const pid = friendshipPairId(fromUid, toUid);
+  const cleanedToUid = toUid.trim();
+  if (!cleanedToUid) throw new Error('Enter a User ID.');
+  if (fromUid === cleanedToUid) throw new Error('You cannot invite yourself.');
+  const targetCheck = await validateFriendUidTarget(db, cleanedToUid);
+  if (!targetCheck.ok) {
+    throw new Error(
+      'User ID not found. Ask your friend to copy their User ID from Friends after they log in.'
+    );
+  }
+  const pid = friendshipPairId(fromUid, cleanedToUid);
   const ref = doc(db, 'friendships', pid);
   const snap = await getDoc(ref);
   if (snap.exists()) {
@@ -34,7 +55,7 @@ export async function sendFriendInvite(
     if (d.status === 'active') throw new Error('You are already friends.');
     if (d.status === 'pending') throw new Error('An invite already exists for this pair.');
   }
-  const memberIds = sortedMemberIds(fromUid, toUid);
+  const memberIds = sortedMemberIds(fromUid, cleanedToUid);
   await setDoc(ref, {
     memberIds,
     invitedBy: fromUid,
