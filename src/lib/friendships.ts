@@ -49,20 +49,35 @@ export async function sendFriendInvite(
   }
   const pid = friendshipPairId(fromUid, cleanedToUid);
   const ref = doc(db, 'friendships', pid);
-  const snap = await getDoc(ref);
-  if (snap.exists()) {
-    const d = snap.data() as Friendship;
-    if (d.status === 'active') throw new Error('You are already friends.');
-    if (d.status === 'pending') throw new Error('An invite already exists for this pair.');
-  }
   const memberIds = sortedMemberIds(fromUid, cleanedToUid);
-  await setDoc(ref, {
-    memberIds,
-    invitedBy: fromUid,
-    invitedByName,
-    status: 'pending',
-    createdAt: serverTimestamp(),
-  });
+  try {
+    await setDoc(ref, {
+      memberIds,
+      invitedBy: fromUid,
+      invitedByName,
+      status: 'pending',
+      createdAt: serverTimestamp(),
+    });
+  } catch (e: unknown) {
+    const code = (e as { code?: string }).code;
+
+    // If write is denied, check for an existing pair doc to provide a clear state-based message.
+    if (code === 'permission-denied') {
+      try {
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const d = snap.data() as Friendship;
+          if (d.status === 'active') throw new Error('You are already friends.');
+          if (d.status === 'pending') throw new Error('An invite already exists for this pair.');
+        }
+      } catch (readErr: unknown) {
+        if (readErr instanceof Error) throw readErr;
+      }
+    }
+
+    if (e instanceof Error) throw e;
+    throw new Error('Could not send invite.');
+  }
 }
 
 export async function respondToInvite(
