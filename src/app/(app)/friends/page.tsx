@@ -381,6 +381,11 @@ export default function FriendsPage() {
     setBusy(true);
     try {
       const db = getFirestoreDb();
+      console.info('[friends][inviteByUid] Send Invite clicked', {
+        authUid: user?.uid ?? null,
+        stateUid: uid,
+        toUid: to,
+      });
       setUidCheck({ status: 'checking', message: 'Checking User ID…' });
       const check = await validateFriendUidTarget(db, to);
       if (!check.ok) {

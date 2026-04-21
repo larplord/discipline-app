@@ -41,8 +41,17 @@ export async function sendFriendInvite(
   const cleanedToUid = toUid.trim();
   if (!cleanedToUid) throw new Error('Enter a User ID.');
   if (fromUid === cleanedToUid) throw new Error('You cannot invite yourself.');
+  console.info('[friends][sendInvite] STEP 1 validating target UID', {
+    fromUid,
+    toUid: cleanedToUid,
+  });
   const targetCheck = await validateFriendUidTarget(db, cleanedToUid);
   if (!targetCheck.ok) {
+    console.warn('[friends][sendInvite] STEP 1 validation failed', {
+      fromUid,
+      toUid: cleanedToUid,
+      reason: targetCheck.reason,
+    });
     throw new Error(
       'User ID not found. Ask your friend to copy their User ID from Friends after they log in.'
     );
@@ -50,6 +59,14 @@ export async function sendFriendInvite(
   const pid = friendshipPairId(fromUid, cleanedToUid);
   const ref = doc(db, 'friendships', pid);
   const memberIds = sortedMemberIds(fromUid, cleanedToUid);
+  console.info('[friends][sendInvite] STEP 2 writing friendship invite', {
+    fromUid,
+    toUid: cleanedToUid,
+    pairId: pid,
+    memberIds,
+    invitedBy: fromUid,
+    status: 'pending',
+  });
   try {
     await setDoc(ref, {
       memberIds,
@@ -58,10 +75,20 @@ export async function sendFriendInvite(
       status: 'pending',
       createdAt: serverTimestamp(),
     });
+    console.info('[friends][sendInvite] STEP 2 write success', { pairId: pid });
   } catch (e: unknown) {
     const code = (e as { code?: string }).code;
+    const message = e instanceof Error ? e.message : String(e);
+    const originalError = e instanceof Error ? e : new Error('Could not send invite.');
+    console.error('[friends][sendInvite] STEP 3 write failed', {
+      fromUid,
+      toUid: cleanedToUid,
+      pairId: pid,
+      code,
+      message,
+    });
 
-    // If write is denied, check for an existing pair doc to provide a clear state-based message.
+    // Optional state check for clearer UX; never let this mask the original write error.
     if (code === 'permission-denied') {
       try {
         const snap = await getDoc(ref);
@@ -71,12 +98,17 @@ export async function sendFriendInvite(
           if (d.status === 'pending') throw new Error('An invite already exists for this pair.');
         }
       } catch (readErr: unknown) {
-        if (readErr instanceof Error) throw readErr;
+        console.warn('[friends][sendInvite] STEP 3 follow-up read skipped/failed', {
+          pairId: pid,
+          code: (readErr as { code?: string })?.code,
+          message: readErr instanceof Error ? readErr.message : String(readErr),
+        });
       }
     }
 
-    if (e instanceof Error) throw e;
-    throw new Error('Could not send invite.');
+    throw new Error(
+      `Could not send invite (${code ?? 'unknown'}): ${originalError.message || 'unknown error'}`
+    );
   }
 }
 
