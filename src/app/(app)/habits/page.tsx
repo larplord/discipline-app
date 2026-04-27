@@ -15,7 +15,7 @@ import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
 import { todayProgress, weekProgress } from '@/lib/scoring';
 import type { DayLog } from '@/lib/types';
-import { calcStreak } from '@/lib/streaks';
+import { calcStreak, getStreakSummary } from '@/lib/streaks';
 import type { Habit } from '@/lib/types';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import '@/styles/pages/Habits.css';
@@ -162,7 +162,7 @@ export default function HabitsPage() {
           <div className="habit-list">
             {filtered.map((h) => {
               const done = !!dayLog[h.id];
-              const streak = calcStreak(h.id, logsByDate);
+              const streak = getStreakSummary(h.id, logsByDate);
               return (
                 <div key={h.id} className={`habit-card card ${done ? 'done' : ''}`}>
                   <button type="button" className={`habit-toggle ${done ? 'checked' : ''}`} onClick={() => toggle(h.id)}>
@@ -177,7 +177,10 @@ export default function HabitsPage() {
                     <div className="habit-name-large">{h.name}</div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`badge cat-${h.category}`}>{h.category}</span>
-                      {streak > 0 && <span className="streak-pill">🔥 {streak} day streak</span>}
+                      {streak.active > 0 && <span className="streak-pill">🔥 {streak.active} day streak</span>}
+                      {streak.active === 0 && streak.ended > 0 && (
+                        <span className="streak-pill ended">🌬️ {streak.ended} day streak ended {streak.endedAgoDays}d ago</span>
+                      )}
                     </div>
                   </div>
                   <div className="habit-actions">

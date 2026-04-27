@@ -16,6 +16,28 @@ service cloud.firestore {
       return a < b ? a + '_' + b : b + '_' + a;
     }
 
+    function validFriendshipPairDoc(pairDocId, memberIds) {
+      return memberIds is list
+        && memberIds.size() == 2
+        && memberIds[0] is string
+        && memberIds[1] is string
+        && memberIds[0] != memberIds[1]
+        && (
+          pairDocId == memberIds[0] + '_' + memberIds[1]
+          || pairDocId == memberIds[1] + '_' + memberIds[0]
+        );
+    }
+
+    function validPendingInviteWrite(pairDocId) {
+      return signedIn()
+        && request.resource.data.keys().hasAll(['memberIds', 'invitedBy', 'status', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['memberIds', 'invitedBy', 'invitedByName', 'status', 'createdAt'])
+        && validFriendshipPairDoc(pairDocId, request.resource.data.memberIds)
+        && request.auth.uid in request.resource.data.memberIds
+        && request.resource.data.invitedBy == request.auth.uid
+        && request.resource.data.status == 'pending';
+    }
+
     function friendshipActiveWith(targetUid) {
       let pid = pairId(request.auth.uid, targetUid);
       return exists(/databases/$(database)/documents/friendships/$(pid)) &&
@@ -40,14 +62,7 @@ service cloud.firestore {
     match /friendships/{pairDocId} {
       allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
 
-      allow create: if signedIn()
-        && request.resource.data.keys().hasAll(['memberIds', 'invitedBy', 'status', 'createdAt'])
-        && request.resource.data.memberIds is list
-        && request.resource.data.memberIds.size() == 2
-        && request.auth.uid in request.resource.data.memberIds
-        && request.resource.data.invitedBy == request.auth.uid
-        && request.resource.data.status == 'pending'
-        && pairId(request.resource.data.memberIds[0], request.resource.data.memberIds[1]) == pairDocId;
+      allow create: if validPendingInviteWrite(pairDocId);
 
       allow update: if signedIn() && request.auth.uid in resource.data.memberIds
         && request.resource.data.memberIds == resource.data.memberIds
@@ -67,11 +82,7 @@ service cloud.firestore {
           )
           || (
             resource.data.status in ['declined', 'ended']
-            && request.resource.data.status == 'pending'
-            && request.resource.data.invitedBy == request.auth.uid
-            && request.resource.data.memberIds is list
-            && request.resource.data.memberIds.size() == 2
-            && pairId(request.resource.data.memberIds[0], request.resource.data.memberIds[1]) == pairDocId
+            && validPendingInviteWrite(pairDocId)
           )
         );
 

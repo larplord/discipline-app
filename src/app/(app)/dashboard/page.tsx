@@ -8,7 +8,7 @@ import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
 import { calcDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
-import { calcStreak } from '@/lib/streaks';
+import { calcStreak, getStreakSummary } from '@/lib/streaks';
 import { getLevel } from '@/lib/levels';
 import type { DayLog, Goal } from '@/lib/types';
 import '@/styles/pages/Habits.css';
@@ -194,7 +194,7 @@ export default function DashboardPage() {
               <div className="habit-list dash-habit-list">
                 {habits.map((h) => {
                   const done = !!dayLog[h.id];
-                  const streak = calcStreak(h.id, logsByDate);
+                  const streak = getStreakSummary(h.id, logsByDate);
                   return (
                     <div key={h.id} className={`habit-card dash-habit-card ${done ? 'done' : ''}`}>
                       <button
@@ -214,9 +214,14 @@ export default function DashboardPage() {
                         <div className="habit-name-large">{h.name}</div>
                         <div className="flex items-center gap-2 mt-1 flex-wrap">
                           <span className={`badge cat-${h.category}`}>{h.category}</span>
-                          {streak > 0 && (
+                          {streak.active > 0 && (
                             <span className="streak-pill">
-                              {'\u{1F525}'} {streak}d
+                              {'\u{1F525}'} {streak.active}d
+                            </span>
+                          )}
+                          {streak.active === 0 && streak.ended > 0 && (
+                            <span className="streak-pill ended">
+                              {'\u{1F32C}\uFE0F'} {streak.ended}d ended {streak.endedAgoDays}d ago
                             </span>
                           )}
                         </div>

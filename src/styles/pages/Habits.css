@@ -99,6 +99,11 @@
   flex-shrink: 0;
 }
 
+.streak-pill.ended {
+  color: var(--text-muted);
+  background: rgba(148, 163, 184, 0.12);
+}
+
 @media (max-width: 600px) {
   .habits-stats { grid-template-columns: 1fr 1fr; }
 }
