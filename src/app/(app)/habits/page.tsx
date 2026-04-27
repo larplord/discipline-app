@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type DragEvent } from 'react';
 import {
   addDoc,
   collection,
@@ -9,6 +9,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  writeBatch,
 } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
@@ -48,6 +49,8 @@ export default function HabitsPage() {
   const [filter, setFilter] = useState('all');
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState<Habit | null>(null);
+  const [draggingHabitId, setDraggingHabitId] = useState<string | null>(null);
+  const [dragOverHabitId, setDragOverHabitId] = useState<string | null>(null);
 
   const todayPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
@@ -81,7 +84,10 @@ export default function HabitsPage() {
     if (editTarget) {
       await updateDoc(doc(db, 'users', uid, 'habits', editTarget.id), data);
     } else {
-      await addDoc(collection(db, 'users', uid, 'habits'), data);
+      await addDoc(collection(db, 'users', uid, 'habits'), {
+        ...data,
+        order: habits.length,
+      });
     }
     setShowForm(false);
     setEditTarget(null);
@@ -90,6 +96,64 @@ export default function HabitsPage() {
   async function onDelete(id: string) {
     if (!confirm('Delete this habit?')) return;
     await deleteDoc(doc(getFirestoreDb(), 'users', uid, 'habits', id));
+  }
+
+  async function persistHabitOrder(nextHabits: Habit[]) {
+    const db = getFirestoreDb();
+    const batch = writeBatch(db);
+    nextHabits.forEach((habit, index) => {
+      batch.update(doc(db, 'users', uid, 'habits', habit.id), { order: index });
+    });
+    await batch.commit();
+  }
+
+  async function reorderHabits(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+
+    const visibleHabits = [...filtered];
+    const from = visibleHabits.findIndex((habit) => habit.id === sourceId);
+    const to = visibleHabits.findIndex((habit) => habit.id === targetId);
+    if (from < 0 || to < 0) return;
+
+    const [moved] = visibleHabits.splice(from, 1);
+    visibleHabits.splice(to, 0, moved);
+
+    const visibleIds = new Set(visibleHabits.map((habit) => habit.id));
+    let visibleIndex = 0;
+    const nextHabits = habits.map((habit) => {
+      if (!visibleIds.has(habit.id)) return habit;
+      const next = visibleHabits[visibleIndex];
+      visibleIndex += 1;
+      return next;
+    });
+
+    await persistHabitOrder(nextHabits);
+  }
+
+  function startDrag(e: DragEvent<HTMLDivElement>, habitId: string) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', habitId);
+    setDraggingHabitId(habitId);
+  }
+
+  function dragOver(e: DragEvent<HTMLDivElement>, habitId: string) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverHabitId(habitId);
+  }
+
+  async function dropHabit(e: DragEvent<HTMLDivElement>, targetId: string) {
+    e.preventDefault();
+    const sourceId = e.dataTransfer.getData('text/plain') || draggingHabitId;
+    setDraggingHabitId(null);
+    setDragOverHabitId(null);
+    if (!sourceId) return;
+    await reorderHabits(sourceId, targetId);
+  }
+
+  function endDrag() {
+    setDraggingHabitId(null);
+    setDragOverHabitId(null);
   }
 
   return (
@@ -164,7 +228,16 @@ export default function HabitsPage() {
               const done = !!dayLog[h.id];
               const streak = getStreakSummary(h.id, logsByDate);
               return (
-                <div key={h.id} className={`habit-card card ${done ? 'done' : ''}`}>
+                <div
+                  key={h.id}
+                  className={`habit-card card ${done ? 'done' : ''} ${draggingHabitId === h.id ? 'dragging' : ''} ${dragOverHabitId === h.id && draggingHabitId !== h.id ? 'drag-over' : ''}`}
+                  draggable
+                  onDragStart={(e) => startDrag(e, h.id)}
+                  onDragOver={(e) => dragOver(e, h.id)}
+                  onDrop={(e) => void dropHabit(e, h.id)}
+                  onDragEnd={endDrag}
+                >
+                  <span className="habit-drag-handle" aria-hidden="true">⋮⋮</span>
                   <button type="button" className={`habit-toggle ${done ? 'checked' : ''}`} onClick={() => toggle(h.id)}>
                     {done && (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">

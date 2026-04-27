@@ -86,8 +86,19 @@ export function UserDataProvider({
       onSnapshot(
         collection(db, 'users', uid, 'habits'),
         (snap) => {
-          const list: Habit[] = [];
-          snap.forEach((d) => list.push({ id: d.id, ...(d.data() as Omit<Habit, 'id'>) }));
+          const list: Array<Habit & { snapshotIndex: number }> = [];
+          snap.forEach((d) =>
+            list.push({
+              id: d.id,
+              ...(d.data() as Omit<Habit, 'id'>),
+              snapshotIndex: list.length,
+            })
+          );
+          list.sort((a, b) => {
+            const aOrder = Number.isFinite(a.order) ? Number(a.order) : Number.MAX_SAFE_INTEGER;
+            const bOrder = Number.isFinite(b.order) ? Number(b.order) : Number.MAX_SAFE_INTEGER;
+            return aOrder - bOrder || a.snapshotIndex - b.snapshotIndex;
+          });
           setHabits(list);
         },
         logErr('habits')

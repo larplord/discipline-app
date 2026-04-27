@@ -6,6 +6,7 @@ export type Habit = {
   name: string;
   category: string;
   emoji: string;
+  order?: number;
   targetDays?: number;
 };
 
