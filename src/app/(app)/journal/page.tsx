@@ -48,7 +48,7 @@ export default function JournalPage() {
         if (e.well || e.avoided || e.improve || e.freeform) list.push([d.id, e]);
       });
       list.sort(([a], [b]) => b.localeCompare(a));
-      setHistory(list.slice(0, 30));
+      setHistory(list);
     });
   }, [uid]);
 
@@ -74,6 +74,9 @@ export default function JournalPage() {
     return { key, dow, labelMain, hasEntry, isToday: i === 0 };
   });
 
+  const oldestEntryDate = history.length ? history[history.length - 1]?.[0] : undefined;
+  const selectedHasEntry = history.some(([k]) => k === selectedDate);
+
   return (
     <div className="fade-in">
       <div className="page-header">
@@ -97,6 +100,18 @@ export default function JournalPage() {
               <div className="section-label">Jump to day</div>
               <p className="journal-day-picker-hint">Last 7 days · dot means saved entry</p>
             </div>
+            <label className="journal-date-input-wrap">
+              <span className="journal-date-input-label">All time</span>
+              <input
+                className={`journal-date-input ${selectedHasEntry ? 'has-entry' : ''}`}
+                type="date"
+                value={selectedDate}
+                min={oldestEntryDate}
+                max={format(new Date(), 'yyyy-MM-dd')}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                aria-label="Choose any journal date"
+              />
+            </label>
           </div>
           <div className="day-pills" role="tablist" aria-label="Journal day">
             {recentDays.map((d) => (

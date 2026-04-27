@@ -7,6 +7,11 @@
 }
 
 .journal-day-picker-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
   margin-bottom: 0.85rem;
 }
 
@@ -14,6 +19,48 @@
   font-size: 0.78rem;
   color: var(--text-muted);
   margin-top: 0.25rem;
+}
+
+.journal-date-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 11rem;
+}
+
+.journal-date-input-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.journal-date-input {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 0.7rem 0.8rem;
+  min-height: 44px;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.journal-date-input:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: var(--bg-elevated);
+}
+
+.journal-date-input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-faint);
+}
+
+.journal-date-input.has-entry {
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.12);
 }
 
 .day-pills {
@@ -231,6 +278,13 @@
 @media (max-width: 768px) {
   .journal-day-picker {
     padding: 1rem 1rem 1.1rem;
+  }
+  .journal-day-picker-head {
+    align-items: stretch;
+  }
+  .journal-date-input-wrap {
+    width: 100%;
+    min-width: 0;
   }
   .day-pills {
     gap: 0.4rem;
