@@ -11,7 +11,6 @@ const NAV = [
   { href: '/goals', label: 'Goals', icon: TargetIcon },
   { href: '/journal', label: 'Journal', icon: BookIcon },
   { href: '/focus', label: 'Focus', icon: TimerIcon },
-  { href: '/nutrition', label: 'Nutrition', icon: NutritionIcon },
   { href: '/friends', label: 'Friends', icon: UsersIcon },
   { href: '/analytics', label: 'Analytics', icon: ChartIcon },
   { href: '/identity', label: 'Identity', icon: TrophyIcon },
@@ -142,13 +141,6 @@ function TimerIcon({ size = 20 }: { size?: number }) {
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <circle cx="12" cy="13" r="8" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4l3 3M12 5V3m-4 2L6 3m10 2l2-2" />
-    </svg>
-  );
-}
-function NutritionIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 21h14M7 21V10h10v11M9 10V5h6v5" />
     </svg>
   );
 }
