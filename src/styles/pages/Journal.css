@@ -64,12 +64,30 @@
 }
 
 .journal-mini-calendar {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  right: 0;
+  z-index: 20;
   min-width: 16rem;
   padding: 0.85rem 0.95rem 0.8rem;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(99, 102, 241, 0.16);
   background: linear-gradient(180deg, rgba(99, 102, 241, 0.08), rgba(30, 30, 48, 0.9));
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.journal-calendar-dropdown {
+  position: relative;
+}
+
+.journal-calendar-toggle {
+  min-width: 7rem;
+}
+
+.journal-calendar-toggle.open {
+  border-color: var(--border-accent);
+  color: var(--accent-light);
+  background: var(--accent-faint);
 }
 
 .journal-mini-calendar-head {
@@ -420,8 +438,9 @@
     align-items: stretch;
   }
   .journal-mini-calendar {
-    width: 100%;
+    width: min(100vw - 3rem, 20rem);
     min-width: 0;
+    right: 0;
   }
   .journal-date-input-wrap {
     width: 100%;

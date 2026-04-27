@@ -32,6 +32,7 @@ export default function JournalPage() {
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState(format(today, 'yyyy-MM-dd'));
   const [calendarMonth, setCalendarMonth] = useState(startOfMonth(today));
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [entry, setEntry] = useState<JournalEntry>({
     well: '',
     avoided: '',
@@ -123,58 +124,74 @@ export default function JournalPage() {
               <div className="section-label">Jump to day</div>
               <p className="journal-day-picker-hint">Last 7 days · dot means saved entry</p>
             </div>
-            <div className="journal-mini-calendar">
-              <div className="journal-mini-calendar-head">
-                <span className="journal-mini-calendar-label">All time</span>
-                <div className="journal-mini-calendar-nav">
-                  <button
-                    type="button"
-                    className="journal-mini-calendar-btn"
-                    aria-label="Previous month"
-                    onClick={() => setCalendarMonth((m) => subMonths(m, 1))}
-                  >
-                    ‹
-                  </button>
-                  <span className="journal-mini-calendar-month">{format(calendarMonth, 'MMM yyyy')}</span>
-                  <button
-                    type="button"
-                    className="journal-mini-calendar-btn"
-                    aria-label="Next month"
-                    onClick={() => setCalendarMonth((m) => addMonths(m, 1))}
-                  >
-                    ›
-                  </button>
+            <div className="journal-calendar-dropdown">
+              <button
+                type="button"
+                className={`btn btn-ghost journal-calendar-toggle ${calendarOpen ? 'open' : ''}`}
+                aria-haspopup="dialog"
+                aria-expanded={calendarOpen}
+                onClick={() => setCalendarOpen((open) => !open)}
+              >
+                Calendar
+              </button>
+              {calendarOpen && (
+                <div className="journal-mini-calendar">
+                  <div className="journal-mini-calendar-head">
+                    <span className="journal-mini-calendar-label">All time</span>
+                    <div className="journal-mini-calendar-nav">
+                      <button
+                        type="button"
+                        className="journal-mini-calendar-btn"
+                        aria-label="Previous month"
+                        onClick={() => setCalendarMonth((m) => subMonths(m, 1))}
+                      >
+                        ‹
+                      </button>
+                      <span className="journal-mini-calendar-month">{format(calendarMonth, 'MMM yyyy')}</span>
+                      <button
+                        type="button"
+                        className="journal-mini-calendar-btn"
+                        aria-label="Next month"
+                        onClick={() => setCalendarMonth((m) => addMonths(m, 1))}
+                      >
+                        ›
+                      </button>
+                    </div>
+                  </div>
+                  <div className="journal-mini-calendar-grid" role="grid" aria-label="Journal calendar">
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, i) => (
+                      <span key={`${label}-${i}`} className="journal-mini-calendar-dow">
+                        {label}
+                      </span>
+                    ))}
+                    {calendarDays.map((day) => {
+                      const key = format(day, 'yyyy-MM-dd');
+                      const isSelected = isSameDay(day, parseISO(selectedDate));
+                      const hasEntry = entryDateSet.has(key);
+                      const isCurrentMonth = isSameMonth(day, calendarMonth);
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          role="gridcell"
+                          aria-selected={isSelected}
+                          className={`journal-mini-calendar-day ${isSelected ? 'active' : ''} ${hasEntry ? 'has-entry' : ''} ${isCurrentMonth ? '' : 'outside-month'}`}
+                          onClick={() => {
+                            setSelectedDate(key);
+                            setCalendarOpen(false);
+                          }}
+                        >
+                          <span>{format(day, 'd')}</span>
+                          {hasEntry && <span className="journal-mini-calendar-dot" aria-hidden />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="journal-mini-calendar-foot">
+                    {selectedHasEntry ? 'Saved entry on selected day' : 'No saved entry on selected day'}
+                  </div>
                 </div>
-              </div>
-              <div className="journal-mini-calendar-grid" role="grid" aria-label="Journal calendar">
-                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, i) => (
-                  <span key={`${label}-${i}`} className="journal-mini-calendar-dow">
-                    {label}
-                  </span>
-                ))}
-                {calendarDays.map((day) => {
-                  const key = format(day, 'yyyy-MM-dd');
-                  const isSelected = isSameDay(day, parseISO(selectedDate));
-                  const hasEntry = entryDateSet.has(key);
-                  const isCurrentMonth = isSameMonth(day, calendarMonth);
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      role="gridcell"
-                      aria-selected={isSelected}
-                      className={`journal-mini-calendar-day ${isSelected ? 'active' : ''} ${hasEntry ? 'has-entry' : ''} ${isCurrentMonth ? '' : 'outside-month'}`}
-                      onClick={() => setSelectedDate(key)}
-                    >
-                      <span>{format(day, 'd')}</span>
-                      {hasEntry && <span className="journal-mini-calendar-dot" aria-hidden />}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="journal-mini-calendar-foot">
-                {selectedHasEntry ? 'Saved entry on selected day' : 'No saved entry on selected day'}
-              </div>
+              )}
             </div>
           </div>
           <div className="day-pills" role="tablist" aria-label="Journal day">
