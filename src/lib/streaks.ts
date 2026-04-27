@@ -34,10 +34,18 @@ export function getStreakSummary(habitId: string, logsByDate: Record<string, Day
     const key = format(date, 'yyyy-MM-dd');
     if (!logsByDate[key]?.[habitId]) continue;
 
+    if (daysAgo === 1) {
+      return {
+        active: countBackwardsFrom(habitId, logsByDate, date),
+        ended: 0,
+        endedAgoDays: 0,
+      };
+    }
+
     return {
       active: 0,
       ended: countBackwardsFrom(habitId, logsByDate, date),
-      endedAgoDays: differenceInCalendarDays(today, date),
+      endedAgoDays: differenceInCalendarDays(today, date) - 1,
     };
   }
 
