@@ -1,7 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { format, subDays } from 'date-fns';
+import {
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameDay,
+  isSameMonth,
+  parseISO,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+  subMonths,
+} from 'date-fns';
 import { collection, doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
@@ -16,7 +29,9 @@ const PROMPTS = [
 
 export default function JournalPage() {
   const { uid } = useUserData();
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState(format(today, 'yyyy-MM-dd'));
+  const [calendarMonth, setCalendarMonth] = useState(startOfMonth(today));
   const [entry, setEntry] = useState<JournalEntry>({
     well: '',
     avoided: '',
@@ -66,7 +81,7 @@ export default function JournalPage() {
   }
 
   const recentDays = Array.from({ length: 7 }, (_, i) => {
-    const d = subDays(new Date(), i);
+    const d = subDays(today, i);
     const key = format(d, 'yyyy-MM-dd');
     const hasEntry = history.some(([k]) => k === key);
     const dow = format(d, 'EEE');
@@ -74,8 +89,16 @@ export default function JournalPage() {
     return { key, dow, labelMain, hasEntry, isToday: i === 0 };
   });
 
-  const oldestEntryDate = history.length ? history[history.length - 1]?.[0] : undefined;
-  const selectedHasEntry = history.some(([k]) => k === selectedDate);
+  const entryDateSet = new Set(history.map(([key]) => key));
+  const selectedHasEntry = entryDateSet.has(selectedDate);
+  const calendarDays = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(calendarMonth), { weekStartsOn: 0 }),
+    end: endOfWeek(endOfMonth(calendarMonth), { weekStartsOn: 0 }),
+  });
+
+  useEffect(() => {
+    setCalendarMonth(startOfMonth(parseISO(selectedDate)));
+  }, [selectedDate]);
 
   return (
     <div className="fade-in">
@@ -100,18 +123,59 @@ export default function JournalPage() {
               <div className="section-label">Jump to day</div>
               <p className="journal-day-picker-hint">Last 7 days · dot means saved entry</p>
             </div>
-            <label className="journal-date-input-wrap">
-              <span className="journal-date-input-label">All time</span>
-              <input
-                className={`journal-date-input ${selectedHasEntry ? 'has-entry' : ''}`}
-                type="date"
-                value={selectedDate}
-                min={oldestEntryDate}
-                max={format(new Date(), 'yyyy-MM-dd')}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                aria-label="Choose any journal date"
-              />
-            </label>
+            <div className="journal-mini-calendar">
+              <div className="journal-mini-calendar-head">
+                <span className="journal-mini-calendar-label">All time</span>
+                <div className="journal-mini-calendar-nav">
+                  <button
+                    type="button"
+                    className="journal-mini-calendar-btn"
+                    aria-label="Previous month"
+                    onClick={() => setCalendarMonth((m) => subMonths(m, 1))}
+                  >
+                    ‹
+                  </button>
+                  <span className="journal-mini-calendar-month">{format(calendarMonth, 'MMM yyyy')}</span>
+                  <button
+                    type="button"
+                    className="journal-mini-calendar-btn"
+                    aria-label="Next month"
+                    onClick={() => setCalendarMonth((m) => addMonths(m, 1))}
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+              <div className="journal-mini-calendar-grid" role="grid" aria-label="Journal calendar">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, i) => (
+                  <span key={`${label}-${i}`} className="journal-mini-calendar-dow">
+                    {label}
+                  </span>
+                ))}
+                {calendarDays.map((day) => {
+                  const key = format(day, 'yyyy-MM-dd');
+                  const isSelected = isSameDay(day, parseISO(selectedDate));
+                  const hasEntry = entryDateSet.has(key);
+                  const isCurrentMonth = isSameMonth(day, calendarMonth);
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      role="gridcell"
+                      aria-selected={isSelected}
+                      className={`journal-mini-calendar-day ${isSelected ? 'active' : ''} ${hasEntry ? 'has-entry' : ''} ${isCurrentMonth ? '' : 'outside-month'}`}
+                      onClick={() => setSelectedDate(key)}
+                    >
+                      <span>{format(day, 'd')}</span>
+                      {hasEntry && <span className="journal-mini-calendar-dot" aria-hidden />}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="journal-mini-calendar-foot">
+                {selectedHasEntry ? 'Saved entry on selected day' : 'No saved entry on selected day'}
+              </div>
+            </div>
           </div>
           <div className="day-pills" role="tablist" aria-label="Journal day">
             {recentDays.map((d) => (
