@@ -100,7 +100,10 @@ export default function GroupPage() {
     const q = query(collection(db, 'groups'), where('memberIds', 'array-contains', uid));
     return onSnapshot(q, (snap) => {
       const list: GroupDoc[] = [];
-      snap.forEach((d) => list.push({ id: d.id, data: d.data() as AccountabilityGroup }));
+      snap.forEach((d) => {
+        const data = d.data() as AccountabilityGroup;
+        if (data.status !== 'deleted') list.push({ id: d.id, data });
+      });
       list.sort((a, b) => timestampMillis(b.data.updatedAt) - timestampMillis(a.data.updatedAt));
       setGroups(list);
     });
@@ -256,6 +259,7 @@ export default function GroupPage() {
         memberIds: members,
         createdBy: uid,
         activeChallengeIds: [],
+        status: 'active',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

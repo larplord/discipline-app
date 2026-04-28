@@ -86,6 +86,25 @@
   flex-wrap: wrap;
 }
 
+.group-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 620px) {
+  .group-header-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .group-header-actions .btn {
+    flex: 1;
+  }
+}
+
 .group-create {
   display: flex;
   flex-direction: column;

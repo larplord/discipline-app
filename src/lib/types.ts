@@ -68,6 +68,7 @@ export type AccountabilityGroup = {
   memberIds: string[];
   createdBy: string;
   activeChallengeIds: string[];
+  status?: 'active' | 'deleted';
   createdAt?: unknown;
   updatedAt?: unknown;
 };

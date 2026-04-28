@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   addDoc,
   collection,
@@ -38,6 +38,7 @@ type MemberProfile = {
 
 export default function GroupDetailPage() {
   const params = useParams<{ groupId: string }>();
+  const router = useRouter();
   const groupId = params.groupId;
   const { user } = useAuth();
   const {
@@ -85,7 +86,14 @@ export default function GroupDetailPage() {
   useEffect(() => {
     return onSnapshot(
       doc(db, 'groups', groupId),
-      (snap) => setGroup(snap.exists() ? (snap.data() as AccountabilityGroup) : null),
+      (snap) => {
+        if (!snap.exists()) {
+          setGroup(null);
+          return;
+        }
+        const data = snap.data() as AccountabilityGroup;
+        setGroup(data.status === 'deleted' ? null : data);
+      },
       () => setGroup(null)
     );
   }, [db, groupId]);
@@ -268,6 +276,43 @@ export default function GroupDetailPage() {
     }
   }
 
+  async function leaveGroup() {
+    if (!group || group.createdBy === uid) return;
+    if (!confirm('Leave this group? You can only rejoin if someone creates a new group with you.')) return;
+    const nextMembers = group.memberIds.filter((memberId) => memberId !== uid);
+    setBusy(true);
+    setError(null);
+    try {
+      await updateDoc(doc(db, 'groups', groupId), {
+        memberIds: nextMembers,
+        updatedAt: serverTimestamp(),
+      });
+      router.replace('/group');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Could not leave group.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteGroup() {
+    if (!group || group.createdBy !== uid) return;
+    if (!confirm('Delete this group for everyone? This removes it from the Group tab.')) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await updateDoc(doc(db, 'groups', groupId), {
+        status: 'deleted',
+        updatedAt: serverTimestamp(),
+      });
+      router.replace('/group');
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Could not delete group.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (!group) {
     return (
       <div className="fade-in">
@@ -294,14 +339,25 @@ export default function GroupDetailPage() {
             <h1 className="page-title">{group.name}</h1>
             <p className="page-subtitle">{memberIds.length} people keeping the week honest.</p>
           </div>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => void checkIn()}
-            disabled={busy || dailyScore < 1 || checkedInToday}
-          >
-            {checkedInToday ? 'Checked in today' : dailyScore < 1 ? 'Earn 1 score point first' : 'Check in today'}
-          </button>
+          <div className="group-header-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => void checkIn()}
+              disabled={busy || dailyScore < 1 || checkedInToday}
+            >
+              {checkedInToday ? 'Checked in today' : dailyScore < 1 ? 'Earn 1 score point first' : 'Check in today'}
+            </button>
+            {group.createdBy === uid ? (
+              <button type="button" className="btn btn-danger" onClick={() => void deleteGroup()} disabled={busy}>
+                Delete Group
+              </button>
+            ) : (
+              <button type="button" className="btn btn-ghost" onClick={() => void leaveGroup()} disabled={busy}>
+                Leave Group
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

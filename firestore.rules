@@ -52,14 +52,15 @@ service cloud.firestore {
 
     function validGroupDoc() {
       return request.resource.data.keys().hasAll(['name', 'memberIds', 'createdBy', 'activeChallengeIds'])
-        && request.resource.data.keys().hasOnly(['name', 'memberIds', 'createdBy', 'activeChallengeIds', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['name', 'memberIds', 'createdBy', 'activeChallengeIds', 'status', 'createdAt', 'updatedAt'])
         && request.resource.data.name is string
         && request.resource.data.memberIds is list
         && request.resource.data.memberIds.size() >= 2
         && request.resource.data.memberIds.size() <= 5
         && request.auth.uid in request.resource.data.memberIds
         && request.resource.data.createdBy == request.auth.uid
-        && request.resource.data.activeChallengeIds is list;
+        && request.resource.data.activeChallengeIds is list
+        && (!('status' in request.resource.data) || request.resource.data.status == 'active');
     }
 
     /* ── Future: teams / challenges (deny by default, expand later) ── */
@@ -81,11 +82,27 @@ service cloud.firestore {
       allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow create: if signedIn() && validGroupDoc();
       allow update: if isGroupMember(groupId)
-        && request.resource.data.keys().hasOnly(['name', 'memberIds', 'createdBy', 'activeChallengeIds', 'createdAt', 'updatedAt'])
-        && request.resource.data.memberIds == resource.data.memberIds
+        && request.resource.data.keys().hasOnly(['name', 'memberIds', 'createdBy', 'activeChallengeIds', 'status', 'createdAt', 'updatedAt'])
         && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.name is string
-        && request.resource.data.activeChallengeIds is list;
+        && request.resource.data.activeChallengeIds is list
+        && (
+          (
+            request.resource.data.memberIds == resource.data.memberIds
+            && (
+              !('status' in request.resource.data)
+              || request.resource.data.status == resource.data.status
+              || (request.auth.uid == resource.data.createdBy && request.resource.data.status == 'deleted')
+            )
+          )
+          || (
+            request.auth.uid != resource.data.createdBy
+            && resource.data.status != 'deleted'
+            && request.resource.data.status == resource.data.status
+            && request.resource.data.memberIds == resource.data.memberIds.removeAll([request.auth.uid])
+            && request.resource.data.memberIds.size() >= 2
+          )
+        );
       allow delete: if false;
 
       match /promises/{memberUid} {
