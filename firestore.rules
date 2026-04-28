@@ -78,7 +78,7 @@ service cloud.firestore {
 
     /* ── Accountability groups ─────────────────────────── */
     match /groups/{groupId} {
-      allow read: if isGroupMember(groupId);
+      allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow create: if signedIn() && validGroupDoc();
       allow update: if isGroupMember(groupId)
         && request.resource.data.keys().hasOnly(['name', 'memberIds', 'createdBy', 'activeChallengeIds', 'createdAt', 'updatedAt'])
