@@ -19,7 +19,9 @@ const NAV = [
 
 type SidebarProps = {
   open: boolean;
+  collapsed: boolean;
   onCloseMobile: () => void;
+  onToggleCollapsed: () => void;
   onSignOut: () => void;
   scoreData: {
     habits: Habit[];
@@ -33,7 +35,7 @@ type SidebarProps = {
   };
 };
 
-export function Sidebar({ open, onCloseMobile, onSignOut, scoreData }: SidebarProps) {
+export function Sidebar({ open, collapsed, onCloseMobile, onToggleCollapsed, onSignOut, scoreData }: SidebarProps) {
   const pathname = usePathname();
   const score = calcDailyScoreFromSnapshot(scoreData);
   const scoreColor =
@@ -46,8 +48,30 @@ export function Sidebar({ open, onCloseMobile, onSignOut, scoreData }: SidebarPr
   return (
     <aside className={`sidebar ${open ? 'open' : ''}`}>
       <div className="sidebar-logo">
-        <div className="logo-text">
-          Discipline<span className="logo-dot">OS</span>
+        <div className="sidebar-logo-row">
+          <div className="logo-text" title="DisciplineOS">
+            <span className="logo-full">
+              Discipline<span className="logo-dot">OS</span>
+            </span>
+            <span className="logo-compact" aria-hidden="true">
+              DOS
+            </span>
+          </div>
+          <button
+            type="button"
+            className="sidebar-collapse-btn"
+            onClick={onToggleCollapsed}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d={collapsed ? 'M9 5l7 7-7 7' : 'M15 5l-7 7 7 7'}
+              />
+            </svg>
+          </button>
         </div>
         <div className="logo-sub">Personal Command Center</div>
       </div>
@@ -62,9 +86,11 @@ export function Sidebar({ open, onCloseMobile, onSignOut, scoreData }: SidebarPr
             href={href}
             className={`nav-item ${active ? 'active' : ''}`}
             onClick={() => onCloseMobile()}
+            aria-label={label}
+            title={label}
           >
             <Icon size={17} />
-            {label}
+            <span className="nav-text">{label}</span>
           </Link>
           );
         })}
@@ -92,8 +118,15 @@ export function Sidebar({ open, onCloseMobile, onSignOut, scoreData }: SidebarPr
           type="button"
           className="btn btn-ghost btn-sm w-full mt-2"
           onClick={() => onSignOut()}
+          aria-label="Sign out"
+          title="Sign out"
         >
-          Sign out
+          <span className="signout-text">Sign out</span>
+          <span className="signout-compact" aria-hidden="true">
+            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12H3m0 0l4-4m-4 4l4 4M9 5V4a2 2 0 012-2h8a2 2 0 012 2v16a2 2 0 01-2 2h-8a2 2 0 01-2-2v-1" />
+            </svg>
+          </span>
         </button>
       </div>
     </aside>

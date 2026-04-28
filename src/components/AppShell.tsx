@@ -13,12 +13,41 @@ function ShellInner({ children }: { children: ReactNode }) {
   const data = useUserData();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const sidebarPreferenceRef = useRef(false);
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSyncFingerprintRef = useRef('');
 
   async function logout() {
     await signOut(getFirebaseAuth());
     router.replace('/login');
+  }
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('disciplineos:sidebar');
+    const mediumQuery = window.matchMedia('(max-width: 1100px)');
+
+    if (saved === 'collapsed' || saved === 'expanded') {
+      sidebarPreferenceRef.current = true;
+      setSidebarCollapsed(saved === 'collapsed');
+      return;
+    }
+
+    setSidebarCollapsed(mediumQuery.matches);
+    const onChange = (event: MediaQueryListEvent) => {
+      if (!sidebarPreferenceRef.current) setSidebarCollapsed(event.matches);
+    };
+    mediumQuery.addEventListener('change', onChange);
+    return () => mediumQuery.removeEventListener('change', onChange);
+  }, []);
+
+  function toggleSidebarCollapsed() {
+    sidebarPreferenceRef.current = true;
+    setSidebarCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem('disciplineos:sidebar', next ? 'collapsed' : 'expanded');
+      return next;
+    });
   }
 
   useEffect(() => {
@@ -80,7 +109,7 @@ function ShellInner({ children }: { children: ReactNode }) {
   ]);
 
   return (
-    <div className="app-layout">
+    <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <div
         className={`mobile-overlay ${sidebarOpen ? 'visible' : ''}`}
         onClick={() => setSidebarOpen(false)}
@@ -89,7 +118,9 @@ function ShellInner({ children }: { children: ReactNode }) {
 
       <Sidebar
         open={sidebarOpen}
+        collapsed={sidebarCollapsed}
         onCloseMobile={() => setSidebarOpen(false)}
+        onToggleCollapsed={toggleSidebarCollapsed}
         scoreData={{
           habits: data.habits,
           dayLog: data.dayLog,
