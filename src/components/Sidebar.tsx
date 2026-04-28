@@ -11,6 +11,7 @@ const NAV = [
   { href: '/goals', label: 'Goals', icon: TargetIcon },
   { href: '/journal', label: 'Journal', icon: BookIcon },
   { href: '/focus', label: 'Focus', icon: TimerIcon },
+  { href: '/group', label: 'Group', icon: GroupIcon },
   { href: '/friends', label: 'Friends', icon: UsersIcon },
   { href: '/analytics', label: 'Analytics', icon: ChartIcon },
   { href: '/identity', label: 'Identity', icon: TrophyIcon },
@@ -54,7 +55,7 @@ export function Sidebar({ open, onCloseMobile, onSignOut, scoreData }: SidebarPr
       <nav className="sidebar-nav">
         <div className="nav-label">Navigation</div>
         {NAV.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href;
+          const active = pathname === href || pathname.startsWith(`${href}/`);
           return (
           <Link
             key={href}
@@ -141,6 +142,13 @@ function TimerIcon({ size = 20 }: { size?: number }) {
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <circle cx="12" cy="13" r="8" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4l3 3M12 5V3m-4 2L6 3m10 2l2-2" />
+    </svg>
+  );
+}
+function GroupIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 11a4 4 0 118 0M3 20a6 6 0 0118 0M18 8a3 3 0 110-6M6 8a3 3 0 100-6" />
     </svg>
   );
 }

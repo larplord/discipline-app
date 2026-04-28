@@ -63,6 +63,34 @@ export type SharedSummary = {
   updatedAt?: unknown;
 };
 
+export type AccountabilityGroup = {
+  name: string;
+  memberIds: string[];
+  createdBy: string;
+  activeChallengeIds: string[];
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
+
+export type GroupPromise = {
+  uid: string;
+  text: string;
+  updatedAt?: unknown;
+};
+
+export type GroupCheckIn = {
+  uid: string;
+  date: string;
+  dailyScoreAtCheckIn: number;
+  createdAt?: unknown;
+};
+
+export type GroupNudge = {
+  fromUid: string;
+  message: string;
+  createdAt?: unknown;
+};
+
 export type Friendship = {
   memberIds: [string, string];
   invitedBy: string;

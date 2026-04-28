@@ -44,6 +44,24 @@ service cloud.firestore {
         get(/databases/$(database)/documents/friendships/$(pid)).data.status == 'active';
     }
 
+    function isGroupMember(groupId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/groups/$(groupId))
+        && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberIds;
+    }
+
+    function validGroupDoc() {
+      return request.resource.data.keys().hasAll(['name', 'memberIds', 'createdBy', 'activeChallengeIds'])
+        && request.resource.data.keys().hasOnly(['name', 'memberIds', 'createdBy', 'activeChallengeIds', 'createdAt', 'updatedAt'])
+        && request.resource.data.name is string
+        && request.resource.data.memberIds is list
+        && request.resource.data.memberIds.size() >= 2
+        && request.resource.data.memberIds.size() <= 5
+        && request.auth.uid in request.resource.data.memberIds
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.activeChallengeIds is list;
+    }
+
     /* ── Future: teams / challenges (deny by default, expand later) ── */
     match /teams/{teamId} {
       allow read, write: if false;
@@ -56,6 +74,49 @@ service cloud.firestore {
     }
     match /leaderboards/{docId} {
       allow read, write: if false;
+    }
+
+    /* ── Accountability groups ─────────────────────────── */
+    match /groups/{groupId} {
+      allow read: if isGroupMember(groupId);
+      allow create: if signedIn() && validGroupDoc();
+      allow update: if isGroupMember(groupId)
+        && request.resource.data.keys().hasOnly(['name', 'memberIds', 'createdBy', 'activeChallengeIds', 'createdAt', 'updatedAt'])
+        && request.resource.data.memberIds == resource.data.memberIds
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.name is string
+        && request.resource.data.activeChallengeIds is list;
+      allow delete: if false;
+
+      match /promises/{memberUid} {
+        allow read: if isGroupMember(groupId);
+        allow write: if isGroupMember(groupId)
+          && memberUid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['uid', 'text', 'updatedAt'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.text is string;
+      }
+
+      match /checkIns/{checkInId} {
+        allow read: if isGroupMember(groupId);
+        allow create, update: if isGroupMember(groupId)
+          && request.resource.data.keys().hasOnly(['uid', 'date', 'dailyScoreAtCheckIn', 'createdAt'])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.date is string
+          && checkInId == request.resource.data.date + '_' + request.auth.uid
+          && request.resource.data.dailyScoreAtCheckIn is number
+          && request.resource.data.dailyScoreAtCheckIn >= 1;
+        allow delete: if false;
+      }
+
+      match /nudges/{nudgeId} {
+        allow read: if isGroupMember(groupId);
+        allow create: if isGroupMember(groupId)
+          && request.resource.data.keys().hasOnly(['fromUid', 'message', 'createdAt'])
+          && request.resource.data.fromUid == request.auth.uid
+          && request.resource.data.message in ['Still time today.', 'Get one done.', 'lockin.'];
+        allow update, delete: if false;
+      }
     }
 
     /* ── Friendships (pair document id = sorted uid_a_uid_b) ── */
