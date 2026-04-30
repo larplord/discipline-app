@@ -8,8 +8,9 @@ import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import type { Routine } from '@/lib/types';
 import {
+  closestDisplayMarkerOffset,
   formatTimeLabel,
-  generateRoutineMarkers,
+  generateRoutineDisplayMarkers,
   getRoutineProgress,
   routineStatusLabel,
   validateRoutineTimes,
@@ -43,11 +44,13 @@ export default function RoutineDetailPage() {
 
   const markers = useMemo(() => {
     if (!routine) return [];
-    return generateRoutineMarkers(routine);
+    return generateRoutineDisplayMarkers(routine);
   }, [routine]);
 
   const progress = routine ? getRoutineProgress(routine.startTime, routine.endTime, now) : null;
-  const currentOffset = progress ? Math.min(progress.passedMinutes, progress.duration) : 0;
+  const currentOffset = progress ? closestDisplayMarkerOffset(markers, Math.min(progress.passedMinutes, progress.duration)) : 0;
+  const majorMarkers = markers.filter((marker) => marker.isMajor);
+  const fitTimeline = progress ? progress.duration <= 180 : true;
 
   function openTaskEditor(timeLabel: string) {
     if (!routine) return;
@@ -190,7 +193,10 @@ export default function RoutineDetailPage() {
           </div>
 
           <div className="routine-timeline-scroll">
-            <div className="routine-timeline-track" style={{ ['--marker-count' as string]: markers.length }}>
+            <div
+              className={`routine-timeline-track ${fitTimeline ? 'fit' : 'scrolling'}`}
+              style={{ ['--marker-count' as string]: markers.length }}
+            >
               {markers.map((marker) => {
                 const passed = marker.minuteOffset <= progress.passedMinutes;
                 const current = marker.minuteOffset === currentOffset;
@@ -198,7 +204,7 @@ export default function RoutineDetailPage() {
                 return (
                   <div
                     key={`${marker.timeLabel}-${marker.minuteOffset}`}
-                    className={`routine-marker ${marker.isMajor ? 'major' : 'minor'} ${passed ? 'passed' : ''} ${current ? 'current' : ''}`}
+                    className={`routine-marker ${marker.isMajor ? 'major' : 'minor'} ${marker.labelPosition} ${passed ? 'passed' : ''} ${current ? 'current' : ''}`}
                   >
                     {editable && <div className="routine-marker-time">{formatTimeLabel(marker.timeLabel)}</div>}
                     <button
@@ -237,6 +243,57 @@ export default function RoutineDetailPage() {
                 );
               })}
             </div>
+          </div>
+        </section>
+
+        <section className="routine-step-list card">
+          <div className="routine-timeline-top">
+            <div>
+              <div className="routine-section-title">Routine steps</div>
+              <p className="routine-section-sub">These timestamps match the large markers on your timeline.</p>
+            </div>
+          </div>
+
+          <div className="routine-step-rows">
+            {majorMarkers.map((marker) => {
+              const passed = marker.minuteOffset <= progress.passedMinutes;
+              const current = marker.minuteOffset === currentOffset;
+              const active = activeMarker === marker.timeLabel;
+              return (
+                <div key={`row-${marker.timeLabel}-${marker.minuteOffset}`} className={`routine-step-row ${passed ? 'passed' : ''} ${current ? 'current' : ''}`}>
+                  <button
+                    type="button"
+                    className="routine-step-dot"
+                    aria-label={`Edit task for ${formatTimeLabel(marker.timeLabel)}`}
+                    onClick={() => openTaskEditor(marker.timeLabel)}
+                  />
+                  <div className="routine-step-time">{formatTimeLabel(marker.timeLabel)}</div>
+                  <div className="routine-step-body">
+                    {active ? (
+                      <input
+                        className="routine-step-input"
+                        value={draftTask}
+                        autoFocus
+                        placeholder="Add task"
+                        onChange={(e) => setDraftTask(e.target.value)}
+                        onBlur={() => void saveTask(marker.timeLabel)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') e.currentTarget.blur();
+                          if (e.key === 'Escape') {
+                            setActiveMarker(null);
+                            setDraftTask('');
+                          }
+                        }}
+                      />
+                    ) : (
+                      <button type="button" className="routine-step-task" onClick={() => openTaskEditor(marker.timeLabel)}>
+                        {marker.task || 'Add task'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       </div>

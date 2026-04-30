@@ -5,6 +5,12 @@ export type RoutineMarker = {
   task: string;
 };
 
+export type RoutineDisplayMarker = RoutineMarker & {
+  displayIndex: number;
+  majorIndex: number;
+  labelPosition: 'above' | 'below';
+};
+
 export function parseTimeToMinutes(time: string) {
   const [h, m] = time.split(':').map(Number);
   if (!Number.isInteger(h) || !Number.isInteger(m) || h < 0 || h > 23 || m < 0 || m > 59) return null;
@@ -60,6 +66,70 @@ export function generateRoutineMarkers(input: {
       task: input.steps?.[timeLabel] ?? '',
     };
   });
+}
+
+export function generateRoutineDisplayMarkers(input: {
+  startTime: string;
+  endTime: string;
+  majorIntervalMinutes: 5 | 15;
+  steps?: Record<string, string>;
+}) {
+  const start = parseTimeToMinutes(input.startTime);
+  const duration = getRoutineDuration(input.startTime, input.endTime);
+  if (start == null || duration == null) return [];
+
+  const majorOffsets: number[] = [];
+  for (let offset = 0; offset <= duration; offset += input.majorIntervalMinutes) {
+    majorOffsets.push(offset);
+  }
+  if (majorOffsets[majorOffsets.length - 1] !== duration) majorOffsets.push(duration);
+
+  const markers: RoutineDisplayMarker[] = [];
+  const intervalCount = Math.max(1, majorOffsets.length - 1);
+  const displayBudget = duration <= 180 ? 90 : Number.POSITIVE_INFINITY;
+  const minorBudgetPerInterval = Number.isFinite(displayBudget)
+    ? Math.max(0, Math.floor((displayBudget - majorOffsets.length) / intervalCount))
+    : 5;
+
+  majorOffsets.forEach((majorOffset, majorIndex) => {
+    const timeLabel = formatMinutesAsTime(start + majorOffset);
+    markers.push({
+      minuteOffset: majorOffset,
+      timeLabel,
+      isMajor: true,
+      task: input.steps?.[timeLabel] ?? '',
+      displayIndex: markers.length,
+      majorIndex,
+      labelPosition: majorIndex % 2 === 0 ? 'above' : 'below',
+    });
+
+    const nextMajor = majorOffsets[majorIndex + 1];
+    if (nextMajor == null) return;
+    const gap = nextMajor - majorOffset;
+    const minorCount = Math.min(5, minorBudgetPerInterval, Math.max(0, gap - 1));
+    for (let i = 1; i <= minorCount; i += 1) {
+      const minorOffset = Math.round(majorOffset + (gap * i) / (minorCount + 1));
+      if (minorOffset <= majorOffset || minorOffset >= nextMajor) continue;
+      markers.push({
+        minuteOffset: minorOffset,
+        timeLabel: formatMinutesAsTime(start + minorOffset),
+        isMajor: false,
+        task: '',
+        displayIndex: markers.length,
+        majorIndex,
+        labelPosition: 'above',
+      });
+    }
+  });
+
+  return markers.map((marker, displayIndex) => ({ ...marker, displayIndex }));
+}
+
+export function closestDisplayMarkerOffset(markers: RoutineDisplayMarker[], passedMinutes: number) {
+  if (!markers.length) return 0;
+  return markers.reduce((closest, marker) =>
+    Math.abs(marker.minuteOffset - passedMinutes) < Math.abs(closest.minuteOffset - passedMinutes) ? marker : closest
+  ).minuteOffset;
 }
 
 export function getRoutineProgress(startTime: string, endTime: string, now = new Date()) {
