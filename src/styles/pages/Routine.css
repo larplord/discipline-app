@@ -295,15 +295,15 @@
 }
 
 .routine-marker.above .routine-marker-task {
-  bottom: 10.7rem;
+  top: 0.15rem;
 }
 
 .routine-marker.below .routine-marker-task {
-  top: 7.05rem;
+  top: 8.7rem;
 }
 
 .routine-marker.below .routine-marker-time {
-  top: 8.95rem;
+  top: 7rem;
 }
 
 .routine-task-button {

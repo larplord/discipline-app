@@ -25,6 +25,7 @@ export default function RoutineDetailPage() {
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [now, setNow] = useState(() => new Date());
   const [activeMarker, setActiveMarker] = useState<string | null>(null);
+  const [activeEditor, setActiveEditor] = useState<'timeline' | 'list' | null>(null);
   const [draftTask, setDraftTask] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,9 +53,10 @@ export default function RoutineDetailPage() {
   const majorMarkers = markers.filter((marker) => marker.isMajor);
   const fitTimeline = progress ? progress.duration <= 180 : true;
 
-  function openTaskEditor(timeLabel: string) {
+  function openTaskEditor(timeLabel: string, source: 'timeline' | 'list') {
     if (!routine) return;
     setActiveMarker(timeLabel);
+    setActiveEditor(source);
     setDraftTask(routine.steps?.[timeLabel] ?? '');
   }
 
@@ -71,6 +73,7 @@ export default function RoutineDetailPage() {
         updatedAt: serverTimestamp(),
       });
       setActiveMarker(null);
+      setActiveEditor(null);
       setDraftTask('');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Could not save task.');
@@ -211,12 +214,12 @@ export default function RoutineDetailPage() {
                       type="button"
                       className="routine-dot"
                       aria-label={editable ? `Edit task for ${formatTimeLabel(marker.timeLabel)}` : formatTimeLabel(marker.timeLabel)}
-                      onClick={() => editable && openTaskEditor(marker.timeLabel)}
+                      onClick={() => editable && openTaskEditor(marker.timeLabel, 'timeline')}
                       disabled={!editable}
                     />
                     {editable && (
                       <div className="routine-marker-task">
-                        {activeMarker === marker.timeLabel ? (
+                        {activeMarker === marker.timeLabel && activeEditor === 'timeline' ? (
                           <input
                             className="routine-task-input"
                             value={draftTask}
@@ -228,12 +231,13 @@ export default function RoutineDetailPage() {
                               if (e.key === 'Enter') e.currentTarget.blur();
                               if (e.key === 'Escape') {
                                 setActiveMarker(null);
+                                setActiveEditor(null);
                                 setDraftTask('');
                               }
                             }}
                           />
                         ) : (
-                          <button type="button" className="routine-task-button" onClick={() => openTaskEditor(marker.timeLabel)}>
+                          <button type="button" className="routine-task-button" onClick={() => openTaskEditor(marker.timeLabel, 'timeline')}>
                             {marker.task || 'Add task'}
                           </button>
                         )}
@@ -258,14 +262,14 @@ export default function RoutineDetailPage() {
             {majorMarkers.map((marker) => {
               const passed = marker.minuteOffset <= progress.passedMinutes;
               const current = marker.minuteOffset === currentOffset;
-              const active = activeMarker === marker.timeLabel;
+              const active = activeMarker === marker.timeLabel && activeEditor === 'list';
               return (
                 <div key={`row-${marker.timeLabel}-${marker.minuteOffset}`} className={`routine-step-row ${passed ? 'passed' : ''} ${current ? 'current' : ''}`}>
                   <button
                     type="button"
                     className="routine-step-dot"
                     aria-label={`Edit task for ${formatTimeLabel(marker.timeLabel)}`}
-                    onClick={() => openTaskEditor(marker.timeLabel)}
+                    onClick={() => openTaskEditor(marker.timeLabel, 'list')}
                   />
                   <div className="routine-step-time">{formatTimeLabel(marker.timeLabel)}</div>
                   <div className="routine-step-body">
@@ -281,12 +285,13 @@ export default function RoutineDetailPage() {
                           if (e.key === 'Enter') e.currentTarget.blur();
                           if (e.key === 'Escape') {
                             setActiveMarker(null);
+                            setActiveEditor(null);
                             setDraftTask('');
                           }
                         }}
                       />
                     ) : (
-                      <button type="button" className="routine-step-task" onClick={() => openTaskEditor(marker.timeLabel)}>
+                      <button type="button" className="routine-step-task" onClick={() => openTaskEditor(marker.timeLabel, 'list')}>
                         {marker.task || 'Add task'}
                       </button>
                     )}
