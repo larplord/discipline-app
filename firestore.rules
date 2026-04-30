@@ -187,6 +187,10 @@ service cloud.firestore {
         allow read, write: if isSelf(uid);
       }
 
+      match /routines/{routineId} {
+        allow read, write: if isSelf(uid);
+      }
+
       match /journal/{dateId} {
         allow read, write: if isSelf(uid);
       }

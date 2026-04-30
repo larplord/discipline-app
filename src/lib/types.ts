@@ -20,6 +20,17 @@ export type Goal = {
   milestones: { id: string; text: string; done: boolean }[];
 };
 
+export type Routine = {
+  id: string;
+  name: string;
+  startTime: string;
+  endTime: string;
+  majorIntervalMinutes: 5 | 15;
+  steps?: Record<string, string>;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
+
 /** Macro grams for nutrition targets / intake (scoring + nutrition page). */
 export type MacroSnapshot = {
   fat: number;
