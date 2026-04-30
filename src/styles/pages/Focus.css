@@ -63,6 +63,43 @@
   font-size: 1rem;
 }
 
+.focus-points-card {
+  max-width: 620px;
+  margin: 0 auto 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.focus-points-card p {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.focus-points-card strong {
+  color: var(--green-light);
+}
+
+.focus-points-score {
+  min-width: 6rem;
+  text-align: center;
+  color: var(--green-light);
+  font-size: 1.8rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.focus-points-score span {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 .sessions-row {
   display: flex;
   align-items: center;
@@ -95,4 +132,8 @@
 
 @media (max-width: 600px) {
   .tips-grid { grid-template-columns: 1fr; }
+  .focus-points-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }

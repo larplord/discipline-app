@@ -5,6 +5,7 @@ import { doc, onSnapshot, runTransaction, serverTimestamp } from 'firebase/fires
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
+import { DAILY_SCORE } from '@/lib/scoringConfig';
 import '@/styles/pages/Focus.css';
 
 const MODES = [
@@ -19,6 +20,7 @@ export default function FocusPage() {
   const [modeId, setModeId] = useState<(typeof MODES)[number]['id']>('work');
   const [customMin, setCustomMin] = useState(45);
   const [running, setRunning] = useState(false);
+  const [completed, setCompleted] = useState(false);
   const [seconds, setSeconds] = useState(60 * 60);
   const [sessions, setSessions] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -39,6 +41,7 @@ export default function FocusPage() {
     if (intervalRef.current) clearInterval(intervalRef.current);
     sessionRecordedRef.current = false;
     setRunning(false);
+    setCompleted(false);
     setModeId(id);
     const m = MODES.find((x) => x.id === id)!;
     const mins = id === 'custom' ? customMin : m.minutes;
@@ -47,6 +50,7 @@ export default function FocusPage() {
 
   useEffect(() => {
     setSeconds(totalSec);
+    setCompleted(false);
   }, [customMin, modeId, totalSec]);
 
   useEffect(() => {
@@ -56,6 +60,7 @@ export default function FocusPage() {
           if (s <= 1) {
             if (intervalRef.current) clearInterval(intervalRef.current);
             setRunning(false);
+            setCompleted(true);
             if ((modeId === 'work' || modeId === 'custom') && !sessionRecordedRef.current) {
               sessionRecordedRef.current = true;
               const db = getFirestoreDb();
@@ -84,6 +89,7 @@ export default function FocusPage() {
   }, [running, modeId, uid]);
 
   function start() {
+    if (completed || seconds <= 0) return;
     if (seconds === totalSec) sessionRecordedRef.current = false;
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
       void Notification.requestPermission();
@@ -97,6 +103,7 @@ export default function FocusPage() {
     if (intervalRef.current) clearInterval(intervalRef.current);
     sessionRecordedRef.current = false;
     setRunning(false);
+    setCompleted(false);
     setSeconds(totalSec);
   }
 
@@ -180,15 +187,15 @@ export default function FocusPage() {
                 {mm}:{ss}
               </text>
               <text x="110" y="132" textAnchor="middle" fill="var(--text-muted)" fontSize="14" fontFamily="Inter">
-                {running ? mode.label : 'Ready'}
+                {running ? mode.label : completed ? 'Complete' : 'Ready'}
               </text>
             </svg>
           </div>
 
           <div className="timer-controls">
             {!running ? (
-              <button type="button" className="btn btn-primary timer-btn" onClick={start} disabled={seconds === 0}>
-                {seconds === 0 ? '✓ Done' : '▶ Start'}
+              <button type="button" className="btn btn-primary timer-btn" onClick={start} disabled={completed || seconds === 0}>
+                {completed || seconds === 0 ? '✓ Done' : '▶ Start'}
               </button>
             ) : (
               <button type="button" className="btn btn-ghost timer-btn" onClick={pause}>
@@ -198,6 +205,20 @@ export default function FocusPage() {
             <button type="button" className="btn btn-ghost" onClick={reset}>
               ↺ Reset
             </button>
+          </div>
+        </div>
+
+        <div className="focus-points-card card">
+          <div>
+            <div className="section-label">Points</div>
+            <p>
+              Deep Work and Custom sessions add <strong>+{DAILY_SCORE.focusPerSession} points</strong> when the timer reaches 0.
+              Break timers do not add points.
+            </p>
+          </div>
+          <div className="focus-points-score">
+            +{sessions * DAILY_SCORE.focusPerSession}
+            <span>today</span>
           </div>
         </div>
 
