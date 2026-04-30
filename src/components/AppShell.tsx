@@ -8,6 +8,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { UserDataProvider, useUserData } from '@/components/UserDataProvider';
 import { Sidebar } from '@/components/Sidebar';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
+import { syncIdentityProgress } from '@/lib/syncIdentityProgress';
 
 function ShellInner({ children }: { children: ReactNode }) {
   const data = useUserData();
@@ -17,6 +18,8 @@ function ShellInner({ children }: { children: ReactNode }) {
   const sidebarPreferenceRef = useRef(false);
   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSyncFingerprintRef = useRef('');
+  const identitySyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastIdentityFingerprintRef = useRef('');
 
   async function logout() {
     await signOut(getFirebaseAuth());
@@ -106,6 +109,56 @@ function ShellInner({ children }: { children: ReactNode }) {
     data.nutritionIntake,
     data.identityProfile,
     data.shareProgressWithFriends,
+  ]);
+
+  useEffect(() => {
+    const fingerprint = JSON.stringify({
+      uid: data.uid,
+      habits: data.habits,
+      dayLog: data.dayLog,
+      logsByDate: data.logsByDate,
+      focusToday: data.focusToday,
+      journal: data.journal,
+      goals: data.goals,
+      nutritionTargets: data.nutritionTargets,
+      nutritionIntake: data.nutritionIntake,
+    });
+
+    if (fingerprint === lastIdentityFingerprintRef.current) return;
+
+    if (identitySyncTimerRef.current) clearTimeout(identitySyncTimerRef.current);
+    identitySyncTimerRef.current = setTimeout(() => {
+      void syncIdentityProgress(getFirestoreDb(), data.uid, {
+        habits: data.habits,
+        dayLog: data.dayLog,
+        logsByDate: data.logsByDate,
+        focusToday: data.focusToday,
+        journal: data.journal,
+        goals: data.goals,
+        nutritionTargets: data.nutritionTargets,
+        nutritionIntake: data.nutritionIntake,
+      })
+        .then(() => {
+          lastIdentityFingerprintRef.current = fingerprint;
+        })
+        .catch((e) => {
+          console.warn('[DisciplineOS][Identity][sync-error]', e);
+        });
+    }, 1200);
+
+    return () => {
+      if (identitySyncTimerRef.current) clearTimeout(identitySyncTimerRef.current);
+    };
+  }, [
+    data.uid,
+    data.habits,
+    data.dayLog,
+    data.logsByDate,
+    data.focusToday,
+    data.journal,
+    data.goals,
+    data.nutritionTargets,
+    data.nutritionIntake,
   ]);
 
   return (

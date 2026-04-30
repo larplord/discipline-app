@@ -5,14 +5,13 @@ import {
   collection,
   doc,
   onSnapshot,
-  runTransaction,
 } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
-import { todayKey } from '@/lib/dates';
 import { calcDailyScore, weekProgress } from '@/lib/scoring';
 import { calcStreak } from '@/lib/streaks';
 import { getLevel } from '@/lib/levels';
+import { syncIdentityProgress } from '@/lib/syncIdentityProgress';
 import type { IdentityDoc } from '@/lib/types';
 import '@/styles/pages/Identity.css';
 
@@ -49,6 +48,7 @@ export default function IdentityPage() {
         totalScore: Number(d?.totalScore ?? 0),
         bestStreak: Number(d?.bestStreak ?? 0),
         lastScoreDate: d?.lastScoreDate as string | undefined,
+        lastDailyScore: Number(d?.lastDailyScore ?? 0),
       });
     });
     const u3 = onSnapshot(collection(db, 'users', uid, 'focusLogs'), (snap) => {
@@ -77,30 +77,19 @@ export default function IdentityPage() {
   const weekPct = weekProgress(habits, logsByDate);
 
   useEffect(() => {
-    const today = todayKey();
-    if (identity.lastScoreDate === today) return;
     const db = getFirestoreDb();
-    const ref = doc(db, 'users', uid, 'identity', 'profile');
-    const bestStreak = Math.max(...habits.map((h) => calcStreak(h.id, logsByDate)), 0);
-    void runTransaction(db, async (trx) => {
-      const snap = await trx.get(ref);
-      const last = snap.data()?.lastScoreDate as string | undefined;
-      if (last === today) return;
-      const prev = Number(snap.data()?.totalScore ?? 0);
-      const prevBest = Number(snap.data()?.bestStreak ?? 0);
-      trx.set(
-        ref,
-        {
-          totalScore: prev + dailyScore,
-          bestStreak: Math.max(prevBest, bestStreak),
-          lastScoreDate: today,
-        },
-        { merge: true }
-      );
+    void syncIdentityProgress(db, uid, {
+      habits,
+      dayLog,
+      focusToday,
+      journal,
+      goals,
+      nutritionTargets,
+      nutritionIntake,
+      logsByDate,
     });
   }, [
     uid,
-    identity.lastScoreDate,
     habits,
     dayLog,
     focusToday,
@@ -109,7 +98,6 @@ export default function IdentityPage() {
     nutritionTargets,
     nutritionIntake,
     logsByDate,
-    dailyScore,
   ]);
 
   const level = getLevel(identity.totalScore ?? 0);

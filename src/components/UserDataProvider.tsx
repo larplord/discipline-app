@@ -218,6 +218,7 @@ export function UserDataProvider({
             totalScore: Number(d?.totalScore ?? 0),
             bestStreak: Number(d?.bestStreak ?? 0),
             lastScoreDate: d?.lastScoreDate as string | undefined,
+            lastDailyScore: Number(d?.lastDailyScore ?? 0),
           });
         },
         logErr('identityProfile')

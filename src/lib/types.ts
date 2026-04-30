@@ -39,6 +39,7 @@ export type IdentityDoc = {
   totalScore: number;
   bestStreak: number;
   lastScoreDate?: string;
+  lastDailyScore?: number;
 };
 
 export type PrivacySettings = {
