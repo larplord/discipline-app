@@ -16,18 +16,14 @@
 .friends-hero-card {
   padding: 1.1rem 1.15rem;
   border-radius: var(--radius, 12px);
-  background: linear-gradient(145deg, var(--bg-elevated) 0%, rgba(99, 102, 241, 0.06) 100%);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   position: relative;
   overflow: hidden;
 }
 
 .friends-hero-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse 80% 50% at 100% 0%, rgba(99, 102, 241, 0.12), transparent 55%);
+  content: none;
 }
 
 .friends-hero-val {
@@ -188,7 +184,7 @@
 .friends-compare {
   border: 1px solid var(--border);
   border-radius: var(--radius, 12px);
-  background: linear-gradient(165deg, var(--bg-elevated) 0%, rgba(245, 158, 11, 0.04) 45%, rgba(99, 102, 241, 0.06) 100%);
+  background: var(--bg-card);
   overflow: hidden;
 }
 
@@ -301,8 +297,8 @@
 }
 
 .friends-compare-cell.tie {
-  box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.25);
-  background: rgba(99, 102, 241, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(96, 165, 250, 0.22);
+  background: rgba(37, 99, 235, 0.06);
 }
 
 .friends-compare-badge {
@@ -333,7 +329,7 @@
   display: block;
   height: 100%;
   border-radius: 99px;
-  background: linear-gradient(90deg, var(--accent), var(--green));
+  background: var(--accent);
   transition: width 0.35s ease;
 }
 

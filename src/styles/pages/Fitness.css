@@ -62,10 +62,10 @@
 .bb-nutrition-card {
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
-  background: linear-gradient(165deg, rgba(30, 30, 48, 0.98) 0%, var(--bg-card) 100%);
+  background: var(--bg-card);
   padding: 1.5rem 1.75rem 1.75rem;
   margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset;
 }
 
 .bb-nutrition-title {
@@ -201,11 +201,11 @@
 }
 
 .bb-macro-fill.calories {
-  background: linear-gradient(90deg, #60a5fa, #93c5fd);
+  background: var(--accent);
 }
 
 .bb-macro-fill.protein {
-  background: linear-gradient(90deg, #ea580c, #fb923c);
+  background: var(--orange);
 }
 
 /* Training row */
@@ -219,13 +219,13 @@
 .bb-hero-card {
   border-radius: var(--radius-xl);
   padding: 1.35rem 1.25rem 1.25rem;
-  background: linear-gradient(160deg, #4c1d95 0%, #5b21b6 45%, #4338ca 100%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(160deg, #0f172a 0%, #1e3a8a 100%);
+  border: 1px solid rgba(96, 165, 250, 0.24);
   color: #fff;
   display: flex;
   flex-direction: column;
   min-height: 280px;
-  box-shadow: 0 12px 40px rgba(76, 29, 149, 0.35);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
 }
 
 .bb-hero-label {
@@ -242,7 +242,7 @@
   line-height: 1;
   letter-spacing: -0.06em;
   margin: 0.5rem 0 0.75rem;
-  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  text-shadow: none;
 }
 
 .bb-hero-foot {

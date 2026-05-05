@@ -97,7 +97,6 @@
 
 .routine-card:hover {
   border-color: var(--border-accent);
-  transform: translateY(-1px);
 }
 
 .routine-card-top,
@@ -162,7 +161,7 @@
 }
 
 .routine-progress-fill {
-  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  background: var(--accent);
 }
 
 .routine-back-link {
@@ -266,12 +265,12 @@
 .routine-marker.passed .routine-dot {
   border-color: var(--accent-light);
   background: var(--accent);
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.13);
 }
 
 .routine-marker.current .routine-dot {
   border-color: var(--gold-light);
-  box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.12), 0 0 18px rgba(245, 158, 11, 0.45);
+  box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.14);
   transform: scale(1.12);
 }
 
@@ -367,7 +366,7 @@
 
 .routine-step-row.passed {
   border-color: var(--border-accent);
-  background: rgba(99, 102, 241, 0.08);
+  background: rgba(37, 99, 235, 0.07);
 }
 
 .routine-step-row.current {
@@ -387,7 +386,7 @@
 .routine-step-row.passed .routine-step-dot {
   border-color: var(--accent-light);
   background: var(--accent);
-  box-shadow: 0 0 12px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.13);
 }
 
 .routine-step-row.current .routine-step-dot {

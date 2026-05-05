@@ -171,7 +171,6 @@ export default function FocusPage() {
                 transform="rotate(-90 110 110)"
                 style={{
                   transition: running ? 'stroke-dashoffset 1s linear' : 'none',
-                  filter: `drop-shadow(0 0 8px ${String(mode.color)}60)`,
                 }}
               />
               <text

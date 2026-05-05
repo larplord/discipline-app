@@ -108,7 +108,7 @@ export function Sidebar({ open, collapsed, onCloseMobile, onToggleCollapsed, onS
                 className="progress-bar"
                 style={{
                   width: `${Math.min(score, 100)}%`,
-                  background: `linear-gradient(90deg, ${scoreColor}, ${scoreColor}99)`,
+                  background: scoreColor,
                 }}
               />
             </div>

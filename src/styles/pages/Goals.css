@@ -15,7 +15,7 @@
   cursor: pointer;
   overflow: hidden;
   border: 1px solid var(--border);
-  background: linear-gradient(165deg, var(--bg-card) 0%, rgba(15, 15, 26, 0.92) 100%);
+  background: var(--bg-card);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
@@ -25,7 +25,7 @@
 
 .goal-card.expanded {
   border-color: var(--border-accent);
-  box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.12), var(--shadow-card);
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.12);
 }
 
 .goal-header {
@@ -56,7 +56,7 @@
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 0 10px currentColor;
+  box-shadow: none;
 }
 .priority-dot.high {
   background: var(--red);
@@ -159,7 +159,7 @@
 .ms-check.done {
   background: var(--green);
   border-color: var(--green);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
 .ms-done {

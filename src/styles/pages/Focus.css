@@ -50,7 +50,7 @@
 }
 
 .timer-ring-wrap {
-  filter: drop-shadow(0 0 24px color-mix(in srgb, var(--ring-color, var(--accent)) 25%, transparent));
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.22));
 }
 
 .timer-controls {
@@ -112,7 +112,7 @@
   font-size: 1.1rem;
   transition: var(--transition);
 }
-.session-dot.done { filter: drop-shadow(0 0 4px var(--gold-light)); }
+.session-dot.done { filter: none; }
 
 .focus-tips { padding: 1.25rem; }
 .tips-grid {

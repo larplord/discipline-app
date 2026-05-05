@@ -24,7 +24,7 @@
 
 .group-metric {
   padding: 1.1rem 1.15rem;
-  background: linear-gradient(145deg, var(--bg-elevated), rgba(99, 102, 241, 0.06));
+  background: var(--bg-card);
   overflow: hidden;
 }
 
@@ -172,7 +172,6 @@
 
 .group-summary-card:hover {
   border-color: var(--border-accent);
-  transform: translateY(-1px);
 }
 
 .group-summary-top h3 {
@@ -319,7 +318,7 @@
 
 .group-status-dot.on::before {
   background: var(--green-light);
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.45);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.13);
 }
 
 .group-tile-stats {

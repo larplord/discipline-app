@@ -2,8 +2,8 @@
 
 .journal-day-picker {
   padding: 1.15rem 1.25rem 1.25rem;
-  background: linear-gradient(145deg, var(--bg-card) 0%, rgba(19, 19, 31, 0.95) 100%);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--bg-card);
+  border-color: var(--border);
 }
 
 .journal-day-picker-head {
@@ -71,9 +71,9 @@
   min-width: 16rem;
   padding: 0.85rem 0.95rem 0.8rem;
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(99, 102, 241, 0.16);
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.08), rgba(30, 30, 48, 0.9));
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
 }
 
 .journal-calendar-dropdown {
@@ -175,7 +175,7 @@
 }
 
 .journal-mini-calendar-day:hover {
-  background: rgba(99, 102, 241, 0.12);
+  background: rgba(37, 99, 235, 0.1);
   color: var(--text-primary);
 }
 
@@ -183,7 +183,7 @@
   background: var(--accent);
   border-color: var(--accent-light);
   color: #fff;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
 }
 
 .journal-mini-calendar-day.outside-month {
@@ -192,7 +192,7 @@
 }
 
 .journal-mini-calendar-day.has-entry {
-  border-color: rgba(129, 140, 248, 0.24);
+  border-color: rgba(96, 165, 250, 0.26);
 }
 
 .journal-mini-calendar-dot {
@@ -204,7 +204,7 @@
   border-radius: 999px;
   background: var(--accent-light);
   transform: translateX(-50%);
-  box-shadow: 0 0 8px rgba(129, 140, 248, 0.6);
+  box-shadow: none;
 }
 
 .journal-mini-calendar-day.active .journal-mini-calendar-dot {
@@ -240,14 +240,13 @@
   cursor: pointer;
   transition: var(--transition);
   font-family: inherit;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: none;
 }
 
 .day-pill:hover {
   border-color: rgba(255, 255, 255, 0.14);
   color: var(--text-primary);
   background: var(--bg-elevated);
-  transform: translateY(-1px);
 }
 
 .day-pill:focus-visible {
@@ -260,7 +259,7 @@
   background: var(--accent-faint);
   border-color: var(--border-accent);
   color: var(--accent-light);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.12);
+  box-shadow: none;
 }
 
 .day-pill-dow {
@@ -291,7 +290,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--green-light);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+  box-shadow: none;
 }
 
 .day-pill.has-entry:not(.active) .day-pill-dot {
@@ -300,8 +299,8 @@
 
 .journal-free-card {
   padding: 1.2rem 1.25rem 1.25rem;
-  background: linear-gradient(160deg, rgba(99, 102, 241, 0.06), var(--bg-card));
-  border-color: rgba(99, 102, 241, 0.15);
+  background: var(--bg-card);
+  border-color: var(--border);
 }
 
 .journal-free-head {

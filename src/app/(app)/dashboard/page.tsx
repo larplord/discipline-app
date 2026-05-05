@@ -108,7 +108,7 @@ export default function DashboardPage() {
 
   const circumference = 2 * Math.PI * 44;
   const offset = circumference - (Math.min(score, 100) / 100) * circumference;
-  const scoreColor = score >= 80 ? '#10b981' : score >= 50 ? '#6366f1' : '#f59e0b';
+  const scoreColor = score >= 80 ? '#10b981' : score >= 50 ? '#2563eb' : '#f59e0b';
 
   return (
     <div className="fade-in">
