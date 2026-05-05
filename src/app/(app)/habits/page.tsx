@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type DragEvent } from 'react';
+import { useEffect, useMemo, useState, type DragEvent } from 'react';
 import {
   addDoc,
   collection,
@@ -94,6 +94,7 @@ export default function HabitsPage() {
   const [draggingHabitId, setDraggingHabitId] = useState<string | null>(null);
   const [dragOverHabitId, setDragOverHabitId] = useState<string | null>(null);
   const [rewardSpins, setRewardSpins] = useState<Record<string, boolean>>({});
+  const [localDayLog, setLocalDayLog] = useState<DayLog>({});
   const [activeWheelHabitId, setActiveWheelHabitId] = useState<string | null>(null);
   const [wheelResult, setWheelResult] = useState<WheelOutcome | null>(null);
   const [wheelRotation, setWheelRotation] = useState(0);
@@ -102,8 +103,9 @@ export default function HabitsPage() {
   const todayPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
   const filtered = filter === 'all' ? habits : habits.filter((h) => h.category === filter);
+  const effectiveDayLog = useMemo(() => ({ ...dayLog, ...localDayLog }), [dayLog, localDayLog]);
   const activeWheelHabit = habits.find((habit) => habit.id === activeWheelHabitId) ?? null;
-  const wheelUnlocked = !!activeWheelHabitId && !!dayLog[activeWheelHabitId] && !rewardSpins[activeWheelHabitId];
+  const wheelUnlocked = !!activeWheelHabitId && !!effectiveDayLog[activeWheelHabitId] && !rewardSpins[activeWheelHabitId];
 
   useEffect(() => {
     const db = getFirestoreDb();
@@ -113,6 +115,17 @@ export default function HabitsPage() {
     });
   }, [uid]);
 
+  useEffect(() => {
+    setLocalDayLog({});
+  }, [dayLog]);
+
+  useEffect(() => {
+    if (activeWheelHabitId && effectiveDayLog[activeWheelHabitId] && !rewardSpins[activeWheelHabitId]) return;
+    const nextHabit = habits.find((habit) => effectiveDayLog[habit.id] && !rewardSpins[habit.id]);
+    setActiveWheelHabitId(nextHabit?.id ?? null);
+    if (nextHabit?.id !== activeWheelHabitId) setWheelResult(null);
+  }, [activeWheelHabitId, effectiveDayLog, habits, rewardSpins]);
+
   async function toggle(id: string) {
     const db = getFirestoreDb();
     const t = todayKey();
@@ -121,6 +134,7 @@ export default function HabitsPage() {
     const prev = (snap.data()?.entries as DayLog) ?? {};
     const wasDone = !!prev[id];
     const next = { ...prev, [id]: !wasDone };
+    setLocalDayLog((current) => ({ ...current, [id]: !wasDone }));
     await setDoc(ref, { entries: next }, { merge: true });
     if (!wasDone) {
       setActiveWheelHabitId(id);
