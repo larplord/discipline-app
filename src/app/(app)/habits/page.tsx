@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, type DragEvent } from 'react';
+import { useEffect, useState, type DragEvent } from 'react';
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
   getDoc,
+  onSnapshot,
+  serverTimestamp,
   setDoc,
   updateDoc,
   writeBatch,
@@ -22,6 +24,46 @@ import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import '@/styles/pages/Habits.css';
 
 const CATEGORIES = ['fitness', 'learning', 'business', 'mindset', 'sleep', 'health', 'other'];
+const WHEEL_OUTCOMES = [
+  {
+    id: 'tier1',
+    label: 'Tier 1',
+    weight: 40,
+    color: '#10b981',
+    text: 'Take your small reward.',
+  },
+  {
+    id: 'tier2',
+    label: 'Tier 2',
+    weight: 30,
+    color: '#2563eb',
+    text: 'Tier 2 landed. Check your paper tokens to see if it counts.',
+  },
+  {
+    id: 'tier3',
+    label: 'Tier 3',
+    weight: 20,
+    color: '#f59e0b',
+    text: 'Tier 3 landed. Check your paper tokens to see if it counts.',
+  },
+  {
+    id: 'bonus',
+    label: 'Bonus',
+    weight: 8,
+    color: '#8b5cf6',
+    text: 'Set a 10-minute timer and do a smaller extra action.',
+  },
+  {
+    id: 'jackpot',
+    label: 'Jackpot',
+    weight: 2,
+    color: '#ef4444',
+    text: 'Jackpot. Take your rare larger reward.',
+  },
+] as const;
+
+type WheelOutcome = (typeof WHEEL_OUTCOMES)[number];
+
 const EMOJIS: Record<string, string> = {
   fitness: '🏋️',
   learning: '📚',
@@ -51,10 +93,25 @@ export default function HabitsPage() {
   const [editTarget, setEditTarget] = useState<Habit | null>(null);
   const [draggingHabitId, setDraggingHabitId] = useState<string | null>(null);
   const [dragOverHabitId, setDragOverHabitId] = useState<string | null>(null);
+  const [rewardSpins, setRewardSpins] = useState<Record<string, boolean>>({});
+  const [activeWheelHabitId, setActiveWheelHabitId] = useState<string | null>(null);
+  const [wheelResult, setWheelResult] = useState<WheelOutcome | null>(null);
+  const [wheelRotation, setWheelRotation] = useState(0);
+  const [wheelSpinning, setWheelSpinning] = useState(false);
 
   const todayPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
   const filtered = filter === 'all' ? habits : habits.filter((h) => h.category === filter);
+  const activeWheelHabit = habits.find((habit) => habit.id === activeWheelHabitId) ?? null;
+  const wheelUnlocked = !!activeWheelHabitId && !!dayLog[activeWheelHabitId] && !rewardSpins[activeWheelHabitId];
+
+  useEffect(() => {
+    const db = getFirestoreDb();
+    const t = todayKey();
+    return onSnapshot(doc(db, 'users', uid, 'habitLogs', t), (snap) => {
+      setRewardSpins((snap.data()?.rewardSpins as Record<string, boolean>) ?? {});
+    });
+  }, [uid]);
 
   async function toggle(id: string) {
     const db = getFirestoreDb();
@@ -62,8 +119,16 @@ export default function HabitsPage() {
     const ref = doc(db, 'users', uid, 'habitLogs', t);
     const snap = await getDoc(ref);
     const prev = (snap.data()?.entries as DayLog) ?? {};
-    const next = { ...prev, [id]: !prev[id] };
+    const wasDone = !!prev[id];
+    const next = { ...prev, [id]: !wasDone };
     await setDoc(ref, { entries: next }, { merge: true });
+    if (!wasDone) {
+      setActiveWheelHabitId(id);
+      setWheelResult(null);
+    } else if (activeWheelHabitId === id) {
+      setActiveWheelHabitId(null);
+      setWheelResult(null);
+    }
     await syncSharedSummary(db, uid, {
       habits,
       dayLog: next,
@@ -156,6 +221,52 @@ export default function HabitsPage() {
     setDragOverHabitId(null);
   }
 
+  function pickWeightedOutcome() {
+    const total = WHEEL_OUTCOMES.reduce((sum, outcome) => sum + outcome.weight, 0);
+    let roll = Math.random() * total;
+    for (const outcome of WHEEL_OUTCOMES) {
+      roll -= outcome.weight;
+      if (roll < 0) return outcome;
+    }
+    return WHEEL_OUTCOMES[0];
+  }
+
+  function outcomeCenterDegrees(outcome: WheelOutcome) {
+    let start = 0;
+    for (const option of WHEEL_OUTCOMES) {
+      const size = option.weight * 3.6;
+      if (option.id === outcome.id) return start + size / 2;
+      start += size;
+    }
+    return 0;
+  }
+
+  async function spinWheel() {
+    if (!activeWheelHabitId || !wheelUnlocked || wheelSpinning) return;
+    const habitId = activeWheelHabitId;
+    const result = pickWeightedOutcome();
+    const center = outcomeCenterDegrees(result);
+    const nextRotation = wheelRotation + 1440 + (360 - center);
+
+    setWheelSpinning(true);
+    setWheelResult(null);
+    setWheelRotation(nextRotation);
+
+    window.setTimeout(() => {
+      setWheelResult(result);
+      setWheelSpinning(false);
+      setRewardSpins((prev) => ({ ...prev, [habitId]: true }));
+      void setDoc(
+        doc(getFirestoreDb(), 'users', uid, 'habitLogs', todayKey()),
+        {
+          rewardSpins: { ...rewardSpins, [habitId]: true },
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+    }, 1800);
+  }
+
   return (
     <div className="fade-in">
       <div className="page-header">
@@ -215,6 +326,39 @@ export default function HabitsPage() {
           ))}
         </div>
 
+        <section className={`habit-wheel-card card ${wheelUnlocked ? 'unlocked' : ''}`}>
+          <div className="habit-wheel-copy">
+            <div className="section-label">Reward Wheel</div>
+            <h3>{activeWheelHabit ? activeWheelHabit.name : 'Complete a habit to unlock a spin'}</h3>
+            <p>
+              {wheelUnlocked
+                ? 'One spin is ready for this completed habit.'
+                : activeWheelHabitId && rewardSpins[activeWheelHabitId]
+                  ? 'Spin used for this habit today. Complete another habit to spin again.'
+                  : 'Mark a habit complete to unlock exactly one reward spin.'}
+            </p>
+          </div>
+          <div className="habit-wheel-area">
+            <div className="habit-wheel-pointer" aria-hidden="true" />
+            <div className="habit-wheel" style={{ transform: `rotate(${wheelRotation}deg)` }}>
+              {WHEEL_OUTCOMES.map((outcome, index) => (
+                <span key={outcome.id} className={`wheel-label wheel-label-${index}`}>{outcome.label}</span>
+              ))}
+            </div>
+          </div>
+          <div className="habit-wheel-actions">
+            <button type="button" className="btn btn-primary" onClick={() => void spinWheel()} disabled={!wheelUnlocked || wheelSpinning}>
+              {wheelSpinning ? 'Spinning...' : wheelUnlocked ? 'Spin' : 'Locked'}
+            </button>
+            {wheelResult && (
+              <div className="habit-wheel-result">
+                <strong>{wheelResult.label}</strong>
+                <p>{wheelResult.text}</p>
+              </div>
+            )}
+          </div>
+        </section>
+
         {filtered.length === 0 ? (
           <div className="card empty-state">
             <p>No habits yet. Add your first one!</p>
@@ -257,6 +401,19 @@ export default function HabitsPage() {
                     </div>
                   </div>
                   <div className="habit-actions">
+                    {done && (
+                      <button
+                        type="button"
+                        className={`btn btn-ghost btn-sm ${activeWheelHabitId === h.id ? 'active-wheel-btn' : ''}`}
+                        onClick={() => {
+                          setActiveWheelHabitId(h.id);
+                          setWheelResult(null);
+                        }}
+                        disabled={!!rewardSpins[h.id]}
+                      >
+                        {rewardSpins[h.id] ? 'Spin used' : 'Reward'}
+                      </button>
+                    )}
                     <button type="button" className="btn-icon" title="Edit" onClick={() => { setEditTarget(h); setShowForm(true); }}>
                       ✎
                     </button>
