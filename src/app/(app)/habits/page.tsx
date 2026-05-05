@@ -28,6 +28,7 @@ const WHEEL_OUTCOMES = [
   {
     id: 'tier1',
     label: 'Tier 1',
+    shortLabel: 'T1',
     weight: 40,
     color: '#10b981',
     text: 'Take your small reward.',
@@ -35,6 +36,7 @@ const WHEEL_OUTCOMES = [
   {
     id: 'tier2',
     label: 'Tier 2',
+    shortLabel: 'T2',
     weight: 30,
     color: '#2563eb',
     text: 'Tier 2 landed. Check your paper tokens to see if it counts.',
@@ -42,6 +44,7 @@ const WHEEL_OUTCOMES = [
   {
     id: 'tier3',
     label: 'Tier 3',
+    shortLabel: 'T3',
     weight: 20,
     color: '#f59e0b',
     text: 'Tier 3 landed. Check your paper tokens to see if it counts.',
@@ -49,6 +52,7 @@ const WHEEL_OUTCOMES = [
   {
     id: 'bonus',
     label: 'Bonus',
+    shortLabel: 'Bonus',
     weight: 8,
     color: '#8b5cf6',
     text: 'Set a 10-minute timer and do a smaller extra action.',
@@ -56,6 +60,7 @@ const WHEEL_OUTCOMES = [
   {
     id: 'jackpot',
     label: 'Jackpot',
+    shortLabel: 'Jackpot',
     weight: 2,
     color: '#ef4444',
     text: 'Jackpot. Take your rare larger reward.',
@@ -260,7 +265,7 @@ export default function HabitsPage() {
     const habitId = activeWheelHabitId;
     const result = pickWeightedOutcome();
     const center = outcomeCenterDegrees(result);
-    const nextRotation = wheelRotation + 1440 + (360 - center);
+    const nextRotation = wheelRotation + 2160 + (360 - center);
 
     setWheelSpinning(true);
     setWheelResult(null);
@@ -278,7 +283,7 @@ export default function HabitsPage() {
         },
         { merge: true }
       );
-    }, 1800);
+    }, 3800);
   }
 
   return (
@@ -354,18 +359,29 @@ export default function HabitsPage() {
           </div>
           <div className="habit-wheel-area">
             <div className="habit-wheel-pointer" aria-hidden="true" />
-            <div className="habit-wheel" style={{ transform: `rotate(${wheelRotation}deg)` }}>
+            <div className={`habit-wheel ${wheelSpinning ? 'spinning' : ''}`} style={{ transform: `rotate(${wheelRotation}deg)` }}>
               {WHEEL_OUTCOMES.map((outcome, index) => (
-                <span key={outcome.id} className={`wheel-label wheel-label-${index}`}>{outcome.label}</span>
+                <span key={outcome.id} className={`wheel-label wheel-label-${index}`}>{outcome.shortLabel}</span>
               ))}
+              <div className="habit-wheel-center" aria-hidden="true">Reward</div>
             </div>
           </div>
           <div className="habit-wheel-actions">
+            <div className="habit-wheel-legend" aria-label="Reward wheel outcomes">
+              {WHEEL_OUTCOMES.map((outcome) => (
+                <div key={outcome.id} className={`wheel-legend-row ${wheelResult?.id === outcome.id ? 'landed' : ''}`}>
+                  <span className="wheel-legend-dot" style={{ background: outcome.color }} />
+                  <span>{outcome.label}</span>
+                  <strong>{outcome.weight}%</strong>
+                </div>
+              ))}
+            </div>
             <button type="button" className="btn btn-primary" onClick={() => void spinWheel()} disabled={!wheelUnlocked || wheelSpinning}>
               {wheelSpinning ? 'Spinning...' : wheelUnlocked ? 'Spin' : 'Locked'}
             </button>
             {wheelResult && (
-              <div className="habit-wheel-result">
+              <div className={`habit-wheel-result result-${wheelResult.id}`}>
+                <span>Landed on</span>
                 <strong>{wheelResult.label}</strong>
                 <p>{wheelResult.text}</p>
               </div>
