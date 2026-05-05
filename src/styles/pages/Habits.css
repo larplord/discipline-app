@@ -69,19 +69,9 @@
   width: 12rem;
   height: 12rem;
   border-radius: 50%;
-  border: 6px solid rgba(248, 250, 252, 0.08);
-  background:
-    conic-gradient(
-      from 80deg,
-      #10b981 0deg 144deg,
-      #2563eb 144deg 252deg,
-      #f59e0b 252deg 324deg,
-      #8b5cf6 324deg 352.8deg,
-      #ef4444 352.8deg 360deg
-    );
+  background: var(--bg-secondary);
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,0.16),
-    inset 0 0 0 16px rgba(8, 11, 16, 0.12),
+    inset 0 0 0 1px rgba(255,255,255,0.12),
     0 16px 36px rgba(0,0,0,0.28);
   transition: transform 3.8s cubic-bezier(0.08, 0.8, 0.12, 1);
   overflow: hidden;
@@ -91,67 +81,54 @@
   filter: saturate(1.08);
 }
 
-.habit-wheel::after {
-  content: '';
-  position: absolute;
-  inset: 31%;
-  border-radius: 50%;
-  background: var(--bg-card);
-  border: 1px solid rgba(255,255,255,0.12);
-  z-index: 3;
+.habit-wheel-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-.habit-wheel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background:
-    linear-gradient(90deg, transparent calc(50% - 1px), rgba(255,255,255,0.18) 50%, transparent calc(50% + 1px)),
-    linear-gradient(0deg, transparent calc(50% - 1px), rgba(255,255,255,0.18) 50%, transparent calc(50% + 1px));
-  opacity: 0.55;
-  pointer-events: none;
-  z-index: 1;
+.wheel-outer-ring {
+  fill: var(--bg-secondary);
+  stroke: rgba(248, 250, 252, 0.1);
+  stroke-width: 4;
 }
 
-.wheel-label {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 2;
-  width: 4.6rem;
-  margin-left: -2.3rem;
-  margin-top: -0.55rem;
-  color: #fff;
-  font-size: 0.64rem;
-  font-weight: 900;
-  line-height: 1;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.45);
-  transform-origin: center;
+.wheel-slice {
+  stroke: rgba(8, 11, 16, 0.42);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
 }
 
-.wheel-label-0 { transform: rotate(152deg) translateY(-4.45rem) rotate(-152deg); }
-.wheel-label-1 { transform: rotate(278deg) translateY(-4.45rem) rotate(-278deg); }
-.wheel-label-2 { transform: rotate(8deg) translateY(-4.45rem) rotate(-8deg); }
-.wheel-label-3 { transform: rotate(58deg) translateY(-4.45rem) rotate(-58deg); font-size: 0.54rem; }
-.wheel-label-4 { transform: rotate(76deg) translateY(-4.45rem) rotate(-76deg); font-size: 0.48rem; }
+.wheel-center-disc {
+  fill: var(--bg-card);
+  stroke: rgba(248, 250, 252, 0.14);
+  stroke-width: 1.5;
+}
 
-.habit-wheel-center {
-  position: absolute;
-  inset: 34%;
-  z-index: 4;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--text-primary);
-  font-size: 0.66rem;
+.wheel-center-text,
+.wheel-svg-label {
+  fill: #fff;
   font-weight: 900;
   text-transform: uppercase;
+  paint-order: stroke;
+  stroke: rgba(0, 0, 0, 0.42);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.wheel-center-text {
+  fill: var(--text-primary);
+  font-size: 0.76rem;
   letter-spacing: 0.08em;
-  background: var(--bg-card);
+}
+
+.wheel-svg-label {
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+}
+
+.wheel-svg-label.tiny {
+  font-size: 0.48rem;
 }
 
 .habit-wheel-actions {
@@ -225,6 +202,128 @@
   font-size: 0.8rem;
   line-height: 1.35;
   margin-top: 0.2rem;
+}
+
+.wheel-celebration {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(8, 11, 16, 0.72);
+  backdrop-filter: blur(8px);
+  animation: celebrationFade 0.22s ease;
+}
+
+.wheel-celebration-close {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.wheel-celebration-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 28rem);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  border-radius: var(--radius-xl);
+  background: var(--bg-card);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+  padding: 1.35rem;
+  text-align: center;
+  animation: celebrationPop 0.45s cubic-bezier(0.2, 1.4, 0.35, 1);
+}
+
+.wheel-celebration-card span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.wheel-celebration-card strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 2.2rem;
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.wheel-celebration-card p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  margin-top: 0.75rem;
+}
+
+.wheel-burst {
+  position: absolute;
+  width: 18rem;
+  height: 18rem;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      transparent 0deg 12deg,
+      rgba(255, 255, 255, 0.9) 12deg 15deg,
+      transparent 15deg 36deg,
+      rgba(255, 255, 255, 0.55) 36deg 39deg,
+      transparent 39deg 360deg
+    );
+  opacity: 0.5;
+  animation: celebrationBurst 1.2s ease-out infinite;
+}
+
+.celebration-tier1 .wheel-celebration-card { border-color: rgba(16, 185, 129, 0.34); }
+.celebration-tier1 .wheel-celebration-card strong { color: var(--green-light); font-size: 1.8rem; }
+.celebration-tier1 .wheel-burst { width: 14rem; height: 14rem; opacity: 0.3; }
+
+.celebration-tier2 .wheel-celebration-card { border-color: rgba(96, 165, 250, 0.4); }
+.celebration-tier2 .wheel-celebration-card strong { color: var(--accent-light); font-size: 2.1rem; }
+
+.celebration-tier3 .wheel-celebration-card { border-color: rgba(245, 158, 11, 0.42); transform: scale(1.04); }
+.celebration-tier3 .wheel-celebration-card strong { color: var(--gold-light); font-size: 2.55rem; }
+.celebration-tier3 .wheel-burst { width: 22rem; height: 22rem; opacity: 0.52; }
+
+.celebration-bonus .wheel-celebration-card { border-color: rgba(139, 92, 246, 0.5); transform: scale(1.08); }
+.celebration-bonus .wheel-celebration-card strong { color: #c4b5fd; font-size: 2.75rem; }
+.celebration-bonus .wheel-burst { width: 25rem; height: 25rem; opacity: 0.62; }
+
+.celebration-jackpot {
+  background:
+    radial-gradient(circle, rgba(239, 68, 68, 0.2), rgba(8, 11, 16, 0.82) 58%),
+    rgba(8, 11, 16, 0.82);
+}
+.celebration-jackpot .wheel-celebration-card { border-color: rgba(239, 68, 68, 0.62); transform: scale(1.12); }
+.celebration-jackpot .wheel-celebration-card strong { color: #fca5a5; font-size: 3.2rem; }
+.celebration-jackpot .wheel-burst { width: 30rem; height: 30rem; opacity: 0.78; animation-duration: 0.8s; }
+
+@keyframes celebrationFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes celebrationPop {
+  from { opacity: 0; transform: scale(0.78) translateY(1rem); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes celebrationBurst {
+  from { transform: scale(0.65) rotate(0deg); opacity: 0.65; }
+  to { transform: scale(1.25) rotate(50deg); opacity: 0; }
 }
 
 .filter-pill {

@@ -31,6 +31,7 @@ const WHEEL_OUTCOMES = [
     shortLabel: 'T1',
     weight: 40,
     color: '#10b981',
+    celebration: 'Small win',
     text: 'Take your small reward.',
   },
   {
@@ -39,6 +40,7 @@ const WHEEL_OUTCOMES = [
     shortLabel: 'T2',
     weight: 30,
     color: '#2563eb',
+    celebration: 'Solid pull',
     text: 'Tier 2 landed. Check your paper tokens to see if it counts.',
   },
   {
@@ -47,6 +49,7 @@ const WHEEL_OUTCOMES = [
     shortLabel: 'T3',
     weight: 20,
     color: '#f59e0b',
+    celebration: 'Big reward',
     text: 'Tier 3 landed. Check your paper tokens to see if it counts.',
   },
   {
@@ -55,6 +58,7 @@ const WHEEL_OUTCOMES = [
     shortLabel: 'Bonus',
     weight: 8,
     color: '#8b5cf6',
+    celebration: 'Bonus round',
     text: 'Set a 10-minute timer and do a smaller extra action.',
   },
   {
@@ -63,6 +67,7 @@ const WHEEL_OUTCOMES = [
     shortLabel: 'Jackpot',
     weight: 2,
     color: '#ef4444',
+    celebration: 'Jackpot',
     text: 'Jackpot. Take your rare larger reward.',
   },
 ] as const;
@@ -79,6 +84,46 @@ const EMOJIS: Record<string, string> = {
   health: '🥗',
   other: '⚡',
 };
+
+function polarToCartesian(cx: number, cy: number, radius: number, angleDegrees: number) {
+  const angleRadians = ((angleDegrees - 90) * Math.PI) / 180;
+  return {
+    x: cx + radius * Math.cos(angleRadians),
+    y: cy + radius * Math.sin(angleRadians),
+  };
+}
+
+function describeWheelSlice(startAngle: number, endAngle: number, radius = 96) {
+  const start = polarToCartesian(100, 100, radius, endAngle);
+  const end = polarToCartesian(100, 100, radius, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+  return [
+    'M 100 100',
+    `L ${start.x.toFixed(3)} ${start.y.toFixed(3)}`,
+    `A ${radius} ${radius} 0 ${largeArcFlag} 0 ${end.x.toFixed(3)} ${end.y.toFixed(3)}`,
+    'Z',
+  ].join(' ');
+}
+
+function wheelSlices() {
+  let start = WHEEL_START_DEGREES;
+  return WHEEL_OUTCOMES.map((outcome) => {
+    const size = outcome.weight * 3.6;
+    const center = start + size / 2;
+    const labelPoint = polarToCartesian(100, 100, outcome.id === 'jackpot' ? 70 : 62, center);
+    const slice = {
+      ...outcome,
+      start,
+      end: start + size,
+      center,
+      path: describeWheelSlice(start, start + size),
+      labelX: labelPoint.x,
+      labelY: labelPoint.y,
+    };
+    start += size;
+    return slice;
+  });
+}
 
 export default function HabitsPage() {
   const {
@@ -105,6 +150,7 @@ export default function HabitsPage() {
   const [wheelResult, setWheelResult] = useState<WheelOutcome | null>(null);
   const [wheelRotation, setWheelRotation] = useState(0);
   const [wheelSpinning, setWheelSpinning] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   const todayPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
@@ -112,6 +158,7 @@ export default function HabitsPage() {
   const effectiveDayLog = useMemo(() => ({ ...dayLog, ...localDayLog }), [dayLog, localDayLog]);
   const activeWheelHabit = habits.find((habit) => habit.id === activeWheelHabitId) ?? null;
   const wheelUnlocked = !!activeWheelHabitId && !!effectiveDayLog[activeWheelHabitId] && !rewardSpins[activeWheelHabitId];
+  const slices = useMemo(() => wheelSlices(), []);
 
   useEffect(() => {
     const db = getFirestoreDb();
@@ -270,10 +317,12 @@ export default function HabitsPage() {
 
     setWheelSpinning(true);
     setWheelResult(null);
+    setShowCelebration(false);
     setWheelRotation(nextRotation);
 
     window.setTimeout(() => {
       setWheelResult(result);
+      setShowCelebration(true);
       setWheelSpinning(false);
       setRewardSpins((prev) => ({ ...prev, [habitId]: true }));
       void setDoc(
@@ -361,10 +410,26 @@ export default function HabitsPage() {
           <div className="habit-wheel-area">
             <div className="habit-wheel-pointer" aria-hidden="true" />
             <div className={`habit-wheel ${wheelSpinning ? 'spinning' : ''}`} style={{ transform: `rotate(${wheelRotation}deg)` }}>
-              {WHEEL_OUTCOMES.map((outcome, index) => (
-                <span key={outcome.id} className={`wheel-label wheel-label-${index}`}>{outcome.shortLabel}</span>
-              ))}
-              <div className="habit-wheel-center" aria-hidden="true">Reward</div>
+              <svg className="habit-wheel-svg" viewBox="0 0 200 200" aria-hidden="true">
+                <circle cx="100" cy="100" r="98" className="wheel-outer-ring" />
+                {slices.map((slice) => (
+                  <path key={slice.id} d={slice.path} fill={slice.color} className="wheel-slice" />
+                ))}
+                <circle cx="100" cy="100" r="35" className="wheel-center-disc" />
+                <text x="100" y="104" textAnchor="middle" className="wheel-center-text">Reward</text>
+                {slices.map((slice) => (
+                  <text
+                    key={`${slice.id}-label`}
+                    x={slice.labelX}
+                    y={slice.labelY}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    className={`wheel-svg-label ${slice.id === 'jackpot' ? 'tiny' : ''}`}
+                  >
+                    {slice.shortLabel}
+                  </text>
+                ))}
+              </svg>
             </div>
           </div>
           <div className="habit-wheel-actions">
@@ -389,6 +454,19 @@ export default function HabitsPage() {
             )}
           </div>
         </section>
+        {wheelResult && showCelebration && (
+          <div className={`wheel-celebration celebration-${wheelResult.id}`} role="dialog" aria-live="polite">
+            <button type="button" className="wheel-celebration-close" onClick={() => setShowCelebration(false)} aria-label="Close reward celebration">
+              ×
+            </button>
+            <div className="wheel-burst" aria-hidden="true" />
+            <div className="wheel-celebration-card">
+              <span>{wheelResult.celebration}</span>
+              <strong>{wheelResult.label}</strong>
+              <p>{wheelResult.text}</p>
+            </div>
+          </div>
+        )}
 
         {filtered.length === 0 ? (
           <div className="card empty-state">
