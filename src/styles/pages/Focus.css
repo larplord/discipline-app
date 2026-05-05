@@ -57,10 +57,53 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .timer-btn {
   padding: 0.75rem 2.5rem;
   font-size: 1rem;
+}
+
+.focus-save-state {
+  width: min(100%, 28rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-color: var(--border);
+}
+
+.focus-save-state strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.focus-save-state p {
+  margin-top: 0.15rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.focus-save-state.success {
+  border-color: rgba(16, 185, 129, 0.28);
+  background: rgba(16, 185, 129, 0.07);
+}
+
+.focus-save-state.success strong {
+  color: var(--green-light);
+}
+
+.focus-save-state.error {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: var(--red-faint);
+}
+
+.focus-save-state.error strong {
+  color: #fca5a5;
 }
 
 .focus-points-card {
@@ -134,6 +177,11 @@
   .tips-grid { grid-template-columns: 1fr; }
   .focus-points-card {
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .focus-save-state {
+    align-items: stretch;
     flex-direction: column;
   }
 }

@@ -11,6 +11,12 @@ export type RoutineDisplayMarker = RoutineMarker & {
   labelPosition: 'above' | 'below';
 };
 
+export type TimeParts = {
+  hour12: number;
+  minute: number;
+  period: 'AM' | 'PM';
+};
+
 export function parseTimeToMinutes(time: string) {
   const [h, m] = time.split(':').map(Number);
   if (!Number.isInteger(h) || !Number.isInteger(m) || h < 0 || h > 23 || m < 0 || m > 59) return null;
@@ -22,6 +28,29 @@ export function formatMinutesAsTime(totalMinutes: number) {
   const hours = Math.floor(normalized / 60);
   const minutes = normalized % 60;
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+export function timeToParts(time: string): TimeParts {
+  const minutes = parseTimeToMinutes(time) ?? 0;
+  const hour24 = Math.floor(minutes / 60);
+  return {
+    hour12: hour24 % 12 || 12,
+    minute: minutes % 60,
+    period: hour24 >= 12 ? 'PM' : 'AM',
+  };
+}
+
+export function partsToTime(parts: TimeParts) {
+  const hour24 = parts.period === 'PM'
+    ? parts.hour12 === 12 ? 12 : parts.hour12 + 12
+    : parts.hour12 === 12 ? 0 : parts.hour12;
+  return formatMinutesAsTime(hour24 * 60 + parts.minute);
+}
+
+export function adjustTimeByMinutes(time: string, deltaMinutes: number) {
+  const minutes = parseTimeToMinutes(time);
+  if (minutes == null) return time;
+  return formatMinutesAsTime(minutes + deltaMinutes);
 }
 
 export function formatTimeLabel(time: string) {

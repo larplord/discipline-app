@@ -23,6 +23,9 @@ export default function FocusPage() {
   const [completed, setCompleted] = useState(false);
   const [seconds, setSeconds] = useState(60 * 60);
   const [sessions, setSessions] = useState(0);
+  const [recording, setRecording] = useState(false);
+  const [recordError, setRecordError] = useState<string | null>(null);
+  const [recordSuccess, setRecordSuccess] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionRecordedRef = useRef(false);
 
@@ -42,6 +45,9 @@ export default function FocusPage() {
     sessionRecordedRef.current = false;
     setRunning(false);
     setCompleted(false);
+    setRecording(false);
+    setRecordError(null);
+    setRecordSuccess(false);
     setModeId(id);
     const m = MODES.find((x) => x.id === id)!;
     const mins = id === 'custom' ? customMin : m.minutes;
@@ -51,7 +57,36 @@ export default function FocusPage() {
   useEffect(() => {
     setSeconds(totalSec);
     setCompleted(false);
+    setRecordError(null);
+    setRecordSuccess(false);
   }, [customMin, modeId, totalSec]);
+
+  async function recordFocusSession() {
+    if (!(modeId === 'work' || modeId === 'custom')) return;
+    if (sessionRecordedRef.current || recording) return;
+
+    setRecording(true);
+    setRecordError(null);
+    try {
+      const db = getFirestoreDb();
+      const t = todayKey();
+      const ref = doc(db, 'users', uid, 'focusLogs', t);
+      await runTransaction(db, async (trx) => {
+        const snap = await trx.get(ref);
+        const n = Number(snap.data()?.count ?? 0) + 1;
+        trx.set(ref, { count: n, updatedAt: serverTimestamp() }, { merge: true });
+      });
+      sessionRecordedRef.current = true;
+      setRecordSuccess(true);
+      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        new Notification('Session complete', { body: 'Great work. Take a break.' });
+      }
+    } catch (e: unknown) {
+      setRecordError(e instanceof Error ? e.message : 'Could not save session. Try again.');
+    } finally {
+      setRecording(false);
+    }
+  }
 
   useEffect(() => {
     if (running) {
@@ -61,20 +96,7 @@ export default function FocusPage() {
             if (intervalRef.current) clearInterval(intervalRef.current);
             setRunning(false);
             setCompleted(true);
-            if ((modeId === 'work' || modeId === 'custom') && !sessionRecordedRef.current) {
-              sessionRecordedRef.current = true;
-              const db = getFirestoreDb();
-              const t = todayKey();
-              const ref = doc(db, 'users', uid, 'focusLogs', t);
-              void runTransaction(db, async (trx) => {
-                const snap = await trx.get(ref);
-                const n = Number(snap.data()?.count ?? 0) + 1;
-                trx.set(ref, { count: n, updatedAt: serverTimestamp() }, { merge: true });
-              });
-              if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-                new Notification('Session complete', { body: 'Great work. Take a break.' });
-              }
-            }
+            void recordFocusSession();
             return 0;
           }
           return s - 1;
@@ -86,11 +108,13 @@ export default function FocusPage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [running, modeId, uid]);
+  }, [running, modeId, uid, recording]);
 
   function start() {
     if (completed || seconds <= 0) return;
     if (seconds === totalSec) sessionRecordedRef.current = false;
+    setRecordError(null);
+    setRecordSuccess(false);
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
       void Notification.requestPermission();
     }
@@ -104,6 +128,9 @@ export default function FocusPage() {
     sessionRecordedRef.current = false;
     setRunning(false);
     setCompleted(false);
+    setRecording(false);
+    setRecordError(null);
+    setRecordSuccess(false);
     setSeconds(totalSec);
   }
 
@@ -205,6 +232,33 @@ export default function FocusPage() {
               ↺ Reset
             </button>
           </div>
+          {completed && (modeId === 'work' || modeId === 'custom') && (
+            <div className={`focus-save-state card ${recordError ? 'error' : recordSuccess ? 'success' : ''}`}>
+              <div>
+                <strong>
+                  {recording
+                    ? 'Saving session...'
+                    : recordError
+                      ? 'Could not save session.'
+                      : recordSuccess
+                        ? `Session saved. +${DAILY_SCORE.focusPerSession} points added.`
+                        : 'Session complete.'}
+                </strong>
+                {recordError && <p>{recordError}</p>}
+              </div>
+              {recordError && (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => void recordFocusSession()} disabled={recording}>
+                  Retry save
+                </button>
+              )}
+            </div>
+          )}
+          {completed && !(modeId === 'work' || modeId === 'custom') && (
+            <div className="focus-save-state card">
+              <strong>Break complete.</strong>
+              <p>Break timers do not add points.</p>
+            </div>
+          )}
         </div>
 
         <div className="focus-points-card card">

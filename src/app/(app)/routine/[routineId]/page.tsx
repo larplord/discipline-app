@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { doc, onSnapshot, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
+import { RoutineTimePicker } from '@/components/RoutineTimePicker';
 import type { Routine } from '@/lib/types';
 import {
   closestDisplayMarkerOffset,
@@ -149,26 +150,18 @@ export default function RoutineDetailPage() {
               disabled={saving}
             />
           </label>
-          <label>
-            <span className="section-label">Start</span>
-            <input
-              className="input"
-              type="time"
-              value={routine.startTime}
-              onChange={(e) => void updateRoutineSettings({ startTime: e.target.value })}
-              disabled={saving}
-            />
-          </label>
-          <label>
-            <span className="section-label">End</span>
-            <input
-              className="input"
-              type="time"
-              value={routine.endTime}
-              onChange={(e) => void updateRoutineSettings({ endTime: e.target.value })}
-              disabled={saving}
-            />
-          </label>
+          <RoutineTimePicker
+            label="Start"
+            value={routine.startTime}
+            onChange={(value) => void updateRoutineSettings({ startTime: value })}
+            disabled={saving}
+          />
+          <RoutineTimePicker
+            label="End"
+            value={routine.endTime}
+            onChange={(value) => void updateRoutineSettings({ endTime: value })}
+            disabled={saving}
+          />
           <label>
             <span className="section-label">Major markers</span>
             <select

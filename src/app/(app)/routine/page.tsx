@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { addDoc, collection, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
+import { RoutineTimePicker } from '@/components/RoutineTimePicker';
 import type { Routine } from '@/lib/types';
 import {
   formatTimeLabel,
@@ -124,14 +125,8 @@ export default function RoutinePage() {
               />
             </label>
             <div className="routine-form-row">
-              <label>
-                <span className="section-label">Start</span>
-                <input className="input" type="time" value={form.startTime} onChange={(e) => updateForm('startTime', e.target.value)} />
-              </label>
-              <label>
-                <span className="section-label">End</span>
-                <input className="input" type="time" value={form.endTime} onChange={(e) => updateForm('endTime', e.target.value)} />
-              </label>
+              <RoutineTimePicker label="Start" value={form.startTime} onChange={(value) => updateForm('startTime', value)} />
+              <RoutineTimePicker label="End" value={form.endTime} onChange={(value) => updateForm('endTime', value)} />
             </div>
             <label>
               <span className="section-label">Major markers</span>
