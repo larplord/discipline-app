@@ -68,6 +68,7 @@ const WHEEL_OUTCOMES = [
 ] as const;
 
 type WheelOutcome = (typeof WHEEL_OUTCOMES)[number];
+const WHEEL_START_DEGREES = 80;
 
 const EMOJIS: Record<string, string> = {
   fitness: '🏋️',
@@ -251,10 +252,10 @@ export default function HabitsPage() {
   }
 
   function outcomeCenterDegrees(outcome: WheelOutcome) {
-    let start = 0;
+    let start = WHEEL_START_DEGREES;
     for (const option of WHEEL_OUTCOMES) {
       const size = option.weight * 3.6;
-      if (option.id === outcome.id) return start + size / 2;
+      if (option.id === outcome.id) return (start + size / 2) % 360;
       start += size;
     }
     return 0;

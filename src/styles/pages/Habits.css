@@ -72,6 +72,7 @@
   border: 6px solid rgba(248, 250, 252, 0.08);
   background:
     conic-gradient(
+      from 80deg,
       #10b981 0deg 144deg,
       #2563eb 144deg 252deg,
       #f59e0b 252deg 324deg,
@@ -132,11 +133,11 @@
   transform-origin: center;
 }
 
-.wheel-label-0 { transform: rotate(72deg) translateY(-4.45rem) rotate(-72deg); }
-.wheel-label-1 { transform: rotate(198deg) translateY(-4.45rem) rotate(-198deg); }
-.wheel-label-2 { transform: rotate(288deg) translateY(-4.45rem) rotate(-288deg); }
-.wheel-label-3 { transform: rotate(338deg) translateY(-4.45rem) rotate(-338deg); font-size: 0.54rem; }
-.wheel-label-4 { transform: rotate(356deg) translateY(-4.45rem) rotate(-356deg); font-size: 0.48rem; }
+.wheel-label-0 { transform: rotate(152deg) translateY(-4.45rem) rotate(-152deg); }
+.wheel-label-1 { transform: rotate(278deg) translateY(-4.45rem) rotate(-278deg); }
+.wheel-label-2 { transform: rotate(8deg) translateY(-4.45rem) rotate(-8deg); }
+.wheel-label-3 { transform: rotate(58deg) translateY(-4.45rem) rotate(-58deg); font-size: 0.54rem; }
+.wheel-label-4 { transform: rotate(76deg) translateY(-4.45rem) rotate(-76deg); font-size: 0.48rem; }
 
 .habit-wheel-center {
   position: absolute;
