@@ -41,6 +41,41 @@
   height: 4px;
 }
 
+.focus-intention-card {
+  max-width: 760px;
+  margin: 0 auto 1.25rem;
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.1), transparent 18rem),
+    var(--bg-card);
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+.focus-intention-card p {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  margin-top: 0.35rem;
+}
+
+.focus-intention-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.focus-intention-grid label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.focus-intention-grid span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .timer-center {
   display: flex;
   flex-direction: column;
@@ -143,6 +178,77 @@
   letter-spacing: 0.1em;
 }
 
+.focus-history-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.35fr) minmax(260px, 0.85fr);
+  gap: 1rem;
+  max-width: 980px;
+  margin: 1rem auto 0;
+}
+
+.focus-history-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.focus-session-list,
+.focus-topic-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.focus-session-item,
+.focus-topic-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(8, 11, 16, 0.38);
+}
+
+.focus-session-item strong,
+.focus-topic-item span {
+  display: block;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-weight: 900;
+}
+
+.focus-session-item p {
+  margin-top: 0.2rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.focus-session-item > span,
+.focus-topic-item strong {
+  flex-shrink: 0;
+  color: var(--accent-light);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.focus-summary-card {
+  background:
+    radial-gradient(circle at top left, rgba(16, 185, 129, 0.08), transparent 16rem),
+    var(--bg-card);
+}
+
+.focus-empty {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
 .sessions-row {
   display: flex;
   align-items: center;
@@ -173,6 +279,13 @@
 
 .text-center { text-align: center; }
 
+@media (max-width: 760px) {
+  .focus-intention-grid,
+  .focus-history-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 600px) {
   .tips-grid { grid-template-columns: 1fr; }
   .focus-points-card {
@@ -182,6 +295,11 @@
 
   .focus-save-state {
     align-items: stretch;
+    flex-direction: column;
+  }
+
+  .focus-session-item,
+  .focus-topic-item {
     flex-direction: column;
   }
 }

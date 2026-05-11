@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { doc, onSnapshot, runTransaction, serverTimestamp } from 'firebase/firestore';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { addDoc, collection, doc, onSnapshot, runTransaction, serverTimestamp } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
+import { format, parseISO, subDays } from 'date-fns';
 import { DAILY_SCORE } from '@/lib/scoringConfig';
 import '@/styles/pages/Focus.css';
 
@@ -15,6 +16,16 @@ const MODES = [
   { id: 'custom', label: 'Custom', minutes: 45, color: 'var(--text-primary)' },
 ] as const;
 
+type FocusSession = {
+  id: string;
+  date: string;
+  workOn: string;
+  objective: string;
+  mode: string;
+  minutes: number;
+  completedAt?: unknown;
+};
+
 export default function FocusPage() {
   const { uid } = useUserData();
   const [modeId, setModeId] = useState<(typeof MODES)[number]['id']>('work');
@@ -23,6 +34,9 @@ export default function FocusPage() {
   const [completed, setCompleted] = useState(false);
   const [seconds, setSeconds] = useState(60 * 60);
   const [sessions, setSessions] = useState(0);
+  const [workOn, setWorkOn] = useState('');
+  const [objective, setObjective] = useState('');
+  const [focusHistory, setFocusHistory] = useState<FocusSession[]>([]);
   const [recording, setRecording] = useState(false);
   const [recordError, setRecordError] = useState<string | null>(null);
   const [recordSuccess, setRecordSuccess] = useState(false);
@@ -37,6 +51,31 @@ export default function FocusPage() {
     const t = todayKey();
     return onSnapshot(doc(db, 'users', uid, 'focusLogs', t), (snap) => {
       setSessions(Number(snap.data()?.count ?? 0));
+    });
+  }, [uid]);
+
+  useEffect(() => {
+    const db = getFirestoreDb();
+    const cutoff = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+    return onSnapshot(collection(db, 'users', uid, 'focusSessions'), (snap) => {
+      const list: FocusSession[] = [];
+      snap.forEach((d) => {
+        const data = d.data();
+        const date = String(data.date ?? '');
+        if (date >= cutoff) {
+          list.push({
+            id: d.id,
+            date,
+            workOn: String(data.workOn ?? ''),
+            objective: String(data.objective ?? ''),
+            mode: String(data.mode ?? ''),
+            minutes: Number(data.minutes ?? 0),
+            completedAt: data.completedAt,
+          });
+        }
+      });
+      list.sort((a, b) => b.date.localeCompare(a.date));
+      setFocusHistory(list);
     });
   }, [uid]);
 
@@ -75,6 +114,14 @@ export default function FocusPage() {
         const snap = await trx.get(ref);
         const n = Number(snap.data()?.count ?? 0) + 1;
         trx.set(ref, { count: n, updatedAt: serverTimestamp() }, { merge: true });
+      });
+      await addDoc(collection(db, 'users', uid, 'focusSessions'), {
+        date: t,
+        workOn: workOn.trim() || 'Untitled focus block',
+        objective: objective.trim() || 'No objective written',
+        mode: mode.label,
+        minutes: Math.round(totalSec / 60),
+        completedAt: serverTimestamp(),
       });
       sessionRecordedRef.current = true;
       setRecordSuccess(true);
@@ -139,6 +186,14 @@ export default function FocusPage() {
   const pct = ((totalSec - seconds) / totalSec) * 100;
   const circ = 2 * Math.PI * 90;
   const off = circ - (pct / 100) * circ;
+  const focusSummary = useMemo(() => {
+    const counts = new Map<string, number>();
+    focusHistory.forEach((s) => {
+      const key = s.workOn.trim() || 'Untitled focus block';
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    });
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  }, [focusHistory]);
 
   return (
     <div className="fade-in">
@@ -180,6 +235,36 @@ export default function FocusPage() {
             />
           </div>
         )}
+
+        <div className="focus-intention-card card">
+          <div>
+            <div className="section-label">Session target</div>
+            <h2>Define the work before the timer starts</h2>
+            <p>Focus only counts when you know what you are actually attacking.</p>
+          </div>
+          <div className="focus-intention-grid">
+            <label>
+              <span>What are you working on?</span>
+              <input
+                className="input"
+                value={workOn}
+                onChange={(e) => setWorkOn(e.target.value)}
+                placeholder="Example: Biology exam review, AI video system, lawn care plan"
+                disabled={running}
+              />
+            </label>
+            <label>
+              <span>Objective for this session</span>
+              <input
+                className="input"
+                value={objective}
+                onChange={(e) => setObjective(e.target.value)}
+                placeholder="Example: finish chapter 4 notes, write 3 scripts, solve 20 problems"
+                disabled={running}
+              />
+            </label>
+          </div>
+        </div>
 
         <div className="timer-center">
           <div className="timer-ring-wrap" style={{ ['--ring-color' as string]: mode.color }}>
@@ -273,6 +358,50 @@ export default function FocusPage() {
             +{sessions * DAILY_SCORE.focusPerSession}
             <span>today</span>
           </div>
+        </div>
+
+        <div className="focus-history-grid">
+          <section className="card focus-history-card">
+            <div className="focus-history-head">
+              <div>
+                <div className="section-label">Last 30 days</div>
+                <h2>Proof of work</h2>
+              </div>
+              <span className="badge badge-accent">{focusHistory.length} sessions</span>
+            </div>
+            {focusHistory.length === 0 ? (
+              <p className="focus-empty">No logged work yet. Finish a deep work/custom timer to start building evidence.</p>
+            ) : (
+              <div className="focus-session-list">
+                {focusHistory.slice(0, 12).map((s) => (
+                  <div key={s.id} className="focus-session-item">
+                    <div>
+                      <strong>{s.workOn}</strong>
+                      <p>{s.objective}</p>
+                    </div>
+                    <span>{format(parseISO(s.date), 'MMM d')} · {s.minutes}m</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="card focus-summary-card">
+            <div className="section-label">Reality check</div>
+            <h2>What you actually work on</h2>
+            {focusSummary.length === 0 ? (
+              <p className="focus-empty">Once sessions are logged, this will show your real attention pattern.</p>
+            ) : (
+              <div className="focus-topic-list">
+                {focusSummary.map(([topic, count]) => (
+                  <div key={topic} className="focus-topic-item">
+                    <span>{topic}</span>
+                    <strong>{count}x</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
 
         <div className="sessions-row">
