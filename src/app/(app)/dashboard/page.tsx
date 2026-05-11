@@ -6,7 +6,7 @@ import { collection, doc, getDoc, setDoc } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayKey } from '@/lib/dates';
-import { calcDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
+import { calcDailyScore, isJournalCompleteForDailyScore, todayProgress, weekProgress } from '@/lib/scoring';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import { calcStreak, getStreakSummary } from '@/lib/streaks';
 import { getLevel } from '@/lib/levels';
@@ -105,6 +105,47 @@ export default function DashboardPage() {
     0
   );
   const topGoals = goals.slice(0, 3);
+  const completedHabits = habits.filter((h) => dayLog[h.id]).length;
+  const journalDone = isJournalCompleteForDailyScore(journal);
+  const activeGoalCount = goals.length;
+  const goalMilestones = goals.flatMap((g) => g.milestones ?? []);
+  const goalPct = goalMilestones.length
+    ? Math.round((goalMilestones.filter((m) => m.done).length / goalMilestones.length) * 100)
+    : 0;
+  const nutritionTargetsSet = [nutritionTargets.protein, nutritionTargets.carbs, nutritionTargets.fat].filter((v) => v > 0);
+  const nutritionTracked = nutritionTargetsSet.length > 0;
+  const nutritionPct = nutritionTracked
+    ? Math.min(
+        100,
+        Math.round(
+          ((nutritionTargets.protein > 0 ? Math.min(nutritionIntake.protein / nutritionTargets.protein, 1) : 0) +
+            (nutritionTargets.carbs > 0 ? Math.min(nutritionIntake.carbs / nutritionTargets.carbs, 1) : 0) +
+            (nutritionTargets.fat > 0 ? Math.min(nutritionIntake.fat / nutritionTargets.fat, 1) : 0)) /
+            nutritionTargetsSet.length /
+            0.01
+        )
+      )
+    : 0;
+  const noenRead = getNoenRead({
+    score,
+    todayPct,
+    weekPct,
+    focusToday,
+    journalDone,
+    goals,
+    goalPct,
+    bestStreak,
+    nutritionTracked,
+    nutritionPct,
+  });
+  const lifeAreas = [
+    getAreaStatus('Habits', todayPct, `${completedHabits}/${habits.length || 0} complete`, '✔'),
+    getAreaStatus('Focus', Math.min(focusToday * 50, 100), `${focusToday} deep sessions`, '⚡'),
+    getAreaStatus('Goals', activeGoalCount ? goalPct : 0, activeGoalCount ? `${goalPct}% milestone progress` : 'No active goals', '🎯'),
+    getAreaStatus('Journal', journalDone ? 100 : 0, journalDone ? 'Logged today' : 'Not logged today', '📓'),
+    getAreaStatus('Recovery', bestStreak > 0 ? 80 : 35, bestStreak > 0 ? `${bestStreak}d best streak` : 'Needs momentum', '🧠'),
+    getAreaStatus('Nutrition', nutritionTracked ? nutritionPct : 0, nutritionTracked ? `${nutritionPct}% of macro targets` : 'Targets not set', '🥗'),
+  ];
 
   const circumference = 2 * Math.PI * 44;
   const offset = circumference - (Math.min(score, 100) / 100) * circumference;
@@ -170,6 +211,49 @@ export default function DashboardPage() {
             <StatCard label="Focus Today" value={focusToday} sub="deep sessions" color="gold" icon="⚡" />
             <StatCard label="Best Streak" value={`${bestStreak}d`} sub="personal record" color="gold" icon="🔥" />
           </div>
+        </div>
+
+        <div className="command-grid mt-4">
+          <section className={`card noen-read noen-${noenRead.tone}`}>
+            <div className="command-card-top">
+              <div>
+                <div className="section-label">Noen&apos;s Read</div>
+                <h2>{noenRead.status}</h2>
+              </div>
+              <span className={`badge ${noenRead.badgeClass}`}>{noenRead.tone}</span>
+            </div>
+            <p className="noen-warning">{noenRead.warning}</p>
+            <div className="noen-next-move">
+              <span>Next move</span>
+              <strong>{noenRead.nextMove}</strong>
+            </div>
+            <p className="noen-reason">{noenRead.reason}</p>
+          </section>
+
+          <section className="card life-status-card">
+            <div className="command-card-top">
+              <div>
+                <div className="section-label">Life Status</div>
+                <h2>Command panels</h2>
+              </div>
+              <span className="badge badge-muted">live</span>
+            </div>
+            <div className="life-area-grid">
+              {lifeAreas.map((area) => (
+                <div key={area.name} className={`life-area area-${area.tone}`}>
+                  <div className="life-area-head">
+                    <span className="life-area-icon">{area.icon}</span>
+                    <span>{area.name}</span>
+                    <strong>{area.label}</strong>
+                  </div>
+                  <div className="progress-wrap">
+                    <div className={`progress-bar ${area.tone === 'green' ? 'green' : area.tone === 'yellow' ? 'gold' : ''}`} style={{ width: `${area.value}%` }} />
+                  </div>
+                  <p>{area.detail}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
 
         <div className="dash-section-title flex items-center justify-between flex-wrap gap-3 mt-4 mb-3">
@@ -295,6 +379,96 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+}
+
+type NoenTone = 'peak' | 'steady' | 'slipping';
+
+type NoenReadInput = {
+  score: number;
+  todayPct: number;
+  weekPct: number;
+  focusToday: number;
+  journalDone: boolean;
+  goals: Goal[];
+  goalPct: number;
+  bestStreak: number;
+  nutritionTracked: boolean;
+  nutritionPct: number;
+};
+
+function getNoenRead(input: NoenReadInput) {
+  const weakGoals = input.goals.length > 0 && input.goalPct < 35;
+  const noGoals = input.goals.length === 0;
+
+  if (input.todayPct < 40) {
+    return {
+      tone: 'slipping' as NoenTone,
+      badgeClass: 'badge-red',
+      status: 'Slipping — recover the day',
+      warning: 'Habits are under 40%. Do not try to save everything. Win the next obvious action.',
+      nextMove: 'Finish the easiest 2 habits now, then reassess.',
+      reason: `Today is ${input.todayPct}% complete. Momentum beats overthinking here.`,
+    };
+  }
+
+  if (input.focusToday === 0) {
+    return {
+      tone: 'slipping' as NoenTone,
+      badgeClass: 'badge-gold',
+      status: 'No deep work logged',
+      warning: 'You have activity, but no focused execution yet. That is usually avoidance wearing a nice outfit.',
+      nextMove: 'Start one 45-minute focus block.',
+      reason: 'A command center should push you toward the highest-leverage block, not just count checkmarks.',
+    };
+  }
+
+  if (!input.journalDone && input.score < 70) {
+    return {
+      tone: 'steady' as NoenTone,
+      badgeClass: 'badge-gold',
+      status: 'Steady — close the loop',
+      warning: 'The day has progress, but no reflection logged. That means weak feedback.',
+      nextMove: 'Write a 3-minute journal: what worked, what you avoided, what changes tomorrow.',
+      reason: 'Reflection turns tracking into learning. Otherwise this is just a scoreboard.',
+    };
+  }
+
+  if (noGoals || weakGoals) {
+    return {
+      tone: 'steady' as NoenTone,
+      badgeClass: 'badge-accent',
+      status: 'Needs clearer direction',
+      warning: noGoals ? 'No active goals are set.' : 'Goal progress is lagging behind your daily activity.',
+      nextMove: noGoals ? 'Create one goal with 3 concrete milestones.' : 'Move one goal milestone forward today.',
+      reason: 'Habits keep you stable. Goals make sure the effort is pointed somewhere useful.',
+    };
+  }
+
+  if (input.score >= 80 && input.todayPct >= 70 && input.focusToday > 0) {
+    return {
+      tone: 'peak' as NoenTone,
+      badgeClass: 'badge-green',
+      status: 'Peak — press the advantage',
+      warning: 'You are executing well today. Do not coast just because the score looks good.',
+      nextMove: 'Use the momentum for one extra business, school, or skill action.',
+      reason: `Score ${input.score}, habits ${input.todayPct}%, focus logged. This is when compound interest starts.`,
+    };
+  }
+
+  return {
+    tone: 'steady' as NoenTone,
+    badgeClass: 'badge-accent',
+    status: 'Steady — keep building',
+    warning: 'You are not off track, but there is room to tighten the day.',
+    nextMove: input.nutritionTracked && input.nutritionPct < 60 ? 'Hit your next nutrition target.' : 'Finish one remaining habit or goal milestone.',
+    reason: `Week average is ${input.weekPct}%. The job is consistency, not hero mode.`,
+  };
+}
+
+function getAreaStatus(name: string, value: number, detail: string, icon: string) {
+  const tone = value >= 70 ? 'green' : value >= 40 ? 'yellow' : 'red';
+  const label = tone === 'green' ? 'on track' : tone === 'yellow' ? 'watch' : 'slipping';
+  return { name, value: Math.max(0, Math.min(100, value)), detail, icon, tone, label };
 }
 
 function StatCard({
