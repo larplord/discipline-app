@@ -37,7 +37,7 @@ export function weekProgress(habits: Habit[], logsByDate: Record<string, DayLog>
 
 /** Journal counts for daily score + streak bonus: any of the four fields has non-whitespace content. */
 export function isJournalCompleteForDailyScore(j: JournalEntry): boolean {
-  return [j.well, j.avoided, j.improve, j.freeform].some((s) => (s ?? '').trim().length > 0);
+  return [j.well, j.avoided, j.improve, j.freeform, j.oneMove].some((s) => (s ?? '').trim().length > 0);
 }
 
 /**

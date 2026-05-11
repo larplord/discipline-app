@@ -43,6 +43,8 @@ export type JournalEntry = {
   avoided: string;
   improve: string;
   freeform: string;
+  oneMove?: string;
+  yesterdayFollowup?: 'yes' | 'partial' | 'no';
   savedAt?: string;
 };
 

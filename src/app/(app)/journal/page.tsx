@@ -38,6 +38,7 @@ export default function JournalPage() {
     avoided: '',
     improve: '',
     freeform: '',
+    oneMove: '',
   });
   const [saved, setSaved] = useState(false);
   const [history, setHistory] = useState<[string, JournalEntry][]>([]);
@@ -51,6 +52,8 @@ export default function JournalPage() {
         avoided: d?.avoided ?? '',
         improve: d?.improve ?? '',
         freeform: d?.freeform ?? '',
+        oneMove: d?.oneMove ?? '',
+        yesterdayFollowup: d?.yesterdayFollowup,
       });
     });
   }, [uid, selectedDate]);
@@ -68,7 +71,7 @@ export default function JournalPage() {
     });
   }, [uid]);
 
-  async function handleChange(key: keyof JournalEntry, val: string) {
+  async function handleChange(key: keyof JournalEntry, val: string | JournalEntry['yesterdayFollowup']) {
     const updated = { ...entry, [key]: val };
     setEntry(updated);
     const db = getFirestoreDb();
@@ -92,6 +95,11 @@ export default function JournalPage() {
 
   const entryDateSet = new Set(history.map(([key]) => key));
   const selectedHasEntry = entryDateSet.has(selectedDate);
+  const yesterdayKey = format(subDays(parseISO(selectedDate), 1), 'yyyy-MM-dd');
+  const yesterdayEntry = history.find(([key]) => key === yesterdayKey)?.[1];
+  const yesterdayLesson = yesterdayEntry?.oneMove || yesterdayEntry?.improve || '';
+  const debriefComplete = [entry.well, entry.avoided, entry.improve, entry.oneMove].filter((v) => (v ?? '').trim()).length;
+  const debriefPct = Math.round((debriefComplete / 4) * 100);
   const calendarDays = eachDayOfInterval({
     start: startOfWeek(startOfMonth(calendarMonth), { weekStartsOn: 0 }),
     end: endOfWeek(endOfMonth(calendarMonth), { weekStartsOn: 0 }),
@@ -213,35 +221,97 @@ export default function JournalPage() {
         </div>
 
         <div className="journal-prompts">
-          <div className="card journal-free-card mb-4">
+          <div className="journal-command-grid mb-4">
+            <section className="card journal-review-card">
+              <div className="section-label">Yesterday&apos;s lesson</div>
+              {yesterdayLesson ? (
+                <>
+                  <p className="journal-review-quote">“{yesterdayLesson}”</p>
+                  <p className="journal-review-question">Did you actually follow through?</p>
+                  <div className="journal-followup-actions" role="group" aria-label="Yesterday follow up">
+                    {(
+                      [
+                        ['yes', '✅ Yes'],
+                        ['partial', '⚠️ Partly'],
+                        ['no', '❌ No'],
+                      ] as const
+                    ).map(([value, label]) => (
+                      <button
+                        key={value}
+                        type="button"
+                        className={`journal-followup-btn ${entry.yesterdayFollowup === value ? 'active' : ''}`}
+                        onClick={() => void handleChange('yesterdayFollowup', value as JournalEntry['yesterdayFollowup'])}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="journal-empty-review">
+                  <p>No clear lesson from yesterday. Write one today so tomorrow has something to judge.</p>
+                </div>
+              )}
+            </section>
+
+            <section className="card journal-debrief-card">
+              <div className="journal-debrief-head">
+                <div>
+                  <div className="section-label">Today&apos;s debrief</div>
+                  <h2>{debriefComplete}/4 locked in</h2>
+                </div>
+                <span className={`badge ${debriefPct === 100 ? 'badge-green' : debriefPct >= 50 ? 'badge-gold' : 'badge-muted'}`}>
+                  {debriefPct}%
+                </span>
+              </div>
+              <div className="progress-wrap">
+                <div className={`progress-bar ${debriefPct === 100 ? 'green' : 'gold'}`} style={{ width: `${debriefPct}%` }} />
+              </div>
+              <p className="journal-debrief-sub">Short answers. Useful beats poetic.</p>
+            </section>
+          </div>
+
+          <div className="journal-guided-label section-label mb-2">Fast reflection</div>
+          <div className="journal-debrief-fields">
+            {PROMPTS.map((p) => (
+              <div key={p.key} className="card journal-block">
+                <label className="journal-prompt-label">{p.label}</label>
+                <textarea
+                  className="textarea"
+                  rows={3}
+                  placeholder={p.placeholder}
+                  value={entry[p.key]}
+                  onChange={(e) => handleChange(p.key, e.target.value)}
+                />
+              </div>
+            ))}
+            <div className="card journal-block journal-one-move">
+              <label className="journal-prompt-label">Tomorrow&apos;s one move</label>
+              <textarea
+                className="textarea"
+                rows={3}
+                placeholder="One specific action future-you can actually do..."
+                value={entry.oneMove ?? ''}
+                onChange={(e) => handleChange('oneMove', e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="card journal-free-card mt-4">
             <div className="journal-free-head">
               <div>
                 <div className="section-label">Open journal</div>
-                <p className="journal-free-sub">Unstructured space — thoughts, plans, or anything you need to clear your head.</p>
+                <p className="journal-free-sub">Optional. Use this when you need to clear your head, not as a requirement.</p>
               </div>
             </div>
             <textarea
               className="textarea journal-free-textarea"
-              rows={6}
+              rows={5}
               placeholder="Start typing…"
               value={entry.freeform}
               onChange={(e) => handleChange('freeform', e.target.value)}
             />
           </div>
-
-          <div className="journal-guided-label section-label mb-2">Guided reflection</div>
-          {PROMPTS.map((p) => (
-            <div key={p.key} className="card journal-block mb-3">
-              <label className="journal-prompt-label">{p.label}</label>
-              <textarea
-                className="textarea"
-                rows={3}
-                placeholder={p.placeholder}
-                value={entry[p.key]}
-                onChange={(e) => handleChange(p.key, e.target.value)}
-              />
-            </div>
-          ))}
         </div>
       </div>
     </div>

@@ -23,6 +23,7 @@ const emptyJournal: JournalEntry = {
   avoided: '',
   improve: '',
   freeform: '',
+  oneMove: '',
 };
 
 const DEFAULT_MACRO_TARGETS: MacroSnapshot = { fat: 70, protein: 180, carbs: 220 };
@@ -151,6 +152,8 @@ export function UserDataProvider({
             avoided: d?.avoided ?? '',
             improve: d?.improve ?? '',
             freeform: d?.freeform ?? '',
+            oneMove: d?.oneMove ?? '',
+            yesterdayFollowup: d?.yesterdayFollowup,
           });
         },
         logErr('journal')
