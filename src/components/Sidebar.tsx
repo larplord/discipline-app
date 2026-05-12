@@ -9,10 +9,9 @@ const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: GridIcon },
   { href: '/habits', label: 'Habits', icon: CheckCircleIcon },
   { href: '/goals', label: 'Goals', icon: TargetIcon },
+  { href: '/projects', label: 'Projects', icon: ProjectsIcon },
   { href: '/journal', label: 'Journal', icon: BookIcon },
   { href: '/focus', label: 'Focus', icon: TimerIcon },
-  { href: '/group', label: 'Group', icon: GroupIcon },
-  { href: '/friends', label: 'Friends', icon: UsersIcon },
   { href: '/routine', label: 'Routine', icon: RoutineIcon },
   { href: '/identity', label: 'Identity', icon: TrophyIcon },
 ];
@@ -178,21 +177,11 @@ function TimerIcon({ size = 20 }: { size?: number }) {
     </svg>
   );
 }
-function GroupIcon({ size = 20 }: { size?: number }) {
+function ProjectsIcon({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M7 11a4 4 0 118 0M3 20a6 6 0 0118 0M18 8a3 3 0 110-6M6 8a3 3 0 100-6" />
-    </svg>
-  );
-}
-function UsersIcon({ size = 20 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4 9 5.567 9 7.5 10.343 11 12 11zm-6 8v-1c0-2 2-3.5 6-3.5s6 1.5 6 3.5v1M18 11a3 3 0 100-6 3 3 0 000 6z"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h10M4 17h16" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 10l3 2-3 2" />
     </svg>
   );
 }

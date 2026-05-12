@@ -1,0 +1,215 @@
+/* Projects page */
+
+.projects-command-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.35fr) minmax(260px, 0.8fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.project-form-card {
+  background:
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.1), transparent 18rem),
+    var(--bg-card);
+  border-color: rgba(96, 165, 250, 0.18);
+}
+
+.project-form-sub,
+.project-next-card p,
+.project-card-head p {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  margin-top: 0.35rem;
+}
+
+.project-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.project-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.project-next-card {
+  background:
+    radial-gradient(circle at top left, rgba(16, 185, 129, 0.09), transparent 16rem),
+    var(--bg-card);
+}
+
+.project-next-list {
+  display: grid;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.project-next-item {
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(8, 11, 16, 0.38);
+}
+
+.project-next-item strong,
+.project-next-item span {
+  display: block;
+}
+
+.project-next-item strong {
+  font-size: 0.85rem;
+}
+
+.project-next-item span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-top: 0.15rem;
+}
+
+.project-category-line {
+  border-top: 1px solid var(--border);
+  padding-top: 0.85rem;
+  margin-top: 1rem !important;
+}
+
+.projects-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.project-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.project-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.15rem;
+  cursor: pointer;
+}
+
+.project-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.project-status {
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--border);
+}
+
+.status-active { color: var(--green-light); background: var(--green-faint); border-color: rgba(52, 211, 153, 0.24); }
+.status-seed { color: var(--accent-light); background: var(--accent-faint); border-color: var(--border-accent); }
+.status-paused { color: var(--gold-light); background: var(--gold-glow); border-color: rgba(245, 158, 11, 0.22); }
+.status-shipped { color: var(--text-secondary); background: rgba(255,255,255,0.05); }
+
+.project-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-muted);
+}
+
+.project-card-body {
+  border-top: 1px solid var(--border);
+  padding: 1rem 1.15rem 1.15rem;
+  background: rgba(8, 11, 16, 0.26);
+}
+
+.project-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.project-detail-grid div {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  background: rgba(8, 11, 16, 0.35);
+}
+
+.project-detail-grid span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.project-detail-grid p {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.project-log-box {
+  margin-top: 1rem;
+}
+
+.project-log-input {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.project-log-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.project-log-item {
+  border-left: 2px solid var(--accent-light);
+  padding: 0.45rem 0 0.45rem 0.75rem;
+}
+
+.project-log-item span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.project-log-item p {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  margin-top: 0.15rem;
+}
+
+@media (max-width: 900px) {
+  .projects-command-grid,
+  .project-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .project-form-grid,
+  .project-log-input {
+    grid-template-columns: 1fr;
+  }
+
+  .project-card-head {
+    flex-direction: column;
+  }
+}

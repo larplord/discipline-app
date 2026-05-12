@@ -142,6 +142,48 @@
   margin: 0;
 }
 
+.level-upgrade-box,
+.level-milestone-box {
+  padding: 0.7rem 0.8rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(8, 11, 16, 0.34);
+}
+
+.level-upgrade-box {
+  border-color: rgba(96, 165, 250, 0.2);
+}
+
+.level-milestone-box {
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.level-upgrade-box span,
+.level-milestone-box span {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.level-upgrade-box span {
+  color: var(--accent-light);
+}
+
+.level-milestone-box span {
+  color: var(--gold-light);
+}
+
+.level-upgrade-box p,
+.level-milestone-box p {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
 .level-req {
   display: flex;
   align-items: baseline;

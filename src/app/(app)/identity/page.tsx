@@ -16,13 +16,69 @@ import type { IdentityDoc } from '@/lib/types';
 import '@/styles/pages/Identity.css';
 
 const LEVELS_UI = [
-  { min: 0, title: 'Beginner', rank: 1, desc: "You've taken your first step. Keep going.", icon: '🌱' },
-  { min: 100, title: 'Consistent', rank: 2, desc: 'You show up. Most people do not.', icon: '⚡' },
-  { min: 300, title: 'Disciplined', rank: 3, desc: 'You do what is required, when required.', icon: '🎯' },
-  { min: 700, title: 'Executor', rank: 4, desc: 'Ideas are nothing. Execution is everything.', icon: '🔥' },
-  { min: 1500, title: 'Iron-Willed', rank: 5, desc: 'Your will is your greatest weapon.', icon: '⚔️' },
-  { min: 3000, title: 'Elite', rank: 6, desc: 'You operate at a level few ever reach.', icon: '🏆' },
-  { min: 6000, title: 'Legend', rank: 7, desc: 'You have built something most only dream of.', icon: '👑' },
+  {
+    min: 0,
+    title: 'Manual Mode',
+    rank: 1,
+    desc: 'You are building the base system: habits, focus, journal, and proof of work.',
+    icon: '🌱',
+    assistantUpgrade: 'Noen stays mostly manual: rule-based dashboard reads and simple tracking only.',
+    milestone: 'Use the app for 3 days and log your first focus sessions.',
+  },
+  {
+    min: 100,
+    title: 'Noen Seed',
+    rank: 2,
+    desc: 'The assistant becomes part of the command center instead of a separate idea.',
+    icon: '🧭',
+    assistantUpgrade: 'Unlock a private Assistant page/chat prototype with strict access for Daniel only.',
+    milestone: 'Keep routines alive for a week and write clear daily debriefs.',
+  },
+  {
+    min: 300,
+    title: 'Daily Coach',
+    rank: 3,
+    desc: 'Your system starts pushing you toward the next useful action every day.',
+    icon: '⚡',
+    assistantUpgrade: 'Noen can read today’s habits, focus, journal, and goals to generate daily coaching.',
+    milestone: 'Build a 7-day streak and complete at least 5 focus sessions.',
+  },
+  {
+    min: 700,
+    title: 'Memory Core',
+    rank: 4,
+    desc: 'The command center starts remembering patterns instead of only showing today.',
+    icon: '🧠',
+    assistantUpgrade: 'Add durable memory summaries, project context, and weekly review history.',
+    milestone: 'Complete two weekly reviews and keep project logs updated.',
+  },
+  {
+    min: 1500,
+    title: 'Project Operator',
+    rank: 5,
+    desc: 'Noen becomes useful for execution: projects, money experiments, and real decisions.',
+    icon: '🔥',
+    assistantUpgrade: 'Unlock project-aware coaching, experiment tracking, and stronger money/business planning.',
+    milestone: 'Run one serious money experiment and log the results honestly.',
+  },
+  {
+    min: 3000,
+    title: 'Agent Team',
+    rank: 6,
+    desc: 'Specialized agents begin handling separate categories of your life and work.',
+    icon: '🤖',
+    assistantUpgrade: 'Add specialist agents: Money, Health, School/Learning, Business, and Systems.',
+    milestone: 'Maintain consistency long enough to trust the system with heavier planning load.',
+  },
+  {
+    min: 6000,
+    title: 'JARVIS Command Center',
+    rank: 7,
+    desc: 'The long-term vision: a private AI command center that helps run your life, projects, and execution.',
+    icon: '👑',
+    assistantUpgrade: 'Noen coordinates agents, memory, reviews, projects, and controlled automations with clear permissions.',
+    milestone: 'Earn enough trust through discipline, data, and execution to justify real autonomy.',
+  },
 ];
 
 export default function IdentityPage() {
@@ -172,6 +228,14 @@ export default function IdentityPage() {
                     {current && <span className="level-badge-current">Current</span>}
                   </div>
                   <p className="level-desc">{l.desc}</p>
+                  <div className="level-upgrade-box">
+                    <span>Assistant upgrade</span>
+                    <p>{l.assistantUpgrade}</p>
+                  </div>
+                  <div className="level-milestone-box">
+                    <span>Milestone</span>
+                    <p>{l.milestone}</p>
+                  </div>
                   <div className="level-req">
                     <span className="level-req-val">{l.min.toLocaleString()} XP</span>
                     <span className="level-req-label">{unlocked ? 'Reached' : 'Required'}</span>
