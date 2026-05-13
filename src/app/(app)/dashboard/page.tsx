@@ -100,7 +100,18 @@ export default function DashboardPage() {
         </main>
 
         <aside className="hud-side hud-right">
-          <DashboardHudModule href="/habits" title="Habits / Goals / Routines" label="Daily system" detail={`${habitsPct}% habits today · ${weekPct}% weekly avg · ${activeGoals} goals`} tall />
+          <div className="hud-module hud-module-tall hud-system-module">
+            <div className="hud-module-inner">
+              <span>Daily system</span>
+              <h3>Habits / Goals / Routines</h3>
+              <p>{habitsPct}% habits today · {weekPct}% weekly avg · {activeGoals} goals</p>
+              <div className="hud-system-links">
+                <Link href="/habits">Habits</Link>
+                <Link href="/goals">Goals</Link>
+                <Link href="/routine">Routines</Link>
+              </div>
+            </div>
+          </div>
           <DashboardHudModule href="/journal" title="Journal" label="Fast reflection" detail={journalDone ? 'Debrief complete. Good — memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'} />
           <DashboardHudModule href="/identity" title="Identity" label="Level + score" detail={`${level.title} · ${Math.round(identityProfile.totalScore ?? 0)} XP`} />
         </aside>

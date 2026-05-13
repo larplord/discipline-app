@@ -416,3 +416,34 @@
     text-align: left;
   }
 }
+
+.hud-system-links {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.hud-system-links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  border-radius: 10px;
+  background: rgba(8, 47, 73, 0.35);
+  color: #cffafe;
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.hud-system-links a::after {
+  content: '→';
+  color: #67e8f9;
+}
+
+.hud-system-links a:hover {
+  border-color: rgba(34, 211, 238, 0.42);
+  background: rgba(14, 165, 233, 0.16);
+}
