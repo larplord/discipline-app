@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { AssistantChat } from '@/components/AssistantChat';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayProgress, weekProgress, calcDailyScore, isJournalCompleteForDailyScore } from '@/lib/scoring';
 import { getLevel } from '@/lib/levels';
 import '@/styles/pages/Dashboard.css';
 import '@/styles/pages/DashboardMockups.css';
+import '@/styles/pages/Assistant.css';
 
 export default function DashboardPage() {
   const {
@@ -71,19 +73,16 @@ export default function DashboardPage() {
         </aside>
 
         <main className="hud-core">
-          <div className="hud-ai-panel real-ai-panel">
+          <div className="hud-ai-panel real-ai-panel dashboard-noen-panel">
             <div className="hud-orbit hud-orbit-one" aria-hidden />
             <div className="hud-orbit hud-orbit-two" aria-hidden />
             <div className="hud-scan" aria-hidden />
-            <div className="hud-ai-content">
-              <span>Noen core / Level 3 target</span>
+            <div className="hud-ai-content dashboard-noen-content">
+              <span>Noen core / live assistant</span>
               <h2>AI Model</h2>
               <p>{nextMove}</p>
-              <div className="real-ai-actions">
-                <Link href="/focus" className="btn btn-primary">Start Focus</Link>
-                <Link href="/journal" className="btn btn-ghost">Debrief</Link>
-              </div>
             </div>
+            <AssistantChat mode="dashboard" />
           </div>
 
           <div className="hud-agents-panel">

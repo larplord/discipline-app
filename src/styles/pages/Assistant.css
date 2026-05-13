@@ -252,3 +252,120 @@
     max-width: 100%;
   }
 }
+
+/* Dashboard embed */
+.dashboard-noen-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+}
+
+.dashboard-noen-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.assistant-chat-dashboard {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  min-height: 430px;
+  max-height: 520px;
+  border-radius: 22px;
+  background: rgba(2, 11, 20, 0.72);
+  border-color: rgba(99, 231, 255, 0.2);
+}
+
+.assistant-chat-dashboard .assistant-chat-header {
+  padding: 14px 16px 10px;
+}
+
+.assistant-chat-dashboard .assistant-chat-header h2 {
+  font-size: 1.05rem;
+}
+
+.assistant-chat-dashboard .assistant-status {
+  font-size: 0.66rem;
+  padding: 6px 9px;
+}
+
+.assistant-dashboard-snapshot {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 0 14px 10px;
+}
+
+.assistant-dashboard-snapshot span {
+  border: 1px solid rgba(99, 231, 255, 0.14);
+  border-radius: 999px;
+  padding: 6px 8px;
+  color: rgba(232, 251, 255, 0.72);
+  font-size: 0.66rem;
+  text-align: center;
+  background: rgba(0, 229, 255, 0.06);
+}
+
+.assistant-chat-dashboard .assistant-messages {
+  padding: 12px 14px;
+  gap: 9px;
+}
+
+.assistant-chat-dashboard .assistant-message {
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-size: 0.82rem;
+}
+
+.assistant-chat-dashboard .assistant-message span {
+  font-size: 0.62rem;
+  margin-bottom: 4px;
+}
+
+.assistant-chat-dashboard .assistant-starters {
+  padding: 0 14px 10px;
+  gap: 7px;
+}
+
+.assistant-chat-dashboard .assistant-starters button {
+  font-size: 0.68rem;
+  padding: 7px 9px;
+}
+
+.assistant-chat-dashboard .assistant-input-row {
+  padding: 12px 14px 14px;
+  gap: 8px;
+}
+
+.assistant-chat-dashboard .assistant-input-row input {
+  padding: 10px 12px;
+  font-size: 0.82rem;
+}
+
+.assistant-chat-dashboard .assistant-input-row button {
+  padding: 9px 12px;
+  font-size: 0.78rem;
+}
+
+.assistant-inline-context {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 16px 26px 0;
+}
+
+.assistant-page-memory-note {
+  margin: 0 26px 22px;
+}
+
+@media (max-width: 980px) {
+  .assistant-dashboard-snapshot {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .assistant-chat-dashboard {
+    max-height: none;
+  }
+}
