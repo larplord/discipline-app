@@ -345,3 +345,64 @@
     display: none;
   }
 }
+
+/* Compact draggable habit list */
+.system-column:first-child .system-card-stack {
+  gap: 0.46rem;
+}
+
+.system-habit-row {
+  grid-template-columns: auto auto auto minmax(0, 1fr) auto;
+  min-height: 48px;
+  padding: 0.52rem 0.65rem;
+  border-radius: 13px;
+  cursor: grab;
+}
+
+.system-habit-row:active {
+  cursor: grabbing;
+}
+
+.system-habit-row.dragging {
+  opacity: 0.45;
+  transform: scale(0.985);
+}
+
+.system-habit-row.drag-over {
+  border-color: rgba(103, 232, 249, 0.7);
+  box-shadow: 0 0 0 1px rgba(103, 232, 249, 0.22), 0 0 24px rgba(34, 211, 238, 0.12);
+}
+
+.system-drag {
+  cursor: grab;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.system-check {
+  width: 1.22rem;
+  height: 1.22rem;
+  font-size: 0.72rem;
+}
+
+.system-emoji {
+  font-size: 1rem;
+}
+
+.system-row-main strong {
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+.system-row-main em,
+.system-streak {
+  font-size: 0.62rem;
+}
+
+.system-streak {
+  padding: 0.18rem 0.38rem;
+}
+
+.system-habit-order-actions {
+  display: none !important;
+}

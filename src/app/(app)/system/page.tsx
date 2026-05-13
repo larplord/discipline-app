@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type DragEvent } from 'react';
 import { collection, doc, onSnapshot, writeBatch } from 'firebase/firestore';
 import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
@@ -21,6 +21,8 @@ export default function SystemPage() {
   const { uid, habits, dayLog, logsByDate, goals } = useUserData();
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [now, setNow] = useState(() => new Date());
+  const [draggingHabitId, setDraggingHabitId] = useState<string | null>(null);
+  const [dragOverHabitId, setDragOverHabitId] = useState<string | null>(null);
   const habitsPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
 
@@ -39,21 +41,50 @@ export default function SystemPage() {
     return () => clearInterval(timer);
   }, []);
 
-  async function moveHabit(habitId: string, direction: -1 | 1) {
-    const currentIndex = habits.findIndex((habit) => habit.id === habitId);
-    const targetIndex = currentIndex + direction;
-    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= habits.length) return;
-
-    const nextHabits = [...habits];
-    const [moved] = nextHabits.splice(currentIndex, 1);
-    nextHabits.splice(targetIndex, 0, moved);
-
+  async function persistHabitOrder(nextHabits: typeof habits) {
     const db = getFirestoreDb();
     const batch = writeBatch(db);
     nextHabits.forEach((habit, index) => {
       batch.update(doc(db, 'users', uid, 'habits', habit.id), { order: index });
     });
     await batch.commit();
+  }
+
+  async function reorderHabits(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    const nextHabits = [...habits];
+    const from = nextHabits.findIndex((habit) => habit.id === sourceId);
+    const to = nextHabits.findIndex((habit) => habit.id === targetId);
+    if (from < 0 || to < 0) return;
+    const [moved] = nextHabits.splice(from, 1);
+    nextHabits.splice(to, 0, moved);
+    await persistHabitOrder(nextHabits);
+  }
+
+  function startHabitDrag(e: DragEvent<HTMLDivElement>, habitId: string) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', habitId);
+    setDraggingHabitId(habitId);
+  }
+
+  function dragHabitOver(e: DragEvent<HTMLDivElement>, habitId: string) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverHabitId(habitId);
+  }
+
+  async function dropHabit(e: DragEvent<HTMLDivElement>, targetId: string) {
+    e.preventDefault();
+    const sourceId = e.dataTransfer.getData('text/plain') || draggingHabitId;
+    setDraggingHabitId(null);
+    setDragOverHabitId(null);
+    if (!sourceId) return;
+    await reorderHabits(sourceId, targetId);
+  }
+
+  function endHabitDrag() {
+    setDraggingHabitId(null);
+    setDragOverHabitId(null);
   }
 
   return (
@@ -72,12 +103,20 @@ export default function SystemPage() {
         <div className="system-column">
           <ModuleHeader kicker="Daily checklist" title="Habits" meta={`${habitsPct}% today · ${weekPct}% week`} />
           <div className="system-card-stack">
-            {habits.length === 0 ? <EmptyModule text="No habits yet." href="/habits" /> : habits.map((habit, index) => {
+            {habits.length === 0 ? <EmptyModule text="No habits yet." href="/habits" /> : habits.map((habit) => {
               const done = !!dayLog[habit.id];
               const streak = calcStreak(habit.id, logsByDate);
               return (
-                <div key={habit.id} className={`system-habit-row ${done ? 'complete' : ''}`}>
-                  <span className="system-drag">⋮⋮</span>
+                <div
+                  key={habit.id}
+                  className={`system-habit-row ${done ? 'complete' : ''} ${draggingHabitId === habit.id ? 'dragging' : ''} ${dragOverHabitId === habit.id && draggingHabitId !== habit.id ? 'drag-over' : ''}`}
+                  draggable
+                  onDragStart={(e) => startHabitDrag(e, habit.id)}
+                  onDragOver={(e) => dragHabitOver(e, habit.id)}
+                  onDrop={(e) => void dropHabit(e, habit.id)}
+                  onDragEnd={endHabitDrag}
+                >
+                  <span className="system-drag" title="Drag to reorder">⋮⋮</span>
                   <span className="system-check">{done ? '✓' : ''}</span>
                   <span className="system-emoji">{habit.emoji || '⚡'}</span>
                   <Link href="/habits" className="system-row-main">
@@ -85,10 +124,6 @@ export default function SystemPage() {
                     <em>{habit.category}</em>
                   </Link>
                   <span className="system-streak">🔥 {streak}d</span>
-                  <div className="system-habit-order-actions">
-                    <button type="button" onClick={() => void moveHabit(habit.id, -1)} disabled={index === 0} aria-label={`Move ${habit.name} up`}>↑</button>
-                    <button type="button" onClick={() => void moveHabit(habit.id, 1)} disabled={index === habits.length - 1} aria-label={`Move ${habit.name} down`}>↓</button>
-                  </div>
                 </div>
               );
             })}
