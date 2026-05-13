@@ -7,6 +7,7 @@ import type { DayLog, Goal, Habit, JournalEntry, MacroSnapshot } from '@/lib/typ
 
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: GridIcon },
+  { href: '/assistant', label: 'Assistant', icon: AssistantIcon },
   { href: '/habits', label: 'Habits', icon: CheckCircleIcon },
   { href: '/goals', label: 'Goals', icon: TargetIcon },
   { href: '/projects', label: 'Projects', icon: ProjectsIcon },
@@ -146,6 +147,14 @@ function CheckCircleIcon({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+function AssistantIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l2.2 4.7L19 10l-4.8 2.3L12 17l-2.2-4.7L5 10l4.8-2.3L12 3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 16l.9 1.9L22 19l-2.1 1.1L19 22l-.9-1.9L16 19l2.1-1.1L19 16z" />
     </svg>
   );
 }
