@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   addDoc,
   collection,
@@ -25,6 +26,7 @@ function goalProgress(goal: Goal) {
 
 export default function GoalsPage() {
   const { uid } = useUserData();
+  const router = useRouter();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editTarget, setEditTarget] = useState<Goal | null>(null);
@@ -126,6 +128,7 @@ export default function GoalsPage() {
             setNewMs={setNewMs}
             onEdit={(g) => { setEditTarget(g); setShowForm(true); }}
             onDelete={onDelete}
+            onOpen={(id) => router.push(`/goals/${id}`)}
           />
         )}
         {longGoals.length > 0 && (
@@ -141,6 +144,7 @@ export default function GoalsPage() {
             setNewMs={setNewMs}
             onEdit={(g) => { setEditTarget(g); setShowForm(true); }}
             onDelete={onDelete}
+            onOpen={(id) => router.push(`/goals/${id}`)}
           />
         )}
       </div>
@@ -168,6 +172,7 @@ function GoalSection({
   setNewMs,
   onEdit,
   onDelete,
+  onOpen,
 }: {
   title: string;
   goals: Goal[];
@@ -180,6 +185,7 @@ function GoalSection({
   setNewMs: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   onEdit: (g: Goal) => void;
   onDelete: (id: string) => void;
+  onOpen: (id: string) => void;
 }) {
   return (
     <>
@@ -190,7 +196,7 @@ function GoalSection({
           const open = expanded === g.id;
           return (
             <div key={g.id} className={`card goal-card ${open ? 'expanded' : ''}`}>
-              <div className="goal-header" onClick={() => setExpanded(open ? null : g.id)} role="presentation">
+              <div className="goal-header" onClick={() => onOpen(g.id)} role="presentation">
                 <div>
                   <div className="goal-title-row">
                     <span className="goal-title">{g.title}</span>
@@ -208,7 +214,7 @@ function GoalSection({
                   <button type="button" className="btn-icon" onClick={(e) => { e.stopPropagation(); onDelete(g.id); }}>
                     🗑
                   </button>
-                  <span className="expand-icon">{open ? '▼' : '▶'}</span>
+                  <span className="expand-icon">▶</span>
                 </div>
               </div>
               {open && (

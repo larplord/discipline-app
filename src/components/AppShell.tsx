@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
@@ -14,7 +15,7 @@ function ShellInner({ children }: { children: ReactNode }) {
   const data = useUserData();
   const router = useRouter();
   const pathname = usePathname();
-  const dashboardFullscreen = pathname === '/dashboard';
+  const dashboardFullscreen = pathname === '/dashboard' || pathname === '/system' || pathname.startsWith('/goals') || pathname.startsWith('/habits') || pathname.startsWith('/routine');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const sidebarPreferenceRef = useRef(false);
@@ -209,6 +210,9 @@ function ShellInner({ children }: { children: ReactNode }) {
           <div style={{ width: 32 }} />
         </div>}
 
+        {dashboardFullscreen && pathname !== '/dashboard' && (
+          <Link href="/dashboard" className="fullscreen-dashboard-back">← Dashboard</Link>
+        )}
         {children}
       </div>
     </div>

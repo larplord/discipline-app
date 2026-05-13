@@ -1,84 +1,140 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayProgress, weekProgress } from '@/lib/scoring';
+import { calcStreak } from '@/lib/streaks';
+import { formatTimeLabel, getRoutineDuration, getRoutineProgress, routineStatusLabel } from '@/lib/routines';
+import type { Routine } from '@/lib/types';
 import '@/styles/pages/System.css';
 
+function goalProgress(goal: { milestones?: { done: boolean }[] }) {
+  const ms = goal.milestones ?? [];
+  if (!ms.length) return 0;
+  return Math.round((ms.filter((m) => m.done).length / ms.length) * 100);
+}
+
 export default function SystemPage() {
-  const { habits, dayLog, logsByDate, goals } = useUserData();
+  const { uid, habits, dayLog, logsByDate, goals } = useUserData();
+  const [routines, setRoutines] = useState<Routine[]>([]);
+  const [now, setNow] = useState(() => new Date());
   const habitsPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
-  const activeGoals = goals.length;
+
+  useEffect(() => {
+    const db = getFirestoreDb();
+    return onSnapshot(collection(db, 'users', uid, 'routines'), (snap) => {
+      const list: Routine[] = [];
+      snap.forEach((d) => list.push({ id: d.id, ...(d.data() as Omit<Routine, 'id'>) }));
+      list.sort((a, b) => a.startTime.localeCompare(b.startTime));
+      setRoutines(list);
+    });
+  }, [uid]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div className="fade-in system-page">
-      <div className="page-header system-header">
+    <main className="fade-in system-page system-fullscreen">
+      <div className="system-bg-grid" aria-hidden />
+      <header className="system-topbar">
+        <Link href="/dashboard" className="system-back-btn">← Main Dashboard</Link>
         <div>
-          <div className="section-label">Command module</div>
-          <h1 className="page-title">Habits / Goals / Routines</h1>
-          <p className="page-subtitle">Your daily operating system: what you repeat, what you are chasing, and the routines that keep you moving.</p>
+          <span>Command module</span>
+          <h1>Habits / Goals / Routines</h1>
+          <p>Your daily operating system: what you repeat, what you are chasing, and the routines that keep you moving.</p>
         </div>
-      </div>
+      </header>
 
-      <div className="page-body">
-        <section className="system-hero card">
-          <div className="system-hero-copy">
-            <span>Daily system status</span>
-            <h2>Keep the basics clean. Then unlock more AI.</h2>
-            <p>Noen gets more useful when your behavior data is consistent. Habits show discipline, goals show direction, routines show structure.</p>
+      <section className="system-command-grid">
+        <div className="system-column">
+          <ModuleHeader kicker="Daily checklist" title="Habits" meta={`${habitsPct}% today · ${weekPct}% week`} />
+          <div className="system-card-stack">
+            {habits.length === 0 ? <EmptyModule text="No habits yet." href="/habits" /> : habits.slice(0, 7).map((habit) => {
+              const done = !!dayLog[habit.id];
+              const streak = calcStreak(habit.id, logsByDate);
+              return (
+                <Link href="/habits" key={habit.id} className={`system-habit-row ${done ? 'complete' : ''}`}>
+                  <span className="system-drag">⋮⋮</span>
+                  <span className="system-check">{done ? '✓' : ''}</span>
+                  <span className="system-emoji">{habit.emoji || '⚡'}</span>
+                  <span className="system-row-main">
+                    <strong>{habit.name}</strong>
+                    <em>{habit.category}</em>
+                  </span>
+                  <span className="system-streak">🔥 {streak}d</span>
+                </Link>
+              );
+            })}
           </div>
-          <div className="system-stat-grid">
-            <SystemStat value={`${habitsPct}%`} label="Habits today" />
-            <SystemStat value={`${weekPct}%`} label="1 week average" />
-            <SystemStat value={activeGoals} label="Goals" />
-          </div>
-        </section>
+        </div>
 
-        <section className="system-module-grid">
-          <SystemModule
-            href="/habits"
-            title="Habits"
-            kicker="Daily checklist"
-            detail="Track the actions that prove you are becoming the person you say you want to be."
-            meta={`${habits.filter((h) => dayLog[h.id]).length}/${habits.length || 0} complete today`}
-          />
-          <SystemModule
-            href="/goals"
-            title="Goals"
-            kicker="Milestones"
-            detail="Keep direction clear. Break bigger targets into next visible wins."
-            meta={`${activeGoals} active goals`}
-          />
-          <SystemModule
-            href="/routine"
-            title="Routines"
-            kicker="Repeatable flows"
-            detail="Build morning, work, and night sequences so fewer decisions depend on motivation."
-            meta="Clock-based execution"
-          />
-        </section>
-      </div>
-    </div>
+        <div className="system-column">
+          <ModuleHeader kicker="Milestones" title="Goals" meta={`${goals.length} active`} />
+          <div className="system-card-stack">
+            {goals.length === 0 ? <EmptyModule text="No goals yet." href="/goals" /> : goals.slice(0, 6).map((goal) => {
+              const pct = goalProgress(goal);
+              return (
+                <Link href={`/goals/${goal.id}`} key={goal.id} className="system-goal-row">
+                  <div className="system-goal-top">
+                    <strong>{goal.title}</strong>
+                    <span className={`system-priority ${goal.priority}`} />
+                  </div>
+                  <div className="system-goal-meta">
+                    <span>{goal.deadline ?? 'No deadline'}</span>
+                    <em>{pct}%</em>
+                  </div>
+                  <div className="system-progress"><div style={{ width: `${pct}%` }} /></div>
+                  <div className="system-goal-actions"><span>Open goal detail</span><b>▶</b></div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="system-column">
+          <ModuleHeader kicker="Repeatable flows" title="Routines" meta={`${routines.length} saved`} />
+          <div className="system-card-stack">
+            {routines.length === 0 ? <EmptyModule text="No routines yet." href="/routine" /> : routines.slice(0, 5).map((routine) => {
+              const progress = getRoutineProgress(routine.startTime, routine.endTime, now);
+              const duration = getRoutineDuration(routine.startTime, routine.endTime) ?? 0;
+              return (
+                <Link href={`/routine/${routine.id}`} key={routine.id} className="system-routine-row">
+                  <div className="system-routine-top">
+                    <strong>{routine.name}</strong>
+                    <span className={progress.status}>{routineStatusLabel(progress.status)}</span>
+                  </div>
+                  <p>{formatTimeLabel(routine.startTime)} - {formatTimeLabel(routine.endTime)}</p>
+                  <div className="system-routine-meta"><span>{duration} min</span><span>Major every {routine.majorIntervalMinutes}m</span></div>
+                  <div className="system-progress"><div style={{ width: `${progress.pct}%` }} /></div>
+                  <div className="system-goal-actions"><span>{progress.pct}% today</span><b>Open timeline</b></div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
 
-function SystemStat({ value, label }: { value: string | number; label: string }) {
+function ModuleHeader({ kicker, title, meta }: { kicker: string; title: string; meta: string }) {
   return (
-    <div className="system-stat">
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
-  );
-}
-
-function SystemModule({ href, title, kicker, detail, meta }: { href: string; title: string; kicker: string; detail: string; meta: string }) {
-  return (
-    <Link href={href} className="card system-module-card">
+    <div className="system-module-header">
       <span>{kicker}</span>
-      <h2>{title}</h2>
-      <p>{detail}</p>
-      <strong>{meta}</strong>
-    </Link>
+      <div>
+        <h2>{title}</h2>
+        <strong>{meta}</strong>
+      </div>
+    </div>
   );
+}
+
+function EmptyModule({ text, href }: { text: string; href: string }) {
+  return <Link href={href} className="system-empty-module">{text} Add one →</Link>;
 }
