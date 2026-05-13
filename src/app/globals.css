@@ -591,6 +591,15 @@ a { color: inherit; text-decoration: none; }
     width 0.22s cubic-bezier(0.4,0,0.2,1);
 }
 
+.app-layout.dashboard-fullscreen {
+  --active-sidebar-width: 0px;
+}
+
+.app-layout.dashboard-fullscreen .main-content {
+  width: 100%;
+  margin-left: 0;
+}
+
 .page-header {
   padding: 1.65rem 2rem 0;
   margin-bottom: 1.25rem;

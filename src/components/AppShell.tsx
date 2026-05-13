@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { getFirebaseAuth, getFirestoreDb } from '@/lib/firebase/client';
 import { useAuth } from '@/components/AuthProvider';
@@ -13,6 +13,8 @@ import { syncIdentityProgress } from '@/lib/syncIdentityProgress';
 function ShellInner({ children }: { children: ReactNode }) {
   const data = useUserData();
   const router = useRouter();
+  const pathname = usePathname();
+  const dashboardFullscreen = pathname === '/dashboard';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const sidebarPreferenceRef = useRef(false);
@@ -162,33 +164,35 @@ function ShellInner({ children }: { children: ReactNode }) {
   ]);
 
   return (
-    <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+    <div className={`app-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''} ${dashboardFullscreen ? 'dashboard-fullscreen' : ''}`}>
       <div
         className={`mobile-overlay ${sidebarOpen ? 'visible' : ''}`}
         onClick={() => setSidebarOpen(false)}
         aria-hidden
       />
 
-      <Sidebar
-        open={sidebarOpen}
-        collapsed={sidebarCollapsed}
-        onCloseMobile={() => setSidebarOpen(false)}
-        onToggleCollapsed={toggleSidebarCollapsed}
-        scoreData={{
-          habits: data.habits,
-          dayLog: data.dayLog,
-          focusToday: data.focusToday,
-          journal: data.journal,
-          goals: data.goals,
-          nutritionTargets: data.nutritionTargets,
-          nutritionIntake: data.nutritionIntake,
-          logsByDate: data.logsByDate,
-        }}
-        onSignOut={logout}
-      />
+      {!dashboardFullscreen && (
+        <Sidebar
+          open={sidebarOpen}
+          collapsed={sidebarCollapsed}
+          onCloseMobile={() => setSidebarOpen(false)}
+          onToggleCollapsed={toggleSidebarCollapsed}
+          scoreData={{
+            habits: data.habits,
+            dayLog: data.dayLog,
+            focusToday: data.focusToday,
+            journal: data.journal,
+            goals: data.goals,
+            nutritionTargets: data.nutritionTargets,
+            nutritionIntake: data.nutritionIntake,
+            logsByDate: data.logsByDate,
+          }}
+          onSignOut={logout}
+        />
+      )}
 
       <div className="main-content">
-        <div className="mobile-topbar">
+        {!dashboardFullscreen && <div className="mobile-topbar">
           <button
             type="button"
             className="mobile-menu-btn"
@@ -203,7 +207,7 @@ function ShellInner({ children }: { children: ReactNode }) {
             Discipline<span style={{ color: 'var(--accent)' }}>OS</span>
           </span>
           <div style={{ width: 32 }} />
-        </div>
+        </div>}
 
         {children}
       </div>

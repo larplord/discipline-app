@@ -321,3 +321,98 @@
     padding: 0.85rem 1rem 1rem;
   }
 }
+
+/* Real AI Hub dashboard */
+.dashboard-hud-page {
+  min-height: 100vh;
+  padding: 1.25rem;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.13), transparent 26rem),
+    radial-gradient(circle at 0% 100%, rgba(37, 99, 235, 0.12), transparent 24rem),
+    #020617;
+}
+
+.dashboard-hud-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 1500px;
+  margin: 0 auto 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 18px;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.dashboard-hud-topbar span {
+  display: block;
+  color: #67e8f9;
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dashboard-hud-topbar h1 {
+  color: #ecfeff;
+  margin-top: 0.1rem;
+}
+
+.dashboard-hud-score {
+  min-width: 128px;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  border-radius: 14px;
+  text-align: right;
+  background: rgba(8, 47, 73, 0.28);
+}
+
+.dashboard-hud-score strong {
+  display: block;
+  color: #67e8f9;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.real-hud-board {
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+.real-ai-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.hud-focus-grid a {
+  min-height: 48px;
+  display: grid;
+  place-items: center;
+  color: #cffafe;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 10px;
+  background: rgba(8, 47, 73, 0.35);
+}
+
+@media (max-width: 700px) {
+  .dashboard-hud-page {
+    padding: 0.75rem;
+  }
+
+  .dashboard-hud-topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-hud-score {
+    width: 100%;
+    text-align: left;
+  }
+}
