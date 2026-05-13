@@ -30,6 +30,11 @@ export const mockups = [
     title: 'JARVIS Command',
     desc: 'Most motivating/futuristic. Best as the long-term north star, not the first full build.',
   },
+  {
+    href: '/mockups/dashboard-ai-hub',
+    title: 'AI Hub HUD',
+    desc: 'Based on your sketch: center AI model, side shortcuts, future agents, cyan sci-fi colors.',
+  },
 ];
 
 export function MockupShell({ children, title, subtitle }: { children: React.ReactNode; title: string; subtitle: string }) {
@@ -142,6 +147,57 @@ export function AiCoachMockup() {
   );
 }
 
+export function AiHubHudMockup() {
+  return (
+    <MockupShell title="AI Hub HUD Dashboard" subtitle="Your sketch turned into a calmer futuristic command layout: AI in the center, life systems around it.">
+      <section className="hud-board">
+        <div className="hud-grid-lines" aria-hidden />
+        <div className="hud-top-link">
+          <span>Obsidian brain link</span>
+          <strong>3D knowledge map / future memory view</strong>
+        </div>
+
+        <aside className="hud-side hud-left">
+          <HudModule title="Health" label="Quick link" detail="Sleep score, training readiness, nutrition, recovery signals." />
+          <HudModule title="Projects" label="Growing project layer" detail="Current project, agent overview, what changed, next step." tall />
+          <HudFocus />
+        </aside>
+
+        <main className="hud-core">
+          <div className="hud-ai-panel">
+            <div className="hud-orbit hud-orbit-one" aria-hidden />
+            <div className="hud-orbit hud-orbit-two" aria-hidden />
+            <div className="hud-scan" aria-hidden />
+            <div className="hud-ai-content">
+              <span>Noen core</span>
+              <h2>AI Model</h2>
+              <p>Reads your habits, focus, journal, projects, and identity rank to decide the next useful action.</p>
+            </div>
+          </div>
+
+          <div className="hud-agents-panel">
+            <span className="hud-panel-label">Future agent stack</span>
+            <div className="hud-agent-grid">
+              <HudAgent color="green" name="Health" />
+              <HudAgent color="blue" name="Money" />
+              <HudAgent color="purple" name="Memory" />
+              <HudAgent color="red" name="Risk" />
+              <HudAgent color="yellow" name="Habits" />
+              <HudAgent color="orange" name="Projects" />
+            </div>
+          </div>
+        </main>
+
+        <aside className="hud-side hud-right">
+          <HudModule title="Habits / Goals / Routines" label="Daily system" detail="Time-aware habits, slipping areas, goals, and next milestone." tall />
+          <HudModule title="Journal" label="Fast reflection" detail="Capture the lesson before the day disappears." />
+          <HudModule title="Identity" label="Level + score" detail="Daily Coach → Memory Core → JARVIS Command Center." />
+        </aside>
+      </section>
+    </MockupShell>
+  );
+}
+
 export function JarvisMockup() {
   return (
     <MockupShell title="JARVIS Command Dashboard" subtitle="The long-term north star: systems, agents, memory, and controlled autonomy.">
@@ -166,6 +222,41 @@ export function JarvisMockup() {
         <CommandTile title="Automation Layer" status="Final" detail="Only with explicit permissions and trust earned." />
       </section>
     </MockupShell>
+  );
+}
+
+function HudModule({ title, label, detail, tall = false }: { title: string; label: string; detail: string; tall?: boolean }) {
+  return (
+    <div className={`hud-module ${tall ? 'hud-module-tall' : ''}`}>
+      <div className="hud-module-inner">
+        <span>{label}</span>
+        <h3>{title}</h3>
+        <p>{detail}</p>
+      </div>
+    </div>
+  );
+}
+
+function HudFocus() {
+  const blocks = ['Deep work 60', 'Deep work 30', 'Short break', 'Long break'];
+  return (
+    <div className="hud-module hud-focus-module">
+      <div className="hud-module-inner">
+        <span>Quick start</span>
+        <h3>Focus</h3>
+        <div className="hud-focus-grid">
+          {blocks.map((b) => <button key={b} type="button">{b}</button>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HudAgent({ color, name }: { color: string; name: string }) {
+  return (
+    <div className={`hud-agent hud-agent-${color}`}>
+      <span>{name}</span>
+    </div>
   );
 }
 
