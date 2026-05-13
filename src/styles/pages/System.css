@@ -299,3 +299,49 @@
   .system-topbar { grid-template-columns: 1fr; }
   .system-module-header div { align-items: start; flex-direction: column; }
 }
+
+.system-habit-row {
+  grid-template-columns: auto auto auto minmax(0, 1fr) auto auto;
+}
+
+.system-habit-order-actions {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.system-habit-order-actions button {
+  width: 1.85rem;
+  height: 1.85rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(34, 211, 238, 0.22);
+  border-radius: 9px;
+  background: rgba(8, 47, 73, 0.35);
+  color: #cffafe;
+  font: inherit;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.system-habit-order-actions button:hover:not(:disabled) {
+  border-color: rgba(34, 211, 238, 0.46);
+  color: #ecfeff;
+}
+
+.system-habit-order-actions button:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .system-habit-row {
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+  }
+  .system-drag,
+  .system-emoji {
+    display: none;
+  }
+  .system-streak {
+    display: none;
+  }
+}
