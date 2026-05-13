@@ -11,6 +11,11 @@ type ChatMessage = {
   content: string;
 };
 
+type VerifiedUser = {
+  uid: string;
+  email?: string;
+};
+
 function getAllowedEmails() {
   return (process.env.ASSISTANT_ALLOWED_EMAILS ?? process.env.NEXT_PUBLIC_ASSISTANT_ALLOWED_EMAILS ?? '')
     .split(',')
@@ -18,18 +23,48 @@ function getAllowedEmails() {
     .filter(Boolean);
 }
 
-async function verifyRequest(req: Request) {
+async function verifyWithFirebaseRest(token: string): Promise<VerifiedUser> {
+  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+  if (!apiKey) throw new Error('Firebase API key is missing.');
+
+  const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken: token }),
+  });
+
+  if (!res.ok) throw new Error('Invalid Firebase auth token.');
+  const data = await res.json();
+  const user = data.users?.[0];
+  if (!user?.localId) throw new Error('Invalid Firebase auth token.');
+  return { uid: String(user.localId), email: user.email ? String(user.email) : undefined };
+}
+
+async function verifyRequest(req: Request): Promise<VerifiedUser> {
   const authHeader = req.headers.get('authorization') ?? '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : '';
   if (!token) throw new Error('Missing auth token.');
 
-  const decoded = await getAdminAuth().verifyIdToken(token);
+  let verified: VerifiedUser;
+  try {
+    const decoded = await getAdminAuth().verifyIdToken(token);
+    verified = { uid: decoded.uid, email: decoded.email };
+  } catch (e) {
+    console.warn('[assistant/chat] Firebase Admin auth unavailable, using REST auth fallback.', e);
+    verified = await verifyWithFirebaseRest(token);
+  }
+
   const allowedEmails = getAllowedEmails();
-  const email = String(decoded.email ?? '').toLowerCase();
+  const email = String(verified.email ?? '').toLowerCase();
   if (allowedEmails.length > 0 && !allowedEmails.includes(email)) {
     throw new Error('This assistant is private.');
   }
-  return decoded;
+  return verified;
+}
+
+function formatClientSnapshot(snapshot: unknown) {
+  if (!snapshot || typeof snapshot !== 'object') return 'APP SNAPSHOT\nNo app snapshot available.';
+  return `APP SNAPSHOT FROM DASHBOARD\n${JSON.stringify(snapshot, null, 2).slice(0, 12000)}`;
 }
 
 async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) {
@@ -75,10 +110,11 @@ async function maybeSaveMemory(uid: string, userMessage: string, assistantReply:
 }
 
 export async function POST(req: Request) {
+  let body: Record<string, unknown> = {};
   try {
-    const decoded = await verifyRequest(req);
-    const uid = decoded.uid;
-    const body = await req.json();
+    const verified = await verifyRequest(req);
+    const uid = verified.uid;
+    body = await req.json();
     const message = String(body.message ?? '').trim();
     const history = (Array.isArray(body.history) ? body.history : []) as ChatMessage[];
 
@@ -86,8 +122,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Message is required.' }, { status: 400 });
     }
 
-    const contextBundle = await loadAssistantContext(uid);
-    const contextText = formatAssistantContext(contextBundle);
+    let contextText: string;
+    let persistenceEnabled = true;
+    try {
+      const contextBundle = await loadAssistantContext(uid);
+      contextText = formatAssistantContext(contextBundle);
+    } catch (e) {
+      console.warn('[assistant/chat] Firebase Admin Firestore unavailable, using client snapshot fallback.', e);
+      contextText = formatClientSnapshot(body.appSnapshot);
+      persistenceEnabled = false;
+    }
+
     const recentHistory = history.slice(-12).map((m) => ({ role: m.role, content: m.content }));
 
     const messages = [
@@ -100,13 +145,19 @@ export async function POST(req: Request) {
 
     const reply = await callOpenAI(messages);
 
-    const threadRef = getAdminDb().collection('users').doc(uid).collection('assistantThreads').doc('default');
-    await threadRef.set({ updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-    await threadRef.collection('messages').add({ role: 'user', content: message, createdAt: FieldValue.serverTimestamp() });
-    await threadRef.collection('messages').add({ role: 'assistant', content: reply, createdAt: FieldValue.serverTimestamp() });
-    await maybeSaveMemory(uid, message, reply);
+    if (persistenceEnabled) {
+      try {
+        const threadRef = getAdminDb().collection('users').doc(uid).collection('assistantThreads').doc('default');
+        await threadRef.set({ updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+        await threadRef.collection('messages').add({ role: 'user', content: message, createdAt: FieldValue.serverTimestamp() });
+        await threadRef.collection('messages').add({ role: 'assistant', content: reply, createdAt: FieldValue.serverTimestamp() });
+        await maybeSaveMemory(uid, message, reply);
+      } catch (e) {
+        console.warn('[assistant/chat] Persistence skipped.', e);
+      }
+    }
 
-    return NextResponse.json({ reply });
+    return NextResponse.json({ reply, persistenceEnabled });
   } catch (e) {
     console.error('[assistant/chat]', e);
     const message = e instanceof Error ? e.message : 'Assistant request failed.';

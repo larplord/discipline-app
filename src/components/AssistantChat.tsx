@@ -52,6 +52,24 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
         body: JSON.stringify({
           message: text,
           history: nextMessages.slice(-12),
+          appSnapshot: {
+            habits: habits.map((habit) => ({
+              id: habit.id,
+              name: habit.name,
+              category: habit.category,
+              doneToday: !!dayLog[habit.id],
+            })),
+            focusToday,
+            goals: goals.map((goal) => ({
+              id: goal.id,
+              title: goal.title,
+              priority: goal.priority,
+              deadline: goal.deadline,
+              milestones: goal.milestones?.map((milestone) => ({ text: milestone.text, done: milestone.done })),
+            })),
+            journal,
+            identityProfile,
+          },
         }),
       });
       const data = await res.json();
