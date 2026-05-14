@@ -37,68 +37,74 @@ export default function DashboardPage() {
   const level = getLevel(identityProfile.totalScore ?? 0);
   const journalDone = isJournalCompleteForDailyScore(journal);
   const activeGoals = goals.length;
+  const completedHabits = habits.filter((habit) => dayLog[habit.id]).length;
   const currentProject = 'AI Creator Product Testing System';
 
   return (
-    <main className="command-dashboard fade-in">
-      <section className="command-top-strip">
-        <div className="command-date-block">
-          <span>{format(new Date(), 'EEEE, MMMM d')}</span>
-          <strong>Daniel Command Center</strong>
+    <main className="cockpit-dashboard fade-in">
+      <header className="cockpit-nav-row">
+        <div className="cockpit-date-chip">
+          <span>{format(new Date(), 'EEE · MMM d')}</span>
+          <strong>{score}</strong>
         </div>
-        <nav className="command-module-nav" aria-label="Command modules">
+        <nav className="cockpit-nav-tabs" aria-label="Command modules">
           {NAV_MODULES.map((item) => (
             <Link key={`${item.label}-${item.href}`} href={item.href} className={`command-nav-tab command-nav-${item.tone}`}>
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="command-score-chip">
-          <strong>{score}</strong>
-          <span>{level.title}</span>
-        </div>
+      </header>
+
+      <section className="cockpit-main-grid">
+        <aside className="cockpit-side cockpit-left">
+          <CockpitCard href="/fitness/bodybuilding" title="Health" label="Body system" detail="Training, nutrition, recovery, and body progress." />
+          <Link href="/system" className="cockpit-card cockpit-system-card">
+            <span className="command-card-label">Daily system</span>
+            <h2>Habits / Goals / Routines</h2>
+            <div className="command-metric-list">
+              <Metric value={`${completedHabits}/${habits.length}`} label="Habits done" />
+              <Metric value={`${habitsPct}%`} label="Habits today" />
+              <Metric value={`${weekPct}%`} label="1 week avg" />
+              <Metric value={activeGoals} label="Goals" />
+            </div>
+          </Link>
+        </aside>
+
+        <section className="cockpit-center">
+          <div className="cockpit-assistant-panel">
+            <AssistantChat mode="dashboard" />
+          </div>
+        </section>
+
+        <aside className="cockpit-side cockpit-right">
+          <CockpitCard href="/projects" title="Projects" label="Current push" detail={`${currentProject}. Keep shipping visible proof, not just planning.`} />
+          <div className="cockpit-card cockpit-focus-card">
+            <span className="command-card-label">Quick start</span>
+            <h2>Focus</h2>
+            <p>{focusToday} focus sessions today. Start one clean block.</p>
+            <div className="command-focus-buttons">
+              <Link href="/focus">Deep work 60</Link>
+              <Link href="/focus">Deep work 30</Link>
+              <Link href="/focus">Short break</Link>
+              <Link href="/focus">Long break</Link>
+            </div>
+          </div>
+        </aside>
       </section>
 
-      <section className="command-assistant-hero">
-        <div className="command-hero-glow" aria-hidden />
-        <AssistantChat mode="dashboard" />
-      </section>
-
-      <section className="command-card-grid">
-        <CommandCard href="/fitness/bodybuilding" title="Health" detail="Training, nutrition, recovery, and body progress." />
-        <Link href="/system" className="command-card command-system-card">
-          <span className="command-card-label">System tracker</span>
-          <h2>Habits / Goals / Routines</h2>
-          <div className="command-metric-list">
-            <Metric value={`${habitsPct}%`} label="Habits today" />
-            <Metric value={`${weekPct}%`} label="1 week average" />
-            <Metric value={activeGoals} label="Goals" />
-          </div>
-        </Link>
-        <CommandCard href="/journal" title="Journal" detail={journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'} />
-
-        <CommandCard href="/projects" title="Projects" detail={`${currentProject}. Keep shipping visible proof, not just planning.`} />
-        <div className="command-card command-focus-card">
-          <span className="command-card-label">Quick start</span>
-          <h2>Focus</h2>
-          <p>{focusToday} focus sessions today. Proof beats planning.</p>
-          <div className="command-focus-buttons">
-            <Link href="/focus">Deep work 60</Link>
-            <Link href="/focus">Deep work 30</Link>
-            <Link href="/focus">Short break</Link>
-            <Link href="/focus">Long break</Link>
-          </div>
-        </div>
-        <CommandCard href="/identity" title="Identity" detail={`${level.title} · ${Math.round(identityProfile.totalScore ?? 0)} XP`} />
+      <section className="cockpit-bottom-grid">
+        <CockpitCard href="/journal" title="Journal" label="Memory input" detail={journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'} />
+        <CockpitCard href="/identity" title="Identity" label="Rank / progression" detail={`${level.title} · ${Math.round(identityProfile.totalScore ?? 0)} XP`} />
       </section>
     </main>
   );
 }
 
-function CommandCard({ href, title, detail }: { href: string; title: string; detail: string }) {
+function CockpitCard({ href, title, label, detail }: { href: string; title: string; label: string; detail: string }) {
   return (
-    <Link href={href} className="command-card">
-      <span className="command-card-label">Module</span>
+    <Link href={href} className="cockpit-card">
+      <span className="command-card-label">{label}</span>
       <h2>{title}</h2>
       <p>{detail}</p>
     </Link>
