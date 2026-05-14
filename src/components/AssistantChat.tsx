@@ -35,6 +35,38 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
   const completedHabits = useMemo(() => habits.filter((h) => dayLog[h.id]).length, [habits, dayLog]);
   const compact = mode === 'dashboard';
 
+  function inferLocalHabitActions(text: string): AssistantAction[] {
+    const normalized = text.toLowerCase();
+    const workoutWords = ['workout', 'worked out', 'workouted', 'gym', 'lift', 'lifted', 'training', 'trained'];
+    const didWorkout = workoutWords.some((word) => normalized.includes(word));
+    if (!didWorkout) return [];
+
+    const fitnessHabits = habits.filter((habit) => {
+      const name = habit.name.toLowerCase();
+      return (
+        !dayLog[habit.id] &&
+        (habit.category === 'fitness' ||
+          name.includes('workout') ||
+          name.includes('gym') ||
+          name.includes('lift') ||
+          name.includes('train'))
+      );
+    });
+
+    if (fitnessHabits.length !== 1) return [];
+    const habit = fitnessHabits[0];
+    return [
+      {
+        id: `local-complete-${habit.id}-${Date.now()}`,
+        type: 'complete_habit',
+        label: `Mark ${habit.name} complete`,
+        habitId: habit.id,
+        habitName: habit.name,
+        done: true,
+      },
+    ];
+  }
+
   async function sendMessage(textOverride?: string) {
     const text = (textOverride ?? input).trim();
     if (!text || busy) return;
@@ -79,12 +111,20 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Assistant request failed.');
+      const modelActions = Array.isArray(data.actions) ? (data.actions as AssistantAction[]) : [];
+      const fallbackActions = modelActions.length === 0 ? inferLocalHabitActions(text) : [];
+      const actions = [...modelActions, ...fallbackActions];
+      const reply = String(data.reply ?? '');
       setMessages((current) => [
         ...current,
         {
           role: 'assistant',
-          content: String(data.reply ?? ''),
-          actions: Array.isArray(data.actions) ? data.actions : [],
+          content: fallbackActions.length > 0 && !reply.toLowerCase().includes('mark')
+            ? `${reply}
+
+I found one likely matching fitness habit. Use the button below to mark it complete.`
+            : reply,
+          actions,
         },
       ]);
     } catch (e) {

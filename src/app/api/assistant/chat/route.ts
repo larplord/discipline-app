@@ -83,6 +83,7 @@ Allowed actions:
 
 Rules:
 - Only propose actions when Daniel clearly asks to update something or reports completed work that maps to visible app data.
+- Treat phrases like 'I worked out', 'I workouted', 'I lifted', 'I went to the gym', or 'I trained' as a request to complete the matching fitness/workout habit if exactly one visible habit clearly matches.
 - Use exact habitId/goalId/milestoneId from the app snapshot when updating existing items.
 - Do not invent IDs for existing habits/goals/milestones.
 - Keep actions small and reviewable.
