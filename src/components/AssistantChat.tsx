@@ -1,12 +1,16 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { getFirebaseAuth } from '@/lib/firebase/client';
+import { addDoc, collection, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { getFirebaseAuth, getFirestoreDb } from '@/lib/firebase/client';
 import { useUserData } from '@/components/UserDataProvider';
+import { todayKey } from '@/lib/dates';
+import type { AssistantAction } from '@/lib/assistant/actions';
 
 type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
+  actions?: AssistantAction[];
 };
 
 const STARTER_PROMPTS = [
@@ -16,7 +20,7 @@ const STARTER_PROMPTS = [
 ];
 
 export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }) {
-  const { habits, dayLog, focusToday, goals, journal, identityProfile } = useUserData();
+  const { uid, habits, dayLog, focusToday, goals, journal, identityProfile } = useUserData();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
@@ -26,6 +30,7 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [appliedActions, setAppliedActions] = useState<Record<string, string>>({});
 
   const completedHabits = useMemo(() => habits.filter((h) => dayLog[h.id]).length, [habits, dayLog]);
   const compact = mode === 'dashboard';
@@ -65,7 +70,7 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
               title: goal.title,
               priority: goal.priority,
               deadline: goal.deadline,
-              milestones: goal.milestones?.map((milestone) => ({ text: milestone.text, done: milestone.done })),
+              milestones: goal.milestones?.map((milestone) => ({ id: milestone.id, text: milestone.text, done: milestone.done })),
             })),
             journal,
             identityProfile,
@@ -74,13 +79,71 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Assistant request failed.');
-      setMessages((current) => [...current, { role: 'assistant', content: String(data.reply ?? '') }]);
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          content: String(data.reply ?? ''),
+          actions: Array.isArray(data.actions) ? data.actions : [],
+        },
+      ]);
     } catch (e) {
       const message = e instanceof Error ? e.message : 'Assistant request failed.';
       setError(message);
       setMessages((current) => [...current, { role: 'assistant', content: `Setup issue: ${message}` }]);
     } finally {
       setBusy(false);
+    }
+  }
+
+
+  async function applyAction(action: AssistantAction) {
+    setAppliedActions((current) => ({ ...current, [action.id]: 'Applying…' }));
+    try {
+      const db = getFirestoreDb();
+
+      if (action.type === 'complete_habit') {
+        const t = todayKey();
+        const ref = doc(db, 'users', uid, 'habitLogs', t);
+        const snap = await getDoc(ref);
+        const prev = (snap.data()?.entries as Record<string, boolean>) ?? {};
+        await setDoc(ref, { entries: { ...prev, [action.habitId]: action.done } }, { merge: true });
+      }
+
+      if (action.type === 'add_goal_milestone') {
+        const goal = goals.find((g) => g.id === action.goalId);
+        if (!goal) throw new Error('Goal no longer exists.');
+        const milestones = [
+          ...(goal.milestones ?? []),
+          { id: crypto.randomUUID().slice(0, 8), text: action.text, done: false },
+        ];
+        await updateDoc(doc(db, 'users', uid, 'goals', action.goalId), { milestones });
+      }
+
+      if (action.type === 'complete_goal_milestone') {
+        const goal = goals.find((g) => g.id === action.goalId);
+        if (!goal) throw new Error('Goal no longer exists.');
+        const milestones = (goal.milestones ?? []).map((milestone) =>
+          milestone.id === action.milestoneId ? { ...milestone, done: action.done } : milestone
+        );
+        await updateDoc(doc(db, 'users', uid, 'goals', action.goalId), { milestones });
+      }
+
+      if (action.type === 'create_goal') {
+        await addDoc(collection(db, 'users', uid, 'goals'), {
+          title: action.title,
+          type: action.goalType,
+          priority: action.priority,
+          deadline: action.deadline ?? '',
+          description: action.description ?? '',
+          milestones: (action.milestones ?? []).map((text) => ({ id: crypto.randomUUID().slice(0, 8), text, done: false })),
+        });
+      }
+
+      setAppliedActions((current) => ({ ...current, [action.id]: 'Applied' }));
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Could not apply action.';
+      setAppliedActions((current) => ({ ...current, [action.id]: message }));
     }
   }
 
@@ -117,6 +180,22 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
           <div key={`${message.role}-${index}`} className={`assistant-message ${message.role}`}>
             <span>{message.role === 'assistant' ? 'Noen' : 'Daniel'}</span>
             <p>{message.content}</p>
+            {message.actions && message.actions.length > 0 && (
+              <div className="assistant-action-list">
+                {message.actions.map((action) => (
+                  <div key={action.id} className="assistant-action-card">
+                    <span>{action.label}</span>
+                    <button
+                      type="button"
+                      onClick={() => void applyAction(action)}
+                      disabled={!!appliedActions[action.id]}
+                    >
+                      {appliedActions[action.id] ?? 'Apply'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
         {busy && <div className="assistant-message assistant"><span>Noen</span><p>Thinking…</p></div>}

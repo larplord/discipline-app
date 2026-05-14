@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin';
 import { loadAssistantContext, formatAssistantContext } from '@/lib/assistant/context';
+import { normalizeAssistantActions } from '@/lib/assistant/actions';
 import { ASSISTANT_MEMORY_RULES, NOEN_PERSONALITY } from '@/lib/assistant/personality';
 
 export const runtime = 'nodejs';
@@ -67,10 +68,34 @@ function formatClientSnapshot(snapshot: unknown) {
   return `APP SNAPSHOT FROM DASHBOARD\n${JSON.stringify(snapshot, null, 2).slice(0, 12000)}`;
 }
 
+const ACTION_OUTPUT_RULES = `
+You may propose app updates using actions. Return ONLY valid JSON with this shape:
+{
+  "reply": "natural message to Daniel",
+  "actions": []
+}
+
+Allowed actions:
+- complete_habit: { type, label, habitId, habitName, done }
+- add_goal_milestone: { type, label, goalId, goalTitle, text }
+- complete_goal_milestone: { type, label, goalId, goalTitle, milestoneId, milestoneText, done }
+- create_goal: { type, label, title, goalType: "short"|"long", priority: "high"|"medium"|"low", deadline?, description?, milestones? }
+
+Rules:
+- Only propose actions when Daniel clearly asks to update something or reports completed work that maps to visible app data.
+- Use exact habitId/goalId/milestoneId from the app snapshot when updating existing items.
+- Do not invent IDs for existing habits/goals/milestones.
+- Keep actions small and reviewable.
+- Daniel will approve actions in the UI before they are applied.
+`;
+
 async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return 'Assistant backend is wired, but OPENAI_API_KEY is not set yet. Add it in the server/Vercel environment before live chat works. done';
+    return {
+      reply: 'Assistant backend is wired, but OPENAI_API_KEY is not set yet. Add it in the server/Vercel environment before live chat works. done',
+      actions: [],
+    };
   }
 
   const model = process.env.ASSISTANT_MODEL || 'gpt-4o-mini';
@@ -83,7 +108,8 @@ async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant
     body: JSON.stringify({
       model,
       messages,
-      temperature: 0.4,
+      temperature: 0.35,
+      response_format: { type: 'json_object' },
     }),
   });
 
@@ -93,7 +119,16 @@ async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant
   }
 
   const data = await res.json();
-  return String(data.choices?.[0]?.message?.content ?? 'No response returned.');
+  const raw = String(data.choices?.[0]?.message?.content ?? '{}');
+  try {
+    const parsed = JSON.parse(raw) as { reply?: unknown; actions?: unknown };
+    return {
+      reply: String(parsed.reply ?? 'No response returned.'),
+      actions: normalizeAssistantActions(parsed.actions),
+    };
+  } catch {
+    return { reply: raw || 'No response returned.', actions: [] };
+  }
 }
 
 async function maybeSaveMemory(uid: string, userMessage: string, assistantReply: string) {
@@ -138,12 +173,14 @@ export async function POST(req: Request) {
     const messages = [
       { role: 'system' as const, content: NOEN_PERSONALITY },
       { role: 'system' as const, content: ASSISTANT_MEMORY_RULES },
+      { role: 'system' as const, content: ACTION_OUTPUT_RULES },
       { role: 'system' as const, content: contextText },
       ...recentHistory,
       { role: 'user' as const, content: message },
     ];
 
-    const reply = await callOpenAI(messages);
+    const result = await callOpenAI(messages);
+    const reply = result.reply;
 
     if (persistenceEnabled) {
       try {
@@ -157,7 +194,7 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ reply, persistenceEnabled });
+    return NextResponse.json({ reply, actions: result.actions, persistenceEnabled });
   } catch (e) {
     console.error('[assistant/chat]', e);
     const message = e instanceof Error ? e.message : 'Assistant request failed.';
