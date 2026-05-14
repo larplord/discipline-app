@@ -114,17 +114,23 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
       const modelActions = Array.isArray(data.actions) ? (data.actions as AssistantAction[]) : [];
       const fallbackActions = modelActions.length === 0 ? inferLocalHabitActions(text) : [];
       const actions = [...modelActions, ...fallbackActions];
+      const autoActions = actions.filter((action): action is Extract<AssistantAction, { type: 'complete_habit' }> => action.type === 'complete_habit' && action.done);
+      const manualActions = actions.filter((action) => !(action.type === 'complete_habit' && action.done));
+      await Promise.all(autoActions.map((action) => applyAction(action)));
+      const autoLabels = autoActions.map((action) => action.habitName ?? 'habit').join(', ');
       const reply = String(data.reply ?? '');
       setMessages((current) => [
         ...current,
         {
           role: 'assistant',
-          content: fallbackActions.length > 0 && !reply.toLowerCase().includes('mark')
-            ? `${reply}
+          content: autoActions.length > 0
+            ? `Logged it: ${autoLabels} marked complete. Nice work. done`
+            : fallbackActions.length > 0 && !reply.toLowerCase().includes('mark')
+              ? `${reply}
 
 I found one likely matching fitness habit. Use the button below to mark it complete.`
-            : reply,
-          actions,
+              : reply,
+          actions: manualActions,
         },
       ]);
     } catch (e) {
