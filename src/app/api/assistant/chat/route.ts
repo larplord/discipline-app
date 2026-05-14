@@ -88,7 +88,8 @@ Rules:
 - Do not invent IDs for existing habits/goals/milestones.
 - Keep actions small and reviewable.
 - Clear habit completions may be auto-applied by the app. Goal edits and new goals still require Daniel's approval.
-- Do not say an action has already been applied. For habit completion, say you are logging it or that the app will log it.
+- If you say you will log/mark/update something, include the matching action in the same JSON response.
+- Do not say an action has already been applied. The app will confirm after it successfully applies clear habit completions.
 `;
 
 async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) {

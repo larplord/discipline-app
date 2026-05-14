@@ -37,24 +37,40 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
 
   function inferLocalHabitActions(text: string): AssistantAction[] {
     const normalized = text.toLowerCase();
-    const workoutWords = ['workout', 'worked out', 'workouted', 'gym', 'lift', 'lifted', 'training', 'trained'];
-    const didWorkout = workoutWords.some((word) => normalized.includes(word));
-    if (!didWorkout) return [];
+    const completionWords = ['i did', 'i finished', 'i completed', 'i wrote', 'i made', 'i worked on', 'i studied', 'done', 'finished'];
+    const looksLikeCompletion = completionWords.some((word) => normalized.includes(word));
+    const keywordGroups = [
+      { words: ['workout', 'worked out', 'workouted', 'gym', 'lift', 'lifted', 'training', 'trained'], categories: ['fitness'] },
+      { words: ['notes', 'note', 'math', 'studied', 'study', 'page of notes'], categories: ['learning'] },
+      { words: ['journal', 'debrief', 'reflected', 'reflection'], categories: ['mindset'] },
+      { words: ['read', 'reading', 'book'], categories: ['learning'] },
+      { words: ['business', 'research', 'product', 'content'], categories: ['business'] },
+    ];
 
-    const fitnessHabits = habits.filter((habit) => {
-      const name = habit.name.toLowerCase();
-      return (
-        !dayLog[habit.id] &&
-        (habit.category === 'fitness' ||
-          name.includes('workout') ||
-          name.includes('gym') ||
-          name.includes('lift') ||
-          name.includes('train'))
-      );
-    });
+    const scored = habits
+      .filter((habit) => !dayLog[habit.id])
+      .map((habit) => {
+        const name = habit.name.toLowerCase();
+        const nameTokens = name.split(/[^a-z0-9]+/).filter((token) => token.length >= 4);
+        let score = nameTokens.filter((token) => normalized.includes(token)).length * 3;
 
-    if (fitnessHabits.length !== 1) return [];
-    const habit = fitnessHabits[0];
+        for (const group of keywordGroups) {
+          const groupHit = group.words.some((word) => normalized.includes(word));
+          if (!groupHit) continue;
+          if (group.categories.includes(habit.category)) score += 2;
+          if (group.words.some((word) => name.includes(word))) score += 4;
+        }
+
+        return { habit, score };
+      })
+      .filter((item) => item.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    if (!looksLikeCompletion && scored[0]?.score < 4) return [];
+    if (scored.length === 0) return [];
+    if (scored.length > 1 && scored[0].score === scored[1].score) return [];
+
+    const habit = scored[0].habit;
     return [
       {
         id: `local-complete-${habit.id}-${Date.now()}`,
