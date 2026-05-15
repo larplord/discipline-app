@@ -11,7 +11,7 @@ import '@/styles/pages/Assistant.css';
 const NAV_MODULES: Array<{ label: string; icon: string; tone: string; href?: string; disabled?: boolean }> = [
   { label: 'Health', icon: '✚', tone: 'health', disabled: true },
   { href: '/projects', label: 'Money', icon: '◆', tone: 'money' },
-  { href: '/journal', label: 'Memory', icon: '◈', tone: 'memory' },
+  { href: '/memory', label: 'Memory', icon: '◈', tone: 'memory' },
   { href: '/focus', label: 'Risk', icon: '△', tone: 'risk' },
   { href: '/system', label: 'Habits', icon: '⬡', tone: 'habits' },
   { href: '/projects', label: 'Projects', icon: '⌁', tone: 'projects' },
@@ -96,12 +96,12 @@ export default function DashboardPage() {
             <AssistantChat mode="dashboard" />
           </div>
           <div className="polished-under-chat-grid">
-            <Link href="/journal" className="polished-card polished-journal-under-chat">
+            <Link href="/memory" className="polished-card polished-journal-under-chat">
               <div className="polished-card-head">
-                <span>Memory input</span>
-                <h2>Journal</h2>
+                <span>Memory core</span>
+                <h2>Memory</h2>
               </div>
-              <p>{journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'}</p>
+              <p>{journalDone ? 'Review what Noen remembers and approve useful context.' : 'Control Noen’s long-term memory, summaries, and vault drafts.'}</p>
             </Link>
             <Link href="/identity" className="polished-card polished-identity-under-chat">
               <div className="polished-card-head">
