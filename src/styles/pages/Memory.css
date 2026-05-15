@@ -1,0 +1,304 @@
+.memory-page {
+  min-height: 100vh;
+  padding: clamp(18px, 2vw, 32px);
+  background:
+    radial-gradient(circle at 18% 6%, rgba(0, 229, 255, 0.13), transparent 28rem),
+    radial-gradient(circle at 100% 80%, rgba(255, 176, 0, 0.06), transparent 26rem),
+    linear-gradient(135deg, #050A12 0%, #071321 52%, #02060b 100%);
+  color: #E6F7FF;
+}
+
+.memory-hero,
+.memory-panel,
+.memory-stat,
+.memory-card {
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  background: rgba(11, 22, 36, 0.76);
+  box-shadow: inset 0 0 0 1px rgba(230,247,255,0.035), 0 20px 70px rgba(0,0,0,0.28);
+  backdrop-filter: blur(16px);
+}
+
+.memory-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
+  gap: 1.2rem;
+  align-items: end;
+  padding: clamp(22px, 3vw, 38px);
+  clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+}
+
+.memory-kicker,
+.memory-panel-head span {
+  display: block;
+  color: #00E5FF;
+  font-size: 0.74rem;
+  font-weight: 950;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.memory-hero h1,
+.memory-panel h2 {
+  margin: 0.45rem 0 0;
+  letter-spacing: -0.05em;
+}
+
+.memory-hero h1 {
+  font-size: clamp(2.6rem, 5vw, 5rem);
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.memory-hero p,
+.memory-help,
+.memory-card p,
+.memory-card small {
+  color: #8FB6C9;
+  line-height: 1.55;
+}
+
+.memory-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.memory-stat {
+  padding: 1rem;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+}
+
+.memory-stat strong {
+  display: block;
+  font-size: 2rem;
+  color: #E6F7FF;
+}
+
+.memory-stat span {
+  color: #8FB6C9;
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.memory-stat.tone-gold strong { color: #FFB000; }
+.memory-stat.tone-green strong { color: #00FF9C; }
+.memory-stat.tone-cyan strong { color: #00E5FF; }
+.memory-stat.tone-blue strong { color: #38BDF8; }
+
+.memory-panel {
+  margin-top: 1rem;
+  padding: clamp(18px, 2vw, 26px);
+  clip-path: polygon(14px 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%, 0 14px);
+}
+
+.memory-panel-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.memory-panel-head button,
+.memory-actions button,
+.memory-tabs button {
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  background: rgba(0, 229, 255, 0.08);
+  color: #E6F7FF;
+  border-radius: 999px;
+  padding: 0.55rem 0.8rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.memory-panel-head button:hover,
+.memory-actions button:hover,
+.memory-tabs button:hover,
+.memory-tabs button.active {
+  border-color: rgba(0, 229, 255, 0.58);
+  color: #00E5FF;
+}
+
+.memory-summary-panel textarea,
+.memory-edit-grid textarea,
+.memory-edit-controls input,
+.memory-edit-controls select {
+  width: 100%;
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  background: rgba(5, 10, 18, 0.74);
+  color: #E6F7FF;
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  outline: none;
+}
+
+.memory-summary-panel textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.memory-tabs-head {
+  align-items: flex-end;
+}
+
+.memory-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.memory-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.memory-list.compact {
+  max-height: 680px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.memory-card {
+  padding: 1rem;
+  border-color: rgba(0, 229, 255, 0.18);
+  background: rgba(5, 10, 18, 0.58);
+  border-radius: 20px;
+}
+
+.memory-card.status-pending,
+.memory-card.status-queued {
+  border-color: rgba(255, 176, 0, 0.34);
+}
+
+.memory-card.status-approved {
+  border-color: rgba(0, 255, 156, 0.26);
+}
+
+.memory-card.status-rejected {
+  opacity: 0.72;
+  border-color: rgba(255, 46, 46, 0.24);
+}
+
+.memory-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 0.7rem;
+}
+
+.memory-card-top button {
+  border: 1px solid rgba(0, 229, 255, 0.22);
+  background: transparent;
+  color: #00E5FF;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.memory-badges,
+.memory-tags,
+.memory-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.memory-badges span,
+.memory-tags span,
+.memory-card-top > span {
+  border: 1px solid rgba(0, 229, 255, 0.18);
+  background: rgba(0, 229, 255, 0.06);
+  color: #8FB6C9;
+  border-radius: 999px;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.memory-card p {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+}
+
+.memory-actions {
+  margin-top: 0.85rem;
+}
+
+.memory-actions button.danger {
+  border-color: rgba(255, 46, 46, 0.34);
+  color: #ff9b9b;
+  background: rgba(255, 46, 46, 0.08);
+}
+
+.memory-edit-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.memory-edit-grid textarea {
+  min-height: 100px;
+}
+
+.memory-edit-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.memory-empty {
+  border: 1px dashed rgba(0, 229, 255, 0.22);
+  border-radius: 18px;
+  padding: 1rem;
+  color: #8FB6C9;
+  background: rgba(5, 10, 18, 0.38);
+}
+
+.memory-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.memory-card.vault p {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+@media (max-width: 980px) {
+  .memory-hero,
+  .memory-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-edit-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .memory-tabs-head,
+  .memory-panel-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .memory-tabs {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 620px) {
+  .memory-page {
+    padding: 12px;
+  }
+
+  .memory-stats,
+  .memory-edit-controls {
+    grid-template-columns: 1fr;
+  }
+}

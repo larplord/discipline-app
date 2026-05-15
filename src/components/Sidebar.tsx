@@ -8,6 +8,7 @@ import type { DayLog, Goal, Habit, JournalEntry, MacroSnapshot } from '@/lib/typ
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: GridIcon },
   { href: '/assistant', label: 'Assistant', icon: AssistantIcon },
+  { href: '/memory', label: 'Memory', icon: MemoryIcon },
   { href: '/habits', label: 'Habits', icon: CheckCircleIcon },
   { href: '/goals', label: 'Goals', icon: TargetIcon },
   { href: '/projects', label: 'Projects', icon: ProjectsIcon },
@@ -155,6 +156,14 @@ function AssistantIcon({ size = 20 }: { size?: number }) {
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l2.2 4.7L19 10l-4.8 2.3L12 17l-2.2-4.7L5 10l4.8-2.3L12 3z" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M19 16l.9 1.9L22 19l-2.1 1.1L19 22l-.9-1.9L16 19l2.1-1.1L19 16z" />
+    </svg>
+  );
+}
+function MemoryIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4a4 4 0 00-4 4v8a4 4 0 108 0V8a4 4 0 00-4-4z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 9H5.5A2.5 2.5 0 003 11.5v1A2.5 2.5 0 005.5 15H8m8-6h2.5A2.5 2.5 0 0121 11.5v1a2.5 2.5 0 01-2.5 2.5H16M9 7l-2-2m8 2l2-2M9 17l-2 2m8-2l2 2" />
     </svg>
   );
 }

@@ -52,7 +52,7 @@ export async function loadAssistantContext(uid: string): Promise<AssistantContex
     getCollectionDocs<AssistantAppContext['goals'][number]>(uid, 'goals', 50),
     getCollectionDocs<AssistantAppContext['projects'][number]>(uid, 'projects', 50),
     db.collection('users').doc(uid).collection('identity').doc('profile').get(),
-    db.collection('users').doc(uid).collection('assistantMemory').orderBy('updatedAt', 'desc').limit(24).get().catch(() => null),
+    db.collection('users').doc(uid).collection('assistantMemory').orderBy('updatedAt', 'desc').limit(60).get().catch(() => null),
     db.collection('users').doc(uid).collection('assistantThreads').doc('default').get().catch(() => null),
     db.collection('users').doc(uid).collection('assistantThreads').doc('default').collection('messages').orderBy('createdAt', 'desc').limit(10).get().catch(() => null),
     db.collection('users').doc(uid).collection('assistantVaultNotes').orderBy('updatedAt', 'desc').limit(30).get().catch(() => null),
@@ -81,7 +81,12 @@ export async function loadAssistantContext(uid: string): Promise<AssistantContex
     });
 
   const longTermMemory = memorySnap
-    ? memorySnap.docs.map((d) => String(d.data()?.summary ?? d.data()?.text ?? '')).filter(Boolean)
+    ? memorySnap.docs
+        .map((d) => d.data())
+        .filter((data) => !data.status || data.status === 'approved')
+        .map((data) => String(data.summary ?? data.text ?? ''))
+        .filter(Boolean)
+        .slice(0, 24)
     : [];
 
   const recentPersistedMessages = recentMessagesSnap

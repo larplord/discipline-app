@@ -3,6 +3,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin';
 import { loadAssistantContext, formatAssistantContext } from '@/lib/assistant/context';
 import { normalizeAssistantActions, type AssistantAction } from '@/lib/assistant/actions';
+import { normalizeMemorySensitivity, normalizeMemoryStatus, normalizeMemoryType, shouldAutoApproveMemory, type AssistantMemoryCandidate } from '@/lib/assistant/memory';
 import { ASSISTANT_MEMORY_RULES, NOEN_PERSONALITY } from '@/lib/assistant/personality';
 
 export const runtime = 'nodejs';
@@ -20,7 +21,7 @@ type VerifiedUser = {
 type AssistantModelResult = {
   reply: string;
   actions: AssistantAction[];
-  memoryUpdates: string[];
+  memoryUpdates: AssistantMemoryCandidate[];
   conversationSummary?: string;
   vaultDrafts: Array<{ title: string; folder?: string; content: string; reason?: string }>;
 };
@@ -93,7 +94,10 @@ Allowed app actions:
 - create_goal: { type, label, title, goalType: "short"|"long", priority: "high"|"medium"|"low", deadline?, description?, milestones? }
 
 Allowed memory fields:
-- memoryUpdates: 0-5 durable memory sentences worth remembering long-term.
+- memoryUpdates: 0-5 structured durable memory candidates. Shape: { text, type, sensitivity, tags, reason, status? }.
+  - type must be one of: goal, project, school, money, fitness, business, preference, pattern, lesson, open_loop, vault, system.
+  - sensitivity must be low, medium, or high.
+  - status may be pending or approved. Use approved only for low-risk, clearly durable operating context. Use pending for important, sensitive, uncertain, or personal context.
 - conversationSummary: an updated running summary, max 900 characters. Preserve important prior context and add the newest useful context.
 - vaultDrafts: 0-3 proposed Obsidian notes when Daniel explicitly asks to add/save something to the vault. Shape: { title, folder, content, reason }. These are queued for review; do not claim they were written to Obsidian.
 
@@ -106,16 +110,43 @@ Rules:
 - If you say you will log/mark/update something, include the matching action in the same JSON response.
 - Do not say an app action or vault write has already been applied unless the app confirms it.
 - If Daniel asks you to remember something, include it in memoryUpdates.
+- Do not save low-quality, duplicate, temporary, or vague memories.
+- If the memory could affect future decisions, identity, money, school, health, privacy, or long-term direction, set status pending so Daniel can review it.
 - If Daniel asks to add something to the vault, create a vaultDraft instead of pretending to write directly to local Obsidian.
 `;
 
-function normalizeStringArray(value: unknown, limit = 5) {
+function normalizeMemoryUpdates(value: unknown, limit = 5): AssistantMemoryCandidate[] {
   if (!Array.isArray(value)) return [];
-  return value
-    .filter((item): item is string => typeof item === 'string')
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, limit);
+  const candidates: AssistantMemoryCandidate[] = [];
+
+  for (const raw of value) {
+    if (typeof raw === 'string') {
+      const text = raw.trim();
+      if (text) candidates.push({ text, type: 'system', sensitivity: 'medium', tags: [], status: 'pending' });
+    } else if (raw && typeof raw === 'object') {
+      const item = raw as Record<string, unknown>;
+      const text = typeof item.text === 'string'
+        ? item.text.trim()
+        : typeof item.summary === 'string'
+          ? item.summary.trim()
+          : '';
+      if (!text) continue;
+      candidates.push({
+        text,
+        type: normalizeMemoryType(item.type),
+        sensitivity: normalizeMemorySensitivity(item.sensitivity),
+        tags: Array.isArray(item.tags)
+          ? item.tags.filter((tag): tag is string => typeof tag === 'string').map((tag) => tag.trim()).filter(Boolean).slice(0, 8)
+          : [],
+        reason: typeof item.reason === 'string' ? item.reason.trim() : undefined,
+        status: normalizeMemoryStatus(item.status),
+      });
+    }
+
+    if (candidates.length >= limit) break;
+  }
+
+  return candidates;
 }
 
 function normalizeVaultDrafts(value: unknown): AssistantModelResult['vaultDrafts'] {
@@ -178,7 +209,7 @@ async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant
     return {
       reply: String(parsed.reply ?? 'No response returned.'),
       actions: normalizeAssistantActions(parsed.actions),
-      memoryUpdates: normalizeStringArray(parsed.memoryUpdates, 5),
+      memoryUpdates: normalizeMemoryUpdates(parsed.memoryUpdates, 5),
       conversationSummary: typeof parsed.conversationSummary === 'string' ? parsed.conversationSummary.slice(0, 1200) : undefined,
       vaultDrafts: normalizeVaultDrafts(parsed.vaultDrafts),
     };
@@ -198,14 +229,21 @@ async function saveAssistantState(uid: string, userMessage: string, result: Assi
   await threadRef.collection('messages').add({ role: 'user', content: userMessage, createdAt: FieldValue.serverTimestamp() });
   await threadRef.collection('messages').add({ role: 'assistant', content: result.reply, createdAt: FieldValue.serverTimestamp() });
 
-  await Promise.all(result.memoryUpdates.map((summary) =>
-    db.collection('users').doc(uid).collection('assistantMemory').add({
-      summary,
+  await Promise.all(result.memoryUpdates.map((candidate) => {
+    const status = candidate.status === 'approved' || shouldAutoApproveMemory(candidate) ? 'approved' : 'pending';
+    return db.collection('users').doc(uid).collection('assistantMemory').add({
+      text: candidate.text,
+      summary: candidate.text,
+      type: candidate.type,
+      status,
+      sensitivity: candidate.sensitivity,
+      tags: candidate.tags,
+      reason: candidate.reason ?? '',
       createdAt: FieldValue.serverTimestamp(),
       updatedAt: FieldValue.serverTimestamp(),
       source: 'assistant-chat-memory-update',
-    })
-  ));
+    });
+  }));
 
   await Promise.all(result.vaultDrafts.map((draft) =>
     db.collection('users').doc(uid).collection('assistantVaultInbox').add({
