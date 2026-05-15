@@ -1669,3 +1669,109 @@
     min-height: 620px;
   }
 }
+
+/* Targeted left-card tune after planning */
+.health-overview-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  align-items: center;
+  gap: clamp(16px, 2vh, 24px);
+}
+
+.health-card-title {
+  color: #f8fdff;
+  font-size: clamp(2.8rem, 4.8vw, 5.4rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.07em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.health-overview-card .health-preview-grid {
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+  margin-top: 0;
+}
+
+.health-overview-card .preview-metric {
+  min-height: clamp(92px, 12vh, 130px);
+  align-content: center;
+  text-align: center;
+}
+
+.system-three-card {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: clamp(10px, 1.4vh, 16px);
+  padding: clamp(12px, 1.35vw, 18px);
+}
+
+.system-three-section {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(86px, 0.55fr) minmax(0, 1.45fr);
+  gap: clamp(10px, 1.2vw, 16px);
+  align-items: center;
+  border: 1px solid rgba(103, 232, 249, 0.13);
+  border-radius: 20px;
+  padding: clamp(12px, 1.25vw, 18px);
+  background: rgba(2, 12, 22, 0.42);
+}
+
+.system-three-section h2 {
+  margin: 0;
+  color: #f8fdff;
+  font-size: clamp(1.55rem, 2.45vw, 2.8rem);
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.system-three-buttons {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.system-three-buttons.two-up {
+  grid-template-columns: 1fr 1fr;
+}
+
+.system-three-buttons > div,
+.system-three-buttons .preview-metric {
+  min-height: clamp(56px, 8vh, 86px);
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border: 1px solid rgba(103, 232, 249, 0.14);
+  border-radius: 14px;
+  background: rgba(7, 31, 50, 0.78);
+  color: rgba(237, 248, 255, 0.88);
+  font-size: clamp(0.78rem, 1.05vw, 1rem);
+  font-weight: 850;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.system-three-buttons .preview-metric {
+  padding: 8px;
+}
+
+.system-three-buttons .preview-metric strong {
+  font-size: clamp(1.1rem, 1.55vw, 1.65rem);
+}
+
+.system-three-buttons .preview-metric span {
+  font-size: 0.52rem;
+}
+
+@media (max-width: 760px) {
+  .health-overview-card .health-preview-grid,
+  .system-three-section,
+  .system-three-buttons,
+  .system-three-buttons.two-up {
+    grid-template-columns: 1fr;
+  }
+}

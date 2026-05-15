@@ -69,31 +69,36 @@ export default function DashboardPage() {
       <section className="polished-main-grid">
         <aside className="polished-column polished-left-column">
           <div className="polished-card health-overview-card">
-            <div className="polished-card-head">
-              <span>Apple Watch later</span>
-              <h2>Health</h2>
-            </div>
+            <div className="health-card-title">Health</div>
             <div className="health-preview-grid">
               <PreviewMetric label="Sleep score" value="—" />
               <PreviewMetric label="Gym day" value="—" />
             </div>
           </div>
 
-          <Link href="/system" className="polished-card system-overview-card">
-            <div className="polished-card-head">
-              <span>Daily operating system</span>
-              <h2>System</h2>
-            </div>
-            <div className="system-overview-stats">
-              <PreviewMetric label="Habits done" value={`${completedHabits}/${habits.length}`} />
-              <PreviewMetric label="Today" value={`${habitsPct}%`} />
-              <PreviewMetric label="Week avg" value={`${weekPct}%`} />
-              <PreviewMetric label="Goals" value={activeGoals} />
-            </div>
-            <div className="system-mini-lanes">
-              <div><span>Routines</span><strong>Fav 1 · Fav 2</strong></div>
-              <div><span>Goals</span><strong>Long term · Short term</strong></div>
-            </div>
+          <Link href="/system" className="polished-card system-overview-card system-three-card">
+            <section className="system-three-section">
+              <h2>Habits</h2>
+              <div className="system-three-buttons">
+                <PreviewMetric label="Habits done" value={`${completedHabits}/${habits.length}`} />
+                <PreviewMetric label="Today" value={`${habitsPct}%`} />
+                <PreviewMetric label="Week avg" value={`${weekPct}%`} />
+              </div>
+            </section>
+            <section className="system-three-section">
+              <h2>Routines</h2>
+              <div className="system-three-buttons two-up">
+                <div>Fav 1 routine</div>
+                <div>Fav 2 routine</div>
+              </div>
+            </section>
+            <section className="system-three-section">
+              <h2>Goals</h2>
+              <div className="system-three-buttons two-up">
+                <div>Long term goal</div>
+                <div>Short term goal</div>
+              </div>
+            </section>
           </Link>
         </aside>
 
