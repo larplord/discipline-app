@@ -1170,3 +1170,24 @@
     min-width: 220px;
   }
 }
+
+/* Check-in target/time polish */
+.checkin-time-pill {
+  border: 1px solid rgba(0, 229, 255, 0.16);
+  background: rgba(0, 229, 255, 0.055);
+  color: var(--habit-soft, #38BDF8);
+  padding: 0.14rem 0.42rem;
+  font-size: 0.58rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  flex-shrink: 0;
+}
+
+.habit-form-hint {
+  margin-top: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}

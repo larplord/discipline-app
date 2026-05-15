@@ -8,6 +8,8 @@ export type Habit = {
   emoji: string;
   order?: number;
   targetDays?: number;
+  /** Preferred daily check-in/reminder time in HH:mm local time. */
+  targetCheckInTime?: string;
 };
 
 export type Goal = {

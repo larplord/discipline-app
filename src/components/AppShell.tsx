@@ -210,7 +210,7 @@ function ShellInner({ children }: { children: ReactNode }) {
           <div style={{ width: 32 }} />
         </div>}
 
-        {dashboardFullscreen && pathname !== '/dashboard' && (
+        {dashboardFullscreen && pathname !== '/dashboard' && !pathname.startsWith('/habits') && (
           <Link href="/dashboard" className="fullscreen-dashboard-back">← Dashboard</Link>
         )}
         {children}

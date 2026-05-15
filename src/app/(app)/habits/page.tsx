@@ -147,6 +147,7 @@ export default function HabitsPage() {
   const [dragOverHabitId, setDragOverHabitId] = useState<string | null>(null);
   const [rewardSpins, setRewardSpins] = useState<Record<string, boolean>>({});
   const [localDayLog, setLocalDayLog] = useState<DayLog>({});
+  const [todayCompletionTimes, setTodayCompletionTimes] = useState<Record<string, string>>({});
   const [activeWheelHabitId, setActiveWheelHabitId] = useState<string | null>(null);
   const [wheelResult, setWheelResult] = useState<WheelOutcome | null>(null);
   const [wheelRotation, setWheelRotation] = useState(0);
@@ -166,7 +167,9 @@ export default function HabitsPage() {
     const db = getFirestoreDb();
     const t = todayKey();
     return onSnapshot(doc(db, 'users', uid, 'habitLogs', t), (snap) => {
-      setRewardSpins((snap.data()?.rewardSpins as Record<string, boolean>) ?? {});
+      const data = snap.data();
+      setRewardSpins((data?.rewardSpins as Record<string, boolean>) ?? {});
+      setTodayCompletionTimes((data?.completionTimes as Record<string, string>) ?? {});
     });
   }, [uid]);
 
@@ -193,8 +196,16 @@ export default function HabitsPage() {
     const prev = (snap.data()?.entries as DayLog) ?? {};
     const wasDone = !!prev[id];
     const next = { ...prev, [id]: !wasDone };
+    const previousTimes = (snap.data()?.completionTimes as Record<string, string>) ?? {};
+    const nextTimes = { ...previousTimes };
+    if (!wasDone) {
+      nextTimes[id] = new Date().toISOString();
+    } else {
+      delete nextTimes[id];
+    }
     setLocalDayLog((current) => ({ ...current, [id]: !wasDone }));
-    await setDoc(ref, { entries: next }, { merge: true });
+    setTodayCompletionTimes(nextTimes);
+    await setDoc(ref, { entries: next, completionTimes: nextTimes }, { merge: true });
     if (!wasDone) {
       setActiveWheelHabitId(id);
       setWheelResult(null);
@@ -531,6 +542,7 @@ export default function HabitsPage() {
                     <div className="habit-name-large">{h.name}</div>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`badge cat-${h.category}`}>{h.category}</span>
+                      {h.targetCheckInTime && <span className="checkin-time-pill">⏱ Target {formatHabitTime(h.targetCheckInTime)}</span>}
                       {streak.active > 0 && <span className="streak-pill">🔥 {streak.active} day streak</span>}
                       {streak.active === 0 && streak.ended > 0 && (
                         <span className="streak-pill ended">🌬️ {streak.ended} day streak ended {streak.endedAgoDays}d ago</span>
@@ -538,7 +550,7 @@ export default function HabitsPage() {
                     </div>
                   </div>
                   <div className={`habit-completion-badge ${done ? 'complete' : ''}`}>
-                    <span>{done ? '✓ Completed Today' : 'Awaiting Check-In'}</span>
+                    <span>{done ? `✓ Completed ${formatCompletionTime(todayCompletionTimes[h.id])}` : h.targetCheckInTime ? `Target ${formatHabitTime(h.targetCheckInTime)}` : 'Awaiting Check-In'}</span>
                   </div>
                   <div className="habit-actions">
                     {done && (
@@ -579,6 +591,23 @@ export default function HabitsPage() {
   );
 }
 
+
+function formatHabitTime(value?: string) {
+  if (!value) return '—';
+  const [hours, minutes] = value.split(':').map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return value;
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function formatCompletionTime(value?: string) {
+  if (!value) return 'today';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'today';
+  return `at ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+}
+
 function HabitForm({
   initial,
   onSave,
@@ -591,11 +620,18 @@ function HabitForm({
   const [name, setName] = useState(initial?.name ?? '');
   const [category, setCategory] = useState(initial?.category ?? 'mindset');
   const [emoji, setEmoji] = useState(initial?.emoji ?? '');
+  const [targetCheckInTime, setTargetCheckInTime] = useState(initial?.targetCheckInTime ?? '');
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    onSave({ name: name.trim(), category, emoji: emoji || EMOJIS[category] || '⚡', targetDays: 7 });
+    onSave({
+      name: name.trim(),
+      category,
+      emoji: emoji || EMOJIS[category] || '⚡',
+      targetDays: initial?.targetDays ?? 7,
+      targetCheckInTime: targetCheckInTime || undefined,
+    });
   }
 
   return (
@@ -625,6 +661,11 @@ function HabitForm({
           <div>
             <label className="section-label">Emoji (optional)</label>
             <input className="input" placeholder={`Default: ${EMOJIS[category]}`} value={emoji} onChange={(e) => setEmoji(e.target.value)} maxLength={4} />
+          </div>
+          <div>
+            <label className="section-label">Target check-in time</label>
+            <input className="input" type="time" value={targetCheckInTime} onChange={(e) => setTargetCheckInTime(e.target.value)} />
+            <p className="habit-form-hint">Used later so Noen can learn your average completion time and remind you intelligently.</p>
           </div>
           <div className="flex gap-3" style={{ marginTop: '0.5rem' }}>
             <button type="button" className="btn btn-ghost w-full" onClick={onClose}>

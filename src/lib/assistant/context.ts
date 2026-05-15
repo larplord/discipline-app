@@ -2,8 +2,9 @@ import { getAdminDb } from '@/lib/firebase/admin';
 import { todayKey } from '@/lib/dates';
 
 type AssistantAppContext = {
-  habits: Array<{ id: string; name?: string; category?: string; order?: number }>;
+  habits: Array<{ id: string; name?: string; category?: string; order?: number; targetCheckInTime?: string; averageCompletionTime?: string }>;
   todayHabitLog: Record<string, boolean>;
+  todayCompletionTimes: Record<string, string>;
   focusToday: number;
   journalToday: Record<string, unknown> | null;
   goals: Array<{ id: string; title?: string; type?: string; priority?: string; deadline?: string; milestones?: Array<{ done?: boolean }> }>;
@@ -26,9 +27,10 @@ export async function loadAssistantContext(uid: string): Promise<AssistantContex
   const db = getAdminDb();
   const today = todayKey();
 
-  const [habits, todayLogSnap, focusSnap, journalSnap, goals, projects, identitySnap, memorySnap] = await Promise.all([
+  const [habits, todayLogSnap, recentHabitLogsSnap, focusSnap, journalSnap, goals, projects, identitySnap, memorySnap] = await Promise.all([
     getCollectionDocs<AssistantAppContext['habits'][number]>(uid, 'habits', 100),
     db.collection('users').doc(uid).collection('habitLogs').doc(today).get(),
+    db.collection('users').doc(uid).collection('habitLogs').orderBy('__name__', 'desc').limit(30).get().catch(() => null),
     db.collection('users').doc(uid).collection('focusLogs').doc(today).get(),
     db.collection('users').doc(uid).collection('journal').doc(today).get(),
     getCollectionDocs<AssistantAppContext['goals'][number]>(uid, 'goals', 50),
@@ -37,14 +39,38 @@ export async function loadAssistantContext(uid: string): Promise<AssistantContex
     db.collection('users').doc(uid).collection('assistantMemory').orderBy('updatedAt', 'desc').limit(12).get().catch(() => null),
   ]);
 
+
+  const completionMinuteBuckets = new Map<string, number[]>();
+  recentHabitLogsSnap?.docs.forEach((docSnap) => {
+    const completionTimes = (docSnap.data()?.completionTimes as Record<string, string>) ?? {};
+    Object.entries(completionTimes).forEach(([habitId, iso]) => {
+      const completedAt = new Date(iso);
+      if (Number.isNaN(completedAt.getTime())) return;
+      const minutes = completedAt.getHours() * 60 + completedAt.getMinutes();
+      completionMinuteBuckets.set(habitId, [...(completionMinuteBuckets.get(habitId) ?? []), minutes]);
+    });
+  });
+
+  const habitsWithAverages = habits
+    .sort((a, b) => Number(a.order ?? 9999) - Number(b.order ?? 9999))
+    .map((habit) => {
+      const minutes = completionMinuteBuckets.get(habit.id) ?? [];
+      if (!minutes.length) return habit;
+      const avg = Math.round(minutes.reduce((sum, value) => sum + value, 0) / minutes.length);
+      const hours = Math.floor(avg / 60);
+      const mins = avg % 60;
+      return { ...habit, averageCompletionTime: `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}` };
+    });
+
   const longTermMemory = memorySnap
     ? memorySnap.docs.map((d) => String(d.data()?.summary ?? d.data()?.text ?? '')).filter(Boolean)
     : [];
 
   return {
     appContext: {
-      habits: habits.sort((a, b) => Number(a.order ?? 9999) - Number(b.order ?? 9999)),
+      habits: habitsWithAverages,
       todayHabitLog: (todayLogSnap.data()?.entries as Record<string, boolean>) ?? {},
+      todayCompletionTimes: (todayLogSnap.data()?.completionTimes as Record<string, string>) ?? {},
       focusToday: Number(focusSnap.data()?.count ?? 0),
       journalToday: journalSnap.exists ? journalSnap.data() ?? null : null,
       goals,
@@ -59,7 +85,12 @@ export async function loadAssistantContext(uid: string): Promise<AssistantContex
 export function formatAssistantContext(bundle: AssistantContextBundle) {
   const { appContext, longTermMemory } = bundle;
   const completed = appContext.habits.filter((h) => appContext.todayHabitLog[h.id]).length;
-  const habitLines = appContext.habits.map((h) => `- ${appContext.todayHabitLog[h.id] ? '[done]' : '[open]'} ${h.name ?? h.id} (${h.category ?? 'other'})`).join('\n');
+  const habitLines = appContext.habits.map((h) => {
+    const target = h.targetCheckInTime ? `; target check-in ${h.targetCheckInTime}` : '';
+    const avg = h.averageCompletionTime ? `; avg completion ${h.averageCompletionTime}` : '';
+    const doneAt = appContext.todayCompletionTimes[h.id] ? `; completed today ${appContext.todayCompletionTimes[h.id]}` : '';
+    return `- ${appContext.todayHabitLog[h.id] ? '[done]' : '[open]'} ${h.name ?? h.id} (${h.category ?? 'other'}${target}${avg}${doneAt})`;
+  }).join('\n');
   const goalLines = appContext.goals.map((g) => {
     const total = g.milestones?.length ?? 0;
     const done = g.milestones?.filter((m) => m.done).length ?? 0;
