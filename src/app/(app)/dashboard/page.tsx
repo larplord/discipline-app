@@ -72,15 +72,34 @@ export default function DashboardPage() {
               <div>What day of gym</div>
             </div>
           </div>
-          <Link href="/system" className="cockpit-card cockpit-system-card">
-            <span className="command-card-label">Daily system</span>
-            <h2>Habits / Goals / Routines</h2>
-            <div className="command-metric-list">
-              <Metric value={`${completedHabits}/${habits.length}`} label="Habits done" />
-              <Metric value={`${habitsPct}%`} label="Habits today" />
-              <Metric value={`${weekPct}%`} label="1 week avg" />
-              <Metric value={activeGoals} label="Goals" />
-            </div>
+          <Link href="/system" className="cockpit-card cockpit-system-card system-reference-card">
+            <section className="system-ref-section system-ref-habits">
+              <h2>Habits</h2>
+              <div className="system-ref-stats">
+                <div>
+                  <strong>{completedHabits}/{habits.length}</strong>
+                  <span>Habits done</span>
+                </div>
+                <div>
+                  <strong>{weekPct}%</strong>
+                  <span>1 week avg</span>
+                </div>
+              </div>
+            </section>
+            <section className="system-ref-section system-ref-routines">
+              <h2>Routines</h2>
+              <div className="system-ref-routine-tiles">
+                <div>Fav 1 routine</div>
+                <div>Fav 2 routine</div>
+              </div>
+            </section>
+            <section className="system-ref-section system-ref-goals">
+              <h2>Goals</h2>
+              <div className="system-ref-goal-tiles">
+                <div>Long term goal</div>
+                <div>Short term goal</div>
+              </div>
+            </section>
           </Link>
         </aside>
 
