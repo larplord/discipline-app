@@ -58,7 +58,9 @@ export default function DashboardPage() {
 
       <section className="polished-main-grid">
         <aside className="polished-column polished-left-column">
-          <div className="polished-card health-overview-card">
+          <div className="polished-card health-overview-card hud-panel-tagged">
+            <span className="hud-corner hud-corner-tl" />
+            <span className="hud-corner hud-corner-br" />
             <div className="health-card-title">Health</div>
             <div className="health-preview-grid">
               <PreviewMetric label="Sleep score" value="—" />
@@ -66,7 +68,9 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <Link href="/system" className="polished-card system-overview-card system-three-card">
+          <Link href="/system" className="polished-card system-overview-card system-three-card hud-panel-tagged">
+            <span className="hud-corner hud-corner-tl" />
+            <span className="hud-corner hud-corner-br" />
             <section className="system-three-section">
               <h2>Habits</h2>
               <div className="system-three-buttons">
@@ -92,18 +96,24 @@ export default function DashboardPage() {
         </aside>
 
         <section className="polished-center-stack">
-          <div className="polished-ai-stage">
+          <div className="polished-ai-stage hud-panel-tagged">
+            <span className="hud-radar" />
+            <span className="hud-scanline" />
+            <span className="hud-corner hud-corner-tl" />
+            <span className="hud-corner hud-corner-br" />
             <AssistantChat mode="dashboard" />
           </div>
           <div className="polished-under-chat-grid">
-            <Link href="/journal" className="polished-card polished-journal-under-chat">
+            <Link href="/journal" className="polished-card polished-journal-under-chat hud-panel-tagged">
+              <span className="hud-corner hud-corner-tl" />
               <div className="polished-card-head">
                 <span>Memory input</span>
                 <h2>Journal</h2>
               </div>
               <p>{journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'}</p>
             </Link>
-            <Link href="/identity" className="polished-card polished-identity-under-chat">
+            <Link href="/identity" className="polished-card polished-identity-under-chat hud-panel-tagged">
+              <span className="hud-corner hud-corner-tl" />
               <div className="polished-card-head">
                 <span>Rank / progression</span>
                 <h2>Identity</h2>
@@ -114,7 +124,9 @@ export default function DashboardPage() {
         </section>
 
         <aside className="polished-column polished-right-column">
-          <Link href="/projects" className="polished-card projects-overview-card">
+          <Link href="/projects" className="polished-card projects-overview-card hud-panel-tagged">
+            <span className="hud-corner hud-corner-tl" />
+            <span className="hud-corner hud-corner-br" />
             <div className="polished-card-head">
               <span>Current push</span>
               <h2>Projects</h2>
@@ -123,7 +135,9 @@ export default function DashboardPage() {
             <small>Keep shipping visible proof, not just planning.</small>
           </Link>
 
-          <div className="polished-card focus-overview-card">
+          <div className="polished-card focus-overview-card hud-panel-tagged">
+            <span className="hud-corner hud-corner-tl" />
+            <span className="hud-corner hud-corner-br" />
             <div className="polished-card-head">
               <span>Quick start</span>
               <h2>Focus</h2>

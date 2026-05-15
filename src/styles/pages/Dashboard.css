@@ -2384,3 +2384,291 @@
     font-size: 1.35rem;
   }
 }
+
+/* Closer to reference screenshot: HUD motion + detail pass */
+@keyframes hudGridDrift {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to { background-position: 54px 54px, 54px 54px, 108px 108px; }
+}
+
+@keyframes hudPulseCyan {
+  0%, 100% { opacity: 0.62; filter: drop-shadow(0 0 5px rgba(0,229,255,0.18)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 14px rgba(0,229,255,0.42)); }
+}
+
+@keyframes hudPulseGold {
+  0%, 100% { opacity: 0.7; filter: drop-shadow(0 0 5px rgba(255,176,0,0.14)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 14px rgba(255,176,0,0.38)); }
+}
+
+@keyframes hudScan {
+  0% { transform: translateY(-120%); opacity: 0; }
+  12% { opacity: 0.75; }
+  55% { opacity: 0.22; }
+  100% { transform: translateY(120%); opacity: 0; }
+}
+
+@keyframes radarSweep {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes panelIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.polished-dashboard::before {
+  animation: hudGridDrift 22s linear infinite;
+}
+
+.polished-nav-row,
+.polished-main-grid {
+  animation: panelIn 520ms ease both;
+}
+
+.polished-main-grid {
+  animation-delay: 80ms;
+}
+
+.polished-tab,
+.polished-card,
+.polished-ai-stage {
+  overflow: hidden;
+}
+
+.polished-tab::before,
+.polished-card::before,
+.polished-ai-stage::before {
+  background:
+    linear-gradient(90deg, transparent 0 8%, rgba(0,229,255,0.08) 8% 9%, transparent 9% 91%, rgba(0,229,255,0.08) 91% 92%, transparent 92%),
+    radial-gradient(circle at 92% 10%, rgba(0,229,255,0.08), transparent 22%),
+    linear-gradient(180deg, rgba(230,247,255,0.04), transparent 36%);
+}
+
+.hud-panel-tagged {
+  position: relative;
+}
+
+.hud-corner {
+  position: absolute;
+  z-index: 3;
+  width: 34px;
+  height: 34px;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.hud-corner::before,
+.hud-corner::after {
+  content: '';
+  position: absolute;
+  background: var(--pd-cyan);
+  box-shadow: 0 0 12px rgba(0,229,255,0.34);
+}
+
+.hud-corner::before { width: 100%; height: 1px; }
+.hud-corner::after { width: 1px; height: 100%; }
+.hud-corner-tl { top: 10px; left: 10px; }
+.hud-corner-tl::before, .hud-corner-tl::after { top: 0; left: 0; }
+.hud-corner-br { right: 10px; bottom: 10px; transform: rotate(180deg); }
+.hud-corner-br::before, .hud-corner-br::after { top: 0; left: 0; }
+
+.projects-overview-card .hud-corner::before,
+.projects-overview-card .hud-corner::after,
+.polished-identity-under-chat .hud-corner::before,
+.polished-identity-under-chat .hud-corner::after {
+  background: var(--pd-gold);
+  box-shadow: 0 0 12px rgba(255,176,0,0.32);
+}
+
+.polished-tab::after {
+  inset: 8px;
+  background:
+    linear-gradient(90deg, transparent 0 22%, rgba(0,229,255,0.34) 22% 29%, transparent 29% 71%, rgba(0,229,255,0.22) 71% 78%, transparent 78%),
+    linear-gradient(0deg, transparent 0 86%, rgba(0,229,255,0.18) 86% 88%, transparent 88%);
+  border-color: rgba(0,229,255,0.075);
+}
+
+.command-nav-habits::after,
+.command-nav-projects::after {
+  background:
+    linear-gradient(90deg, transparent 0 22%, rgba(255,176,0,0.34) 22% 29%, transparent 29% 71%, rgba(255,176,0,0.22) 71% 78%, transparent 78%),
+    linear-gradient(0deg, transparent 0 86%, rgba(255,176,0,0.18) 86% 88%, transparent 88%);
+}
+
+.nav-hud-icon {
+  position: relative;
+  animation: hudPulseCyan 3.8s ease-in-out infinite;
+}
+
+.command-nav-habits .nav-hud-icon,
+.command-nav-projects .nav-hud-icon {
+  animation-name: hudPulseGold;
+}
+
+.nav-hud-icon::before,
+.nav-hud-icon::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 1px solid currentColor;
+  opacity: 0.13;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+.nav-hud-icon::after {
+  inset: -13px;
+  opacity: 0.07;
+}
+
+.polished-tab:hover .nav-hud-icon {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.polished-card:hover,
+.polished-ai-stage:hover {
+  border-color: rgba(0,229,255,0.38);
+  box-shadow:
+    inset 0 0 0 1px rgba(230,247,255,0.04),
+    inset 0 0 42px rgba(0,229,255,0.045),
+    0 0 34px rgba(0,229,255,0.09),
+    0 28px 78px rgba(0,0,0,0.36);
+}
+
+.projects-overview-card:hover,
+.polished-identity-under-chat:hover {
+  border-color: rgba(255,176,0,0.42);
+  box-shadow:
+    inset 0 0 0 1px rgba(230,247,255,0.035),
+    inset 0 0 42px rgba(255,176,0,0.035),
+    0 0 34px rgba(255,176,0,0.085),
+    0 28px 78px rgba(0,0,0,0.36);
+}
+
+.polished-ai-stage .assistant-chat-header {
+  border-bottom: 1px solid rgba(0,229,255,0.08);
+}
+
+.polished-ai-stage .assistant-chat-header > div::after {
+  content: 'SYSTEM READY // LOCAL CONTEXT ACTIVE';
+  display: block;
+  margin-top: 8px;
+  color: var(--pd-faded);
+  font-size: 0.56rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.hud-radar {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 47%;
+  width: min(42vw, 380px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  opacity: 0.28;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, transparent 0 22%, rgba(0,229,255,0.16) 22.5% 23%, transparent 23.5% 43%, rgba(0,229,255,0.14) 43.5% 44%, transparent 44.5% 65%, rgba(0,229,255,0.12) 65.5% 66%, transparent 66.5%),
+    linear-gradient(rgba(0,229,255,0.16), rgba(0,229,255,0.16)) center/1px 100% no-repeat,
+    linear-gradient(90deg, rgba(0,229,255,0.16), rgba(0,229,255,0.16)) center/100% 1px no-repeat;
+}
+
+.hud-radar::after {
+  content: '';
+  position: absolute;
+  inset: 50% 50% 0 50%;
+  width: 50%;
+  height: 1px;
+  transform-origin: left center;
+  background: linear-gradient(90deg, rgba(0,229,255,0.8), transparent);
+  animation: radarSweep 7s linear infinite;
+}
+
+.hud-scanline {
+  position: absolute;
+  z-index: 2;
+  left: 12px;
+  right: 12px;
+  top: 0;
+  height: 36%;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(0,229,255,0.09), transparent);
+  mix-blend-mode: screen;
+  animation: hudScan 5.8s ease-in-out infinite;
+}
+
+.polished-ai-stage .assistant-chat-dashboard {
+  position: relative;
+  z-index: 2;
+}
+
+.polished-ai-stage .assistant-messages::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.15;
+  background-image: repeating-linear-gradient(180deg, transparent 0 9px, rgba(0,229,255,0.07) 10px);
+}
+
+.polished-ai-stage .assistant-message {
+  animation: panelIn 260ms ease both;
+}
+
+.preview-metric,
+.system-three-buttons > div,
+.polished-focus-grid a,
+.assistant-starters button,
+.assistant-input-row button {
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.preview-metric:hover,
+.system-three-buttons > div:hover,
+.polished-focus-grid a:hover,
+.polished-ai-stage .assistant-starters button:hover,
+.polished-ai-stage .assistant-input-row button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0,229,255,0.36);
+  box-shadow: 0 0 18px rgba(0,229,255,0.085);
+}
+
+.polished-focus-grid a:hover::before {
+  animation: hudPulseGold 1.4s ease-in-out infinite;
+}
+
+.health-overview-card,
+.projects-overview-card,
+.polished-journal-under-chat,
+.focus-overview-card,
+.system-three-card,
+.polished-identity-under-chat {
+  animation: panelIn 520ms ease both;
+}
+.health-overview-card { animation-delay: 80ms; }
+.system-three-card { animation-delay: 140ms; }
+.projects-overview-card { animation-delay: 160ms; }
+.focus-overview-card { animation-delay: 220ms; }
+.polished-journal-under-chat { animation-delay: 240ms; }
+.polished-identity-under-chat { animation-delay: 300ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .polished-dashboard::before,
+  .nav-hud-icon,
+  .hud-radar::after,
+  .hud-scanline,
+  .polished-nav-row,
+  .polished-main-grid,
+  .health-overview-card,
+  .projects-overview-card,
+  .polished-journal-under-chat,
+  .focus-overview-card,
+  .system-three-card,
+  .polished-identity-under-chat,
+  .polished-ai-stage .assistant-message {
+    animation: none !important;
+  }
+}
