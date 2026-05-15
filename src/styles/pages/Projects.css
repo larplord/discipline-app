@@ -213,3 +213,24 @@
     flex-direction: column;
   }
 }
+
+/* JARVIS polish */
+.projects-command-grid { gap: 1.15rem; }
+.project-form-card {
+  background:
+    radial-gradient(circle at top right, rgba(0, 229, 255, 0.12), transparent 18rem),
+    linear-gradient(180deg, rgba(16, 32, 51, 0.88), rgba(11, 22, 36, 0.96));
+  border-color: rgba(0, 229, 255, 0.2);
+}
+.project-next-card {
+  background:
+    radial-gradient(circle at top left, rgba(0, 255, 156, 0.08), transparent 16rem),
+    linear-gradient(180deg, rgba(16, 32, 51, 0.82), rgba(11, 22, 36, 0.96));
+}
+.project-card { border-radius: 20px; }
+.project-card-head { padding: 1.12rem 1.25rem; }
+.project-card:hover { transform: translateY(-1px); }
+.project-next-item { background: rgba(5, 10, 18, 0.46); border-color: rgba(143, 182, 201, 0.13); }
+.status-active { color: #65FFC2; background: rgba(0,255,156,0.09); border-color: rgba(0,255,156,0.2); }
+.status-seed { color: #78F3FF; background: rgba(0,229,255,0.08); border-color: rgba(0,229,255,0.22); }
+.status-paused { color: #FFD166; background: rgba(255,176,0,0.1); border-color: rgba(255,176,0,0.22); }

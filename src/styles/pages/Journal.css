@@ -572,3 +572,17 @@
     min-height: 48px;
   }
 }
+
+/* JARVIS polish */
+.journal-day-picker {
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(0, 229, 255, 0.08), transparent 18rem),
+    linear-gradient(180deg, rgba(16,32,51,0.86), rgba(11,22,36,0.95));
+}
+.journal-mini-calendar {
+  background: rgba(11, 22, 36, 0.96);
+  border-color: rgba(0, 229, 255, 0.18);
+  box-shadow: 0 22px 70px rgba(0,0,0,0.42), 0 0 28px rgba(0,229,255,0.055);
+}
+.journal-calendar-toggle.open { border-color: rgba(0, 229, 255, 0.36); color: #78F3FF; background: rgba(0,229,255,0.08); }

@@ -410,3 +410,25 @@
   opacity: 0.65;
   cursor: default;
 }
+
+/* JARVIS polish */
+.assistant-page {
+  background:
+    radial-gradient(circle at 20% 10%, rgba(0,229,255,0.13), transparent 30rem),
+    radial-gradient(circle at 82% 0%, rgba(0,140,255,0.11), transparent 28rem),
+    linear-gradient(135deg, #050A12 0%, #071524 50%, #03070d 100%);
+}
+.assistant-context-panel,
+.assistant-chat-card {
+  border-color: rgba(0,229,255,0.22);
+  background: linear-gradient(180deg, rgba(16,32,51,0.82), rgba(11,22,36,0.95));
+  box-shadow: 0 26px 90px rgba(0,0,0,0.38), inset 0 0 34px rgba(0,229,255,0.045);
+}
+.assistant-context-stat,
+.assistant-memory-card,
+.assistant-message {
+  border-color: rgba(0,229,255,0.14);
+  background: rgba(5,10,18,0.48);
+}
+.assistant-message.user { background: rgba(0,229,255,0.12); border-color: rgba(0,229,255,0.22); }
+.assistant-status { color: #78F3FF; border-color: rgba(0,229,255,0.24); background: rgba(0,229,255,0.055); }
