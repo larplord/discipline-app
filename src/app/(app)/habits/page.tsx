@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState, type DragEvent } from 'react';
 import {
   addDoc,
@@ -151,6 +152,7 @@ export default function HabitsPage() {
   const [wheelRotation, setWheelRotation] = useState(0);
   const [wheelSpinning, setWheelSpinning] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [spinComplete, setSpinComplete] = useState(false);
 
   const todayPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
@@ -176,7 +178,11 @@ export default function HabitsPage() {
     if (activeWheelHabitId && effectiveDayLog[activeWheelHabitId] && !rewardSpins[activeWheelHabitId]) return;
     const nextHabit = habits.find((habit) => effectiveDayLog[habit.id] && !rewardSpins[habit.id]);
     setActiveWheelHabitId(nextHabit?.id ?? null);
-    if (nextHabit?.id !== activeWheelHabitId) setWheelResult(null);
+    if (nextHabit?.id !== activeWheelHabitId) {
+      setWheelResult(null);
+      setShowCelebration(false);
+      setSpinComplete(false);
+    }
   }, [activeWheelHabitId, effectiveDayLog, habits, rewardSpins]);
 
   async function toggle(id: string) {
@@ -318,11 +324,13 @@ export default function HabitsPage() {
     setWheelSpinning(true);
     setWheelResult(null);
     setShowCelebration(false);
+    setSpinComplete(false);
     setWheelRotation(nextRotation);
 
     window.setTimeout(() => {
       setWheelResult(result);
       setShowCelebration(true);
+      setSpinComplete(true);
       setWheelSpinning(false);
       setRewardSpins((prev) => ({ ...prev, [habitId]: true }));
       void setDoc(
@@ -336,49 +344,67 @@ export default function HabitsPage() {
     }, 3800);
   }
 
+  function closeWheelResult() {
+    setShowCelebration(false);
+    setWheelResult(null);
+    setSpinComplete(false);
+    setWheelRotation(0);
+  }
+
   return (
-    <div className="fade-in">
-      <div className="page-header">
-        <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
+    <div className="habits-hud-page fade-in">
+      <div className="habits-hud-bg" aria-hidden="true" />
+      <div className="habits-hud-header">
+        <div className="habits-title-cluster">
+          <div className="habits-title-icon" aria-hidden="true">⌖</div>
           <div>
-            <h1 className="page-title">Habit Tracker</h1>
-            <p className="page-subtitle">Build unbreakable consistency, one day at a time.</p>
+            <h1>Habit Tracker</h1>
+            <p>Build unbreakable consistency, one day at a time.</p>
           </div>
-          <button type="button" className="btn btn-primary" onClick={() => { setEditTarget(null); setShowForm(true); }}>
-            + New Habit
-          </button>
         </div>
+        <button type="button" className="habits-hud-button habits-new-button" onClick={() => { setEditTarget(null); setShowForm(true); }}>
+          <span>+</span> New Habit
+        </button>
+        <Link href="/dashboard" className="habits-hud-button habits-dashboard-button">
+          ← Dashboard
+        </Link>
       </div>
 
-      <div className="page-body">
+      <div className="page-body habits-hud-body">
         <div className="habits-stats">
-          <div className="hstat card">
-            <div className="hstat-val" style={{ color: 'var(--green-light)' }}>
-              {todayPct}%
+          <div className="hstat card hud-stat-card">
+            <div className="hstat-icon" aria-hidden="true">⌖</div>
+            <div>
+              <div className="hstat-val cyan">{todayPct}%</div>
+              <div className="hstat-label">Today</div>
             </div>
-            <div className="hstat-label">Today</div>
-            <div className="progress-wrap mt-2">
-              <div className="progress-bar green" style={{ width: `${todayPct}%` }} />
-            </div>
-          </div>
-          <div className="hstat card">
-            <div className="hstat-val" style={{ color: 'var(--accent-light)' }}>
-              {weekPct}%
-            </div>
-            <div className="hstat-label">This Week</div>
-            <div className="progress-wrap mt-2">
-              <div className="progress-bar" style={{ width: `${weekPct}%` }} />
+            <div className="hud-progress-track mt-2">
+              <div className="hud-progress-fill cyan" style={{ width: `${todayPct}%` }} />
             </div>
           </div>
-          <div className="hstat card">
-            <div className="hstat-val" style={{ color: 'var(--gold-light)' }}>{habits.length}</div>
-            <div className="hstat-label">Total Habits</div>
-          </div>
-          <div className="hstat card">
-            <div className="hstat-val" style={{ color: 'var(--gold-light)' }}>
-              {Math.max(...habits.map((h) => calcStreak(h.id, logsByDate)), 0)}d
+          <div className="hstat card hud-stat-card">
+            <div className="hstat-icon" aria-hidden="true">▦</div>
+            <div>
+              <div className="hstat-val cyan">{weekPct}%</div>
+              <div className="hstat-label">This Week</div>
             </div>
-            <div className="hstat-label">Best Streak</div>
+            <div className="hud-progress-track mt-2">
+              <div className="hud-progress-fill cyan" style={{ width: `${weekPct}%` }} />
+            </div>
+          </div>
+          <div className="hstat card hud-stat-card accent-gold">
+            <div className="hstat-icon" aria-hidden="true">▥</div>
+            <div>
+              <div className="hstat-val gold">{habits.length}</div>
+              <div className="hstat-label">Total Habits</div>
+            </div>
+          </div>
+          <div className="hstat card hud-stat-card accent-gold">
+            <div className="hstat-icon" aria-hidden="true">🔥</div>
+            <div>
+              <div className="hstat-val gold">{Math.max(...habits.map((h) => calcStreak(h.id, logsByDate)), 0)}d</div>
+              <div className="hstat-label">Best Streak</div>
+            </div>
           </div>
         </div>
 
@@ -402,6 +428,8 @@ export default function HabitsPage() {
             <p>
               {wheelUnlocked
                 ? 'One spin is ready for this completed habit.'
+                : spinComplete
+                  ? 'Result shown. Click Got it to reset the wheel.'
                 : activeWheelHabitId && rewardSpins[activeWheelHabitId]
                   ? 'Spin used for this habit today. Complete another habit to spin again.'
                   : 'Mark a habit complete to unlock exactly one reward spin.'}
@@ -456,14 +484,14 @@ export default function HabitsPage() {
         </section>
         {wheelResult && showCelebration && (
           <div className={`wheel-celebration celebration-${wheelResult.id}`} role="dialog" aria-live="polite">
-            <button type="button" className="wheel-celebration-close" onClick={() => setShowCelebration(false)} aria-label="Close reward celebration">
-              ×
-            </button>
             <div className="wheel-burst" aria-hidden="true" />
             <div className="wheel-celebration-card">
               <span>{wheelResult.celebration}</span>
               <strong>{wheelResult.label}</strong>
               <p>{wheelResult.text}</p>
+              <button type="button" className="btn btn-primary wheel-got-it" onClick={closeWheelResult}>
+                Got it
+              </button>
             </div>
           </div>
         )}
@@ -476,9 +504,9 @@ export default function HabitsPage() {
             </button>
           </div>
         ) : (
-          <div className="habit-list">
+          <div className="habit-list hud-habit-list-panel">
             {filtered.map((h) => {
-              const done = !!dayLog[h.id];
+              const done = !!effectiveDayLog[h.id];
               const streak = getStreakSummary(h.id, logsByDate);
               return (
                 <div
@@ -509,6 +537,9 @@ export default function HabitsPage() {
                       )}
                     </div>
                   </div>
+                  <div className={`habit-completion-badge ${done ? 'complete' : ''}`}>
+                    <span>{done ? '✓ Completed Today' : 'Awaiting Check-In'}</span>
+                  </div>
                   <div className="habit-actions">
                     {done && (
                       <button
@@ -523,10 +554,10 @@ export default function HabitsPage() {
                         {rewardSpins[h.id] ? 'Spin used' : 'Reward'}
                       </button>
                     )}
-                    <button type="button" className="btn-icon" title="Edit" onClick={() => { setEditTarget(h); setShowForm(true); }}>
+                    <button type="button" className="btn-icon habit-edit-btn" title="Edit" onClick={() => { setEditTarget(h); setShowForm(true); }}>
                       ✎
                     </button>
-                    <button type="button" className="btn-icon" title="Delete" onClick={() => onDelete(h.id)}>
+                    <button type="button" className="btn-icon habit-delete-btn" title="Delete" onClick={() => void onDelete(h.id)}>
                       🗑
                     </button>
                   </div>
