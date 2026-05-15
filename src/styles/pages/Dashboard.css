@@ -1838,3 +1838,65 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Layout tune: journal under Noen, larger system controls */
+.polished-center-stack {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) minmax(135px, 0.24fr);
+  gap: 14px;
+}
+
+.polished-journal-under-chat {
+  min-height: 135px;
+}
+
+.polished-journal-under-chat .polished-card-head h2 {
+  font-size: clamp(1.9rem, 2.8vw, 3rem);
+}
+
+.identity-only-bottom {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: clamp(120px, 14vh, 170px);
+}
+
+.identity-only-bottom .polished-card {
+  min-height: clamp(120px, 14vh, 170px);
+}
+
+.polished-left-column {
+  grid-template-rows: minmax(165px, 0.55fr) minmax(420px, 1.45fr);
+}
+
+.system-three-card {
+  gap: 12px;
+}
+
+.system-three-section {
+  grid-template-columns: 0.52fr 1.48fr;
+  padding: clamp(12px, 1.15vw, 16px);
+}
+
+.system-three-buttons > div,
+.system-three-buttons .preview-metric {
+  min-height: clamp(62px, 8.8vh, 92px);
+  font-size: clamp(0.8rem, 1vw, 1rem);
+}
+
+.system-three-buttons .preview-metric strong {
+  font-size: clamp(1.15rem, 1.55vw, 1.8rem);
+}
+
+.system-three-buttons .preview-metric span {
+  font-size: 0.52rem;
+}
+
+@media (max-width: 1180px) {
+  .polished-center-stack {
+    min-height: 700px;
+  }
+
+  .polished-left-column {
+    grid-template-rows: none;
+  }
+}

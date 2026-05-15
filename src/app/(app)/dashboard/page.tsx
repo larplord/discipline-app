@@ -95,8 +95,17 @@ export default function DashboardPage() {
           </Link>
         </aside>
 
-        <section className="polished-ai-stage">
-          <AssistantChat mode="dashboard" />
+        <section className="polished-center-stack">
+          <div className="polished-ai-stage">
+            <AssistantChat mode="dashboard" />
+          </div>
+          <Link href="/journal" className="polished-card polished-journal-under-chat">
+            <div className="polished-card-head">
+              <span>Memory input</span>
+              <h2>Journal</h2>
+            </div>
+            <p>{journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'}</p>
+          </Link>
         </section>
 
         <aside className="polished-column polished-right-column">
@@ -125,14 +134,7 @@ export default function DashboardPage() {
         </aside>
       </section>
 
-      <section className="polished-bottom-grid">
-        <Link href="/journal" className="polished-card">
-          <div className="polished-card-head">
-            <span>Memory input</span>
-            <h2>Journal</h2>
-          </div>
-          <p>{journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'}</p>
-        </Link>
+      <section className="polished-bottom-grid identity-only-bottom">
         <Link href="/identity" className="polished-card">
           <div className="polished-card-head">
             <span>Rank / progression</span>
