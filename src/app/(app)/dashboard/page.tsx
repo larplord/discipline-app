@@ -99,13 +99,22 @@ export default function DashboardPage() {
           <div className="polished-ai-stage">
             <AssistantChat mode="dashboard" />
           </div>
-          <Link href="/journal" className="polished-card polished-journal-under-chat">
-            <div className="polished-card-head">
-              <span>Memory input</span>
-              <h2>Journal</h2>
-            </div>
-            <p>{journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'}</p>
-          </Link>
+          <div className="polished-under-chat-grid">
+            <Link href="/journal" className="polished-card polished-journal-under-chat">
+              <div className="polished-card-head">
+                <span>Memory input</span>
+                <h2>Journal</h2>
+              </div>
+              <p>{journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'}</p>
+            </Link>
+            <Link href="/identity" className="polished-card polished-identity-under-chat">
+              <div className="polished-card-head">
+                <span>Rank / progression</span>
+                <h2>Identity</h2>
+              </div>
+              <p>{level.title} · {Math.round(identityProfile.totalScore ?? 0)} XP</p>
+            </Link>
+          </div>
         </section>
 
         <aside className="polished-column polished-right-column">
@@ -132,16 +141,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </aside>
-      </section>
-
-      <section className="polished-bottom-grid identity-only-bottom">
-        <Link href="/identity" className="polished-card">
-          <div className="polished-card-head">
-            <span>Rank / progression</span>
-            <h2>Identity</h2>
-          </div>
-          <p>{level.title} · {Math.round(identityProfile.totalScore ?? 0)} XP</p>
-        </Link>
       </section>
     </main>
   );
