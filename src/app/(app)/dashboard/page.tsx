@@ -8,13 +8,13 @@ import { getLevel } from '@/lib/levels';
 import '@/styles/pages/Dashboard.css';
 import '@/styles/pages/Assistant.css';
 
-const NAV_MODULES: Array<{ label: string; tone: string; href?: string; disabled?: boolean }> = [
-  { label: 'Health', tone: 'health', disabled: true },
-  { href: '/projects', label: 'Money', tone: 'money' },
-  { href: '/journal', label: 'Memory', tone: 'memory' },
-  { href: '/focus', label: 'Risk', tone: 'risk' },
-  { href: '/system', label: 'Habits', tone: 'habits' },
-  { href: '/projects', label: 'Projects', tone: 'projects' },
+const NAV_MODULES: Array<{ label: string; icon: string; tone: string; href?: string; disabled?: boolean }> = [
+  { label: 'Health', icon: '✚', tone: 'health', disabled: true },
+  { href: '/projects', label: 'Money', icon: '◆', tone: 'money' },
+  { href: '/journal', label: 'Memory', icon: '◈', tone: 'memory' },
+  { href: '/focus', label: 'Risk', icon: '△', tone: 'risk' },
+  { href: '/system', label: 'Habits', icon: '⬡', tone: 'habits' },
+  { href: '/projects', label: 'Projects', icon: '⌁', tone: 'projects' },
 ];
 
 export default function DashboardPage() {
@@ -26,7 +26,6 @@ export default function DashboardPage() {
     goals,
     logsByDate,
     identityProfile,
-
   } = useUserData();
 
   const weekPct = weekProgress(habits, logsByDate);
@@ -43,11 +42,13 @@ export default function DashboardPage() {
           {NAV_MODULES.map((item) => (
             item.disabled ? (
               <div key={item.label} className={`polished-tab command-nav-${item.tone} command-nav-disabled`} aria-disabled="true">
-                {item.label}
+                <span className="nav-hud-icon">{item.icon}</span>
+                <span className="nav-hud-label">{item.label}</span>
               </div>
             ) : item.href ? (
               <Link key={`${item.label}-${item.href}`} href={item.href} className={`polished-tab command-nav-${item.tone}`}>
-                {item.label}
+                <span className="nav-hud-icon">{item.icon}</span>
+                <span className="nav-hud-label">{item.label}</span>
               </Link>
             ) : null
           ))}

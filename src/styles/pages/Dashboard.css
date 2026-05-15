@@ -2075,3 +2075,312 @@
 .polished-ai-stage .assistant-input-row input {
   font-size: 1rem;
 }
+
+/* Reference-image HUD pass: angular JARVIS command center */
+.polished-dashboard {
+  --pd-bg: #050A12;
+  --pd-panel: #0B1624;
+  --pd-panel-strong: #102033;
+  --pd-cyan: #00E5FF;
+  --pd-blue: #008CFF;
+  --pd-soft: #38BDF8;
+  --pd-text: #E6F7FF;
+  --pd-muted: #8FB6C9;
+  --pd-faded: #5D7F91;
+  --pd-gold: #FFB000;
+  --pd-orange: #FF6A00;
+  gap: 18px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(0,229,255,0.14), transparent 34rem),
+    radial-gradient(circle at 80% 90%, rgba(255,176,0,0.055), transparent 28rem),
+    linear-gradient(180deg, #050A12 0%, #06101b 48%, #03070d 100%);
+}
+
+.polished-dashboard::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.11) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.11) 1px, transparent 1px),
+    linear-gradient(135deg, transparent 49%, rgba(0,229,255,0.07) 50%, transparent 51%);
+  background-size: 54px 54px, 54px 54px, 108px 108px;
+  mask-image: radial-gradient(circle at center, black, transparent 78%);
+  z-index: 0;
+}
+
+.polished-dashboard > * {
+  position: relative;
+  z-index: 1;
+}
+
+.polished-nav-row {
+  min-height: 116px;
+}
+
+.polished-tabs {
+  grid-template-columns: repeat(6, minmax(132px, 1fr));
+  gap: 14px;
+}
+
+.polished-tab,
+.polished-card,
+.polished-ai-stage {
+  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  border-radius: 0;
+  border: 1px solid rgba(0, 229, 255, 0.24);
+  background:
+    linear-gradient(180deg, rgba(16,32,51,0.78), rgba(11,22,36,0.93));
+  box-shadow:
+    inset 0 0 0 1px rgba(230,247,255,0.035),
+    inset 0 0 34px rgba(0,229,255,0.035),
+    0 0 26px rgba(0,229,255,0.055),
+    0 24px 70px rgba(0,0,0,0.32);
+}
+
+.polished-tab {
+  min-height: 116px;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 8px;
+  place-items: center;
+  padding: 18px 14px 16px;
+  color: var(--pd-text);
+  letter-spacing: 0.14em;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(0,229,255,0.13), transparent 42%),
+    linear-gradient(180deg, rgba(16,32,51,0.82), rgba(5,10,18,0.9));
+}
+
+.nav-hud-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(0,229,255,0.3);
+  color: var(--pd-cyan);
+  font-size: 1.75rem;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(0,229,255,0.45);
+  box-shadow: inset 0 0 18px rgba(0,229,255,0.065), 0 0 18px rgba(0,229,255,0.08);
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+}
+
+.nav-hud-label {
+  font-size: clamp(0.88rem, 1vw, 1.08rem);
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.command-nav-habits,
+.command-nav-projects {
+  border-color: rgba(255,176,0,0.34);
+  background:
+    radial-gradient(circle at 50% 24%, rgba(255,176,0,0.13), transparent 42%),
+    linear-gradient(180deg, rgba(31,26,14,0.8), rgba(11,22,36,0.9));
+}
+
+.command-nav-habits .nav-hud-icon,
+.command-nav-projects .nav-hud-icon {
+  border-color: rgba(255,176,0,0.42);
+  color: var(--pd-gold);
+  text-shadow: 0 0 18px rgba(255,176,0,0.46);
+}
+
+.polished-tab:hover:not(.command-nav-disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(0,229,255,0.52);
+  box-shadow:
+    inset 0 0 0 1px rgba(230,247,255,0.05),
+    0 0 32px rgba(0,229,255,0.12),
+    0 28px 80px rgba(0,0,0,0.38);
+}
+
+.command-nav-habits:hover,
+.command-nav-projects:hover {
+  border-color: rgba(255,176,0,0.58) !important;
+  box-shadow: 0 0 32px rgba(255,176,0,0.11), 0 28px 80px rgba(0,0,0,0.38) !important;
+}
+
+.polished-main-grid {
+  grid-template-columns: minmax(260px, 0.92fr) minmax(520px, 2.35fr) minmax(260px, 0.92fr);
+  gap: 18px;
+}
+
+.polished-column,
+.polished-center-stack,
+.polished-under-chat-grid {
+  gap: 18px;
+}
+
+.polished-card::after,
+.polished-ai-stage::after,
+.polished-tab::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  pointer-events: none;
+  border: 1px solid rgba(0,229,255,0.055);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.polished-card-head span,
+.assistant-chat-header span:first-child {
+  color: var(--pd-cyan);
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+}
+
+.polished-card-head h2,
+.health-card-title,
+.system-three-section h2,
+.polished-ai-stage .assistant-chat-header h2 {
+  color: var(--pd-text);
+  font-weight: 950;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(0,229,255,0.08);
+}
+
+.health-card-title {
+  font-size: clamp(1.8rem, 2.7vw, 3.05rem);
+}
+
+.preview-metric,
+.system-three-buttons > div,
+.polished-focus-grid a {
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  border-radius: 0;
+  border-color: rgba(0,229,255,0.18);
+  background:
+    linear-gradient(180deg, rgba(5,10,18,0.62), rgba(16,32,51,0.62));
+}
+
+.preview-metric strong {
+  color: var(--pd-cyan);
+  text-shadow: 0 0 16px rgba(0,229,255,0.24);
+}
+
+.preview-metric span,
+.system-mini-lanes span {
+  color: var(--pd-faded);
+}
+
+.system-three-card {
+  background:
+    radial-gradient(circle at 100% 8%, rgba(255,176,0,0.065), transparent 16rem),
+    linear-gradient(180deg, rgba(16,32,51,0.78), rgba(11,22,36,0.94));
+}
+
+.system-three-section {
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  border-radius: 0;
+  border-color: rgba(0,229,255,0.16);
+  background: rgba(5,10,18,0.36);
+}
+
+.system-three-section:nth-child(2),
+.system-three-section:nth-child(3) {
+  border-color: rgba(255,176,0,0.18);
+}
+
+.system-three-buttons.two-up > div {
+  color: var(--pd-text);
+}
+
+.polished-ai-stage {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(0,229,255,0.075), transparent 15rem),
+    radial-gradient(circle at center, transparent 0 34%, rgba(0,229,255,0.035) 35% 36%, transparent 37%),
+    linear-gradient(180deg, rgba(16,32,51,0.74), rgba(5,10,18,0.94));
+}
+
+.polished-ai-stage .assistant-chat-dashboard {
+  border-radius: 0;
+}
+
+.polished-ai-stage .assistant-messages {
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  border-radius: 0;
+  border-color: rgba(0,229,255,0.16);
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0,229,255,0.055), transparent 14rem),
+    rgba(5,10,18,0.42);
+}
+
+.polished-ai-stage .assistant-message {
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  border-radius: 0;
+  background: rgba(11,22,36,0.86);
+}
+
+.polished-ai-stage .assistant-message.user {
+  background: rgba(0,229,255,0.1);
+}
+
+.polished-ai-stage .assistant-starters button,
+.polished-ai-stage .assistant-input-row input,
+.polished-ai-stage .assistant-input-row button {
+  border-radius: 0;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+}
+
+.projects-overview-card {
+  border-color: rgba(255,176,0,0.24);
+}
+
+.projects-overview-card .polished-card-head span,
+.projects-overview-card .polished-card-head h2,
+.polished-identity-under-chat .polished-card-head span {
+  color: var(--pd-gold);
+}
+
+.polished-focus-grid a::before {
+  content: '◆';
+  color: var(--pd-gold);
+  margin-right: 6px;
+}
+
+.polished-journal-under-chat,
+.polished-identity-under-chat {
+  min-height: 134px;
+}
+
+.polished-under-chat-grid .polished-card p,
+.projects-overview-card p,
+.focus-overview-card p {
+  color: var(--pd-muted);
+}
+
+@media (max-width: 1180px) {
+  .polished-main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .polished-tabs {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .polished-dashboard {
+    padding: 10px;
+  }
+
+  .polished-tabs {
+    grid-template-columns: repeat(6, minmax(126px, 1fr));
+  }
+
+  .polished-tab {
+    min-height: 98px;
+  }
+
+  .nav-hud-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 1.35rem;
+  }
+}
