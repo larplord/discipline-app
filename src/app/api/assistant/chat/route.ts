@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin';
 import { loadAssistantContext, formatAssistantContext } from '@/lib/assistant/context';
-import { normalizeAssistantActions } from '@/lib/assistant/actions';
+import { normalizeAssistantActions, type AssistantAction } from '@/lib/assistant/actions';
 import { ASSISTANT_MEMORY_RULES, NOEN_PERSONALITY } from '@/lib/assistant/personality';
 
 export const runtime = 'nodejs';
@@ -15,6 +15,14 @@ type ChatMessage = {
 type VerifiedUser = {
   uid: string;
   email?: string;
+};
+
+type AssistantModelResult = {
+  reply: string;
+  actions: AssistantAction[];
+  memoryUpdates: string[];
+  conversationSummary?: string;
+  vaultDrafts: Array<{ title: string; folder?: string; content: string; reason?: string }>;
 };
 
 function getAllowedEmails() {
@@ -65,39 +73,81 @@ async function verifyRequest(req: Request): Promise<VerifiedUser> {
 
 function formatClientSnapshot(snapshot: unknown) {
   if (!snapshot || typeof snapshot !== 'object') return 'APP SNAPSHOT\nNo app snapshot available.';
-  return `APP SNAPSHOT FROM DASHBOARD\n${JSON.stringify(snapshot, null, 2).slice(0, 12000)}`;
+  return `APP SNAPSHOT FROM DASHBOARD\n${JSON.stringify(snapshot, null, 2).slice(0, 12000)}\n\nPersistence note: Firebase Admin is unavailable, so long-term memory, vault index, and saved chat history are not active for this request.`;
 }
 
 const ACTION_OUTPUT_RULES = `
-You may propose app updates using actions. Return ONLY valid JSON with this shape:
+Return ONLY valid JSON with this shape:
 {
   "reply": "natural message to Daniel",
-  "actions": []
+  "actions": [],
+  "memoryUpdates": [],
+  "conversationSummary": "updated short summary of important ongoing context",
+  "vaultDrafts": []
 }
 
-Allowed actions:
+Allowed app actions:
 - complete_habit: { type, label, habitId, habitName, done }
 - add_goal_milestone: { type, label, goalId, goalTitle, text }
 - complete_goal_milestone: { type, label, goalId, goalTitle, milestoneId, milestoneText, done }
 - create_goal: { type, label, title, goalType: "short"|"long", priority: "high"|"medium"|"low", deadline?, description?, milestones? }
+
+Allowed memory fields:
+- memoryUpdates: 0-5 durable memory sentences worth remembering long-term.
+- conversationSummary: an updated running summary, max 900 characters. Preserve important prior context and add the newest useful context.
+- vaultDrafts: 0-3 proposed Obsidian notes when Daniel explicitly asks to add/save something to the vault. Shape: { title, folder, content, reason }. These are queued for review; do not claim they were written to Obsidian.
 
 Rules:
 - Only propose actions when Daniel clearly asks to update something or reports completed work that maps to visible app data.
 - Treat phrases like 'I worked out', 'I workouted', 'I lifted', 'I went to the gym', or 'I trained' as a request to complete the matching fitness/workout habit if exactly one visible habit clearly matches.
 - Use exact habitId/goalId/milestoneId from the app snapshot when updating existing items.
 - Do not invent IDs for existing habits/goals/milestones.
-- Keep actions small and reviewable.
 - Clear habit completions may be auto-applied by the app. Goal edits and new goals still require Daniel's approval.
 - If you say you will log/mark/update something, include the matching action in the same JSON response.
-- Do not say an action has already been applied. The app will confirm after it successfully applies clear habit completions.
+- Do not say an app action or vault write has already been applied unless the app confirms it.
+- If Daniel asks you to remember something, include it in memoryUpdates.
+- If Daniel asks to add something to the vault, create a vaultDraft instead of pretending to write directly to local Obsidian.
 `;
 
-async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) {
+function normalizeStringArray(value: unknown, limit = 5) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, limit);
+}
+
+function normalizeVaultDrafts(value: unknown): AssistantModelResult['vaultDrafts'] {
+  if (!Array.isArray(value)) return [];
+  const drafts: AssistantModelResult['vaultDrafts'] = [];
+
+  for (const raw of value) {
+    if (!raw || typeof raw !== 'object') continue;
+    const draft = raw as Record<string, unknown>;
+    const title = typeof draft.title === 'string' ? draft.title.trim() : '';
+    const content = typeof draft.content === 'string' ? draft.content.trim() : '';
+    if (!title || !content) continue;
+    drafts.push({
+      title,
+      folder: typeof draft.folder === 'string' ? draft.folder.trim() : undefined,
+      content,
+      reason: typeof draft.reason === 'string' ? draft.reason.trim() : undefined,
+    });
+    if (drafts.length >= 3) break;
+  }
+
+  return drafts;
+}
+
+async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>): Promise<AssistantModelResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return {
       reply: 'Assistant backend is wired, but OPENAI_API_KEY is not set yet. Add it in the server/Vercel environment before live chat works. done',
       actions: [],
+      memoryUpdates: [],
+      vaultDrafts: [],
     };
   }
 
@@ -111,7 +161,7 @@ async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant
     body: JSON.stringify({
       model,
       messages,
-      temperature: 0.35,
+      temperature: 0.32,
       response_format: { type: 'json_object' },
     }),
   });
@@ -124,27 +174,48 @@ async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant
   const data = await res.json();
   const raw = String(data.choices?.[0]?.message?.content ?? '{}');
   try {
-    const parsed = JSON.parse(raw) as { reply?: unknown; actions?: unknown };
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
     return {
       reply: String(parsed.reply ?? 'No response returned.'),
       actions: normalizeAssistantActions(parsed.actions),
+      memoryUpdates: normalizeStringArray(parsed.memoryUpdates, 5),
+      conversationSummary: typeof parsed.conversationSummary === 'string' ? parsed.conversationSummary.slice(0, 1200) : undefined,
+      vaultDrafts: normalizeVaultDrafts(parsed.vaultDrafts),
     };
   } catch {
-    return { reply: raw || 'No response returned.', actions: [] };
+    return { reply: raw || 'No response returned.', actions: [], memoryUpdates: [], vaultDrafts: [] };
   }
 }
 
-async function maybeSaveMemory(uid: string, userMessage: string, assistantReply: string) {
-  const saveSignals = ['remember', 'decision', 'goal', 'rule', 'preference', 'from now on', 'mistake'];
-  const combined = `${userMessage}\n${assistantReply}`.toLowerCase();
-  if (!saveSignals.some((signal) => combined.includes(signal))) return;
-
-  await getAdminDb().collection('users').doc(uid).collection('assistantMemory').add({
-    summary: `User/assistant exchange may be memory-worthy: ${userMessage.slice(0, 300)} | ${assistantReply.slice(0, 300)}`,
-    createdAt: FieldValue.serverTimestamp(),
+async function saveAssistantState(uid: string, userMessage: string, result: AssistantModelResult) {
+  const db = getAdminDb();
+  const threadRef = db.collection('users').doc(uid).collection('assistantThreads').doc('default');
+  await threadRef.set({
     updatedAt: FieldValue.serverTimestamp(),
-    source: 'assistant-chat-auto-candidate',
-  });
+    ...(result.conversationSummary ? { summary: result.conversationSummary } : {}),
+  }, { merge: true });
+
+  await threadRef.collection('messages').add({ role: 'user', content: userMessage, createdAt: FieldValue.serverTimestamp() });
+  await threadRef.collection('messages').add({ role: 'assistant', content: result.reply, createdAt: FieldValue.serverTimestamp() });
+
+  await Promise.all(result.memoryUpdates.map((summary) =>
+    db.collection('users').doc(uid).collection('assistantMemory').add({
+      summary,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      source: 'assistant-chat-memory-update',
+    })
+  ));
+
+  await Promise.all(result.vaultDrafts.map((draft) =>
+    db.collection('users').doc(uid).collection('assistantVaultInbox').add({
+      ...draft,
+      status: 'queued',
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+      source: 'assistant-chat-vault-draft',
+    })
+  ));
 }
 
 export async function POST(req: Request) {
@@ -171,7 +242,7 @@ export async function POST(req: Request) {
       persistenceEnabled = false;
     }
 
-    const recentHistory = history.slice(-12).map((m) => ({ role: m.role, content: m.content }));
+    const recentHistory = history.slice(-10).map((m) => ({ role: m.role, content: m.content }));
 
     const messages = [
       { role: 'system' as const, content: NOEN_PERSONALITY },
@@ -183,21 +254,22 @@ export async function POST(req: Request) {
     ];
 
     const result = await callOpenAI(messages);
-    const reply = result.reply;
 
     if (persistenceEnabled) {
       try {
-        const threadRef = getAdminDb().collection('users').doc(uid).collection('assistantThreads').doc('default');
-        await threadRef.set({ updatedAt: FieldValue.serverTimestamp() }, { merge: true });
-        await threadRef.collection('messages').add({ role: 'user', content: message, createdAt: FieldValue.serverTimestamp() });
-        await threadRef.collection('messages').add({ role: 'assistant', content: reply, createdAt: FieldValue.serverTimestamp() });
-        await maybeSaveMemory(uid, message, reply);
+        await saveAssistantState(uid, message, result);
       } catch (e) {
         console.warn('[assistant/chat] Persistence skipped.', e);
       }
     }
 
-    return NextResponse.json({ reply, actions: result.actions, persistenceEnabled });
+    return NextResponse.json({
+      reply: result.reply,
+      actions: result.actions,
+      persistenceEnabled,
+      memoryUpdates: result.memoryUpdates.length,
+      vaultDraftsQueued: persistenceEnabled ? result.vaultDrafts.length : 0,
+    });
   } catch (e) {
     console.error('[assistant/chat]', e);
     const message = e instanceof Error ? e.message : 'Assistant request failed.';

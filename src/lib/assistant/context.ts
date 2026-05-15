@@ -12,10 +12,26 @@ type AssistantAppContext = {
   identity: Record<string, unknown> | null;
 };
 
+type RecentAssistantMessage = {
+  role?: string;
+  content?: string;
+};
+
+type VaultNoteContext = {
+  id: string;
+  title?: string;
+  path?: string;
+  summary?: string;
+  tags?: string[];
+  updatedAt?: unknown;
+};
+
 export type AssistantContextBundle = {
   appContext: AssistantAppContext;
   longTermMemory: string[];
   conversationSummary: string;
+  recentPersistedMessages: RecentAssistantMessage[];
+  vaultNotes: VaultNoteContext[];
 };
 
 async function getCollectionDocs<T>(uid: string, collectionName: string, limit = 25): Promise<Array<T & { id: string }>> {
@@ -27,7 +43,7 @@ export async function loadAssistantContext(uid: string): Promise<AssistantContex
   const db = getAdminDb();
   const today = todayKey();
 
-  const [habits, todayLogSnap, recentHabitLogsSnap, focusSnap, journalSnap, goals, projects, identitySnap, memorySnap] = await Promise.all([
+  const [habits, todayLogSnap, recentHabitLogsSnap, focusSnap, journalSnap, goals, projects, identitySnap, memorySnap, threadSnap, recentMessagesSnap, vaultNotesSnap] = await Promise.all([
     getCollectionDocs<AssistantAppContext['habits'][number]>(uid, 'habits', 100),
     db.collection('users').doc(uid).collection('habitLogs').doc(today).get(),
     db.collection('users').doc(uid).collection('habitLogs').orderBy('__name__', 'desc').limit(30).get().catch(() => null),
@@ -36,9 +52,11 @@ export async function loadAssistantContext(uid: string): Promise<AssistantContex
     getCollectionDocs<AssistantAppContext['goals'][number]>(uid, 'goals', 50),
     getCollectionDocs<AssistantAppContext['projects'][number]>(uid, 'projects', 50),
     db.collection('users').doc(uid).collection('identity').doc('profile').get(),
-    db.collection('users').doc(uid).collection('assistantMemory').orderBy('updatedAt', 'desc').limit(12).get().catch(() => null),
+    db.collection('users').doc(uid).collection('assistantMemory').orderBy('updatedAt', 'desc').limit(24).get().catch(() => null),
+    db.collection('users').doc(uid).collection('assistantThreads').doc('default').get().catch(() => null),
+    db.collection('users').doc(uid).collection('assistantThreads').doc('default').collection('messages').orderBy('createdAt', 'desc').limit(10).get().catch(() => null),
+    db.collection('users').doc(uid).collection('assistantVaultNotes').orderBy('updatedAt', 'desc').limit(30).get().catch(() => null),
   ]);
-
 
   const completionMinuteBuckets = new Map<string, number[]>();
   recentHabitLogsSnap?.docs.forEach((docSnap) => {
@@ -66,6 +84,19 @@ export async function loadAssistantContext(uid: string): Promise<AssistantContex
     ? memorySnap.docs.map((d) => String(d.data()?.summary ?? d.data()?.text ?? '')).filter(Boolean)
     : [];
 
+  const recentPersistedMessages = recentMessagesSnap
+    ? recentMessagesSnap.docs
+        .map((d) => d.data() as RecentAssistantMessage)
+        .reverse()
+        .filter((m) => m.role && m.content)
+    : [];
+
+  const conversationSummary = threadSnap?.exists ? String(threadSnap.data()?.summary ?? '') : '';
+
+  const vaultNotes = vaultNotesSnap
+    ? vaultNotesSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<VaultNoteContext, 'id'>) }))
+    : [];
+
   return {
     appContext: {
       habits: habitsWithAverages,
@@ -78,12 +109,14 @@ export async function loadAssistantContext(uid: string): Promise<AssistantContex
       identity: identitySnap.exists ? identitySnap.data() ?? null : null,
     },
     longTermMemory,
-    conversationSummary: '',
+    conversationSummary,
+    recentPersistedMessages,
+    vaultNotes,
   };
 }
 
 export function formatAssistantContext(bundle: AssistantContextBundle) {
-  const { appContext, longTermMemory } = bundle;
+  const { appContext, longTermMemory, conversationSummary, recentPersistedMessages, vaultNotes } = bundle;
   const completed = appContext.habits.filter((h) => appContext.todayHabitLog[h.id]).length;
   const habitLines = appContext.habits.map((h) => {
     const target = h.targetCheckInTime ? `; target check-in ${h.targetCheckInTime}` : '';
@@ -97,6 +130,15 @@ export function formatAssistantContext(bundle: AssistantContextBundle) {
     return `- ${g.title ?? g.id}: ${done}/${total} milestones, priority ${g.priority ?? 'unknown'}, deadline ${g.deadline ?? 'none'}`;
   }).join('\n');
   const projectLines = appContext.projects.map((p) => `- ${p.name ?? p.id}: ${p.status ?? 'unknown'}; next move: ${p.nextMove ?? 'none'}`).join('\n');
+  const recentMessageLines = recentPersistedMessages
+    .map((m) => `- ${m.role}: ${String(m.content ?? '').slice(0, 500)}`)
+    .join('\n');
+  const vaultLines = vaultNotes
+    .map((note) => {
+      const tags = Array.isArray(note.tags) && note.tags.length ? `; tags: ${note.tags.join(', ')}` : '';
+      return `- ${note.title ?? note.id}${note.path ? ` (${note.path})` : ''}: ${note.summary ?? 'No summary'}${tags}`;
+    })
+    .join('\n');
 
   return `
 APP SNAPSHOT
@@ -116,5 +158,14 @@ ${projectLines || '- none'}
 
 Long-term memory snippets:
 ${longTermMemory.map((m) => `- ${m}`).join('\n') || '- none yet'}
+
+Conversation summary:
+${conversationSummary || '- none yet'}
+
+Recent persisted messages:
+${recentMessageLines || '- none yet'}
+
+Vault knowledge index:
+${vaultLines || '- no vault notes indexed yet'}
 `;
 }
