@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { AssistantChat } from '@/components/AssistantChat';
 import { useUserData } from '@/components/UserDataProvider';
-import { todayProgress, weekProgress, calcDailyScore, isJournalCompleteForDailyScore } from '@/lib/scoring';
+import { todayProgress, weekProgress, isJournalCompleteForDailyScore } from '@/lib/scoring';
 import { getLevel } from '@/lib/levels';
 import '@/styles/pages/Dashboard.css';
 import '@/styles/pages/Assistant.css';
@@ -27,12 +27,9 @@ export default function DashboardPage() {
     goals,
     logsByDate,
     identityProfile,
-    nutritionTargets,
-    nutritionIntake,
+
   } = useUserData();
 
-  const score = calcDailyScore({ habits, dayLog, focusToday, journal, goals, logsByDate, nutritionTargets, nutritionIntake });
-  const habitsPct = todayProgress(habits, dayLog);
   const weekPct = weekProgress(habits, logsByDate);
   const level = getLevel(identityProfile.totalScore ?? 0);
   const journalDone = isJournalCompleteForDailyScore(journal);
@@ -60,10 +57,7 @@ export default function DashboardPage() {
             ) : null
           ))}
         </nav>
-        <div className="polished-score">
-          <strong>{score}</strong>
-          <span>{level.title}</span>
-        </div>
+
       </header>
 
       <section className="polished-main-grid">
@@ -81,7 +75,6 @@ export default function DashboardPage() {
               <h2>Habits</h2>
               <div className="system-three-buttons">
                 <PreviewMetric label="Habits done" value={`${completedHabits}/${habits.length}`} />
-                <PreviewMetric label="Today" value={`${habitsPct}%`} />
                 <PreviewMetric label="Week avg" value={`${weekPct}%`} />
               </div>
             </section>

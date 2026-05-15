@@ -1775,3 +1775,66 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Fine tune after Daniel notes */
+.polished-nav-row {
+  grid-template-columns: 210px minmax(0, 1fr);
+}
+
+.health-card-title {
+  font-size: clamp(2.05rem, 3.2vw, 3.7rem);
+  letter-spacing: -0.055em;
+}
+
+.health-overview-card .preview-metric {
+  min-height: clamp(70px, 9vh, 98px);
+}
+
+.health-overview-card .preview-metric strong {
+  font-size: clamp(1.25rem, 1.55vw, 1.8rem);
+}
+
+.system-three-card {
+  gap: 8px;
+  padding: clamp(10px, 1vw, 14px);
+}
+
+.system-three-section {
+  grid-template-columns: minmax(70px, 0.48fr) minmax(0, 1.52fr);
+  gap: 8px;
+  padding: clamp(9px, 0.9vw, 12px);
+  border-radius: 16px;
+}
+
+.system-three-section h2 {
+  font-size: clamp(1.25rem, 1.8vw, 2.05rem);
+}
+
+.system-three-buttons {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.system-three-buttons > div,
+.system-three-buttons .preview-metric {
+  min-height: clamp(42px, 6vh, 62px);
+  border-radius: 11px;
+  font-size: clamp(0.66rem, 0.82vw, 0.85rem);
+  line-height: 1.05;
+}
+
+.system-three-buttons .preview-metric strong {
+  font-size: clamp(0.95rem, 1.2vw, 1.35rem);
+}
+
+.system-three-buttons .preview-metric span {
+  margin-top: 4px;
+  font-size: 0.46rem;
+  letter-spacing: 0.09em;
+}
+
+@media (max-width: 1180px) {
+  .polished-nav-row {
+    grid-template-columns: 1fr;
+  }
+}
