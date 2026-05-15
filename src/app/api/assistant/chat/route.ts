@@ -218,6 +218,40 @@ async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant
   }
 }
 
+function fallbackMemoryFromUserMessage(userMessage: string): AssistantMemoryCandidate | null {
+  const text = userMessage.trim();
+  const normalized = text.toLowerCase();
+  const explicitSave = ['remember', 'save this', 'note this', 'keep track'].some((signal) => normalized.includes(signal));
+  if (!explicitSave) return null;
+
+  const cleaned = text
+    .replace(/^remember\s+(that\s+)?/i, '')
+    .replace(/^save this\s*:?\s*/i, '')
+    .replace(/^note this\s*:?\s*/i, '')
+    .trim();
+
+  if (!cleaned) return null;
+
+  const type = normalized.includes('priority') || normalized.includes('project') || normalized.includes('noen')
+    ? 'project'
+    : normalized.includes('money') || normalized.includes('business')
+      ? 'business'
+      : normalized.includes('school') || normalized.includes('calc')
+        ? 'school'
+        : normalized.includes('fitness') || normalized.includes('workout')
+          ? 'fitness'
+          : 'system';
+
+  return {
+    text: cleaned,
+    type,
+    sensitivity: 'low',
+    tags: ['explicit-memory'],
+    reason: 'Daniel explicitly asked Noen to remember this.',
+    status: 'pending',
+  };
+}
+
 async function saveAssistantState(uid: string, userMessage: string, result: AssistantModelResult) {
   const db = getAdminDb();
   const threadRef = db.collection('users').doc(uid).collection('assistantThreads').doc('default');
@@ -229,7 +263,10 @@ async function saveAssistantState(uid: string, userMessage: string, result: Assi
   await threadRef.collection('messages').add({ role: 'user', content: userMessage, createdAt: FieldValue.serverTimestamp() });
   await threadRef.collection('messages').add({ role: 'assistant', content: result.reply, createdAt: FieldValue.serverTimestamp() });
 
-  await Promise.all(result.memoryUpdates.map((candidate) => {
+  const fallbackMemory = result.memoryUpdates.length === 0 ? fallbackMemoryFromUserMessage(userMessage) : null;
+  const memoryUpdates = fallbackMemory ? [fallbackMemory] : result.memoryUpdates;
+
+  await Promise.all(memoryUpdates.map((candidate) => {
     const status = candidate.status === 'approved' || shouldAutoApproveMemory(candidate) ? 'approved' : 'pending';
     return db.collection('users').doc(uid).collection('assistantMemory').add({
       text: candidate.text,
@@ -292,6 +329,8 @@ export async function POST(req: Request) {
     ];
 
     const result = await callOpenAI(messages);
+    const fallbackMemory = result.memoryUpdates.length === 0 ? fallbackMemoryFromUserMessage(message) : null;
+    const memoryUpdateCount = result.memoryUpdates.length + (fallbackMemory ? 1 : 0);
 
     if (persistenceEnabled) {
       try {
@@ -305,7 +344,7 @@ export async function POST(req: Request) {
       reply: result.reply,
       actions: result.actions,
       persistenceEnabled,
-      memoryUpdates: result.memoryUpdates.length,
+      memoryUpdates: memoryUpdateCount,
       vaultDraftsQueued: persistenceEnabled ? result.vaultDrafts.length : 0,
     });
   } catch (e) {
