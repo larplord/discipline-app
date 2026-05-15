@@ -23,6 +23,33 @@ type RoutineForm = {
   majorIntervalMinutes: 5 | 15;
 };
 
+type RoutineCardModel = Routine & { placeholder?: boolean; forcedStatus?: 'complete' | 'upcoming'; forcedPct?: number };
+
+const PLACEHOLDER_ROUTINES: RoutineCardModel[] = [
+  {
+    id: '__placeholder-morning',
+    name: 'Morning',
+    startTime: '06:00',
+    endTime: '08:00',
+    majorIntervalMinutes: 15,
+    steps: {},
+    placeholder: true,
+    forcedStatus: 'complete',
+    forcedPct: 100,
+  },
+  {
+    id: '__placeholder-night',
+    name: 'Night',
+    startTime: '20:00',
+    endTime: '22:00',
+    majorIntervalMinutes: 15,
+    steps: {},
+    placeholder: true,
+    forcedStatus: 'upcoming',
+    forcedPct: 0,
+  },
+];
+
 export default function RoutinePage() {
   const { uid } = useUserData();
   const [routines, setRoutines] = useState<Routine[]>([]);
@@ -51,16 +78,18 @@ export default function RoutinePage() {
     return () => clearInterval(timer);
   }, []);
 
+  const routineCards = useMemo<RoutineCardModel[]>(() => [...PLACEHOLDER_ROUTINES, ...routines], [routines]);
+
   const summary = useMemo(() => {
     let running = 0;
-    let complete = 0;
+    let complete = 1;
     for (const routine of routines) {
       const status = getRoutineProgress(routine.startTime, routine.endTime, now).status;
       if (status === 'running') running += 1;
       if (status === 'complete') complete += 1;
     }
-    return { running, complete };
-  }, [routines, now]);
+    return { saved: routineCards.length, running, complete };
+  }, [routines, routineCards.length, now]);
 
   function updateForm<K extends keyof RoutineForm>(key: K, value: RoutineForm[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -100,20 +129,27 @@ export default function RoutinePage() {
   }
 
   return (
-    <div className="fade-in">
-      <div className="page-header">
-        <h1 className="page-title">Routine</h1>
-        <p className="page-subtitle">Plan a simple clock-based routine and watch the minutes light up as you move through it.</p>
-      </div>
+    <div className="routine-hud-page fade-in">
+      <div className="routine-hud-bg" aria-hidden="true" />
+      <header className="routine-hud-header">
+        <div>
+          <h1>Routine</h1>
+          <p>Build repeatable timelines for morning, night, and future operating blocks.</p>
+        </div>
+        <Link href="/dashboard" className="routine-dashboard-link">← Dashboard</Link>
+      </header>
 
-      <div className="page-body routine-page">
+      <div className="page-body routine-page routine-hud-body">
         {error && <div className="routine-alert">{error}</div>}
 
-        <section className="routine-top-grid">
-          <form className="routine-create card" onSubmit={createRoutine}>
-            <div>
-              <div className="routine-section-title">Create routine</div>
-              <p className="routine-section-sub">Start with a name and a clear time window.</p>
+        <section className="routine-command-grid">
+          <form className="routine-create card routine-hud-panel" onSubmit={createRoutine}>
+            <div className="routine-panel-heading">
+              <span className="routine-panel-icon" aria-hidden="true">▦</span>
+              <div>
+                <div className="routine-section-title">Create routine</div>
+                <p className="routine-section-sub">Start with a name and a clear time window.</p>
+              </div>
             </div>
             <label>
               <span className="section-label">Routine name</span>
@@ -139,32 +175,28 @@ export default function RoutinePage() {
                 <option value={15}>Every 15 minutes</option>
               </select>
             </label>
-            <button type="submit" className="btn btn-primary" disabled={busy}>
-              Create Routine
+            <button type="submit" className="btn btn-primary routine-create-button" disabled={busy}>
+              <span>+</span> Create Routine
             </button>
           </form>
 
-          <div className="routine-summary card">
-            <div className="routine-section-title">Today&apos;s routines</div>
+          <section className="routine-summary card routine-hud-panel">
+            <div className="routine-panel-heading">
+              <span className="routine-panel-icon" aria-hidden="true">⌖</span>
+              <div className="routine-section-title">Today&apos;s routines</div>
+            </div>
+            <div className="routine-card-grid">
+              {routineCards.map((routine) => (
+                <RoutineCard key={routine.id} routine={routine} now={now} />
+              ))}
+            </div>
             <div className="routine-summary-stats">
-              <SummaryStat value={routines.length} label="Saved" tone="accent" />
+              <SummaryStat value={summary.saved} label="Saved" tone="accent" />
               <SummaryStat value={summary.running} label="Running" tone="green" />
               <SummaryStat value={summary.complete} label="Complete" tone="gold" />
             </div>
-          </div>
-        </section>
-
-        {routines.length === 0 ? (
-          <div className="card empty-state">
-            <p>No routines yet. Create one for a morning block, workout block, or night reset.</p>
-          </div>
-        ) : (
-          <section className="routine-card-grid">
-            {routines.map((routine) => (
-              <RoutineCard key={routine.id} routine={routine} now={now} />
-            ))}
           </section>
-        )}
+        </section>
       </div>
     </div>
   );
@@ -179,11 +211,14 @@ function SummaryStat({ value, label, tone }: { value: number; label: string; ton
   );
 }
 
-function RoutineCard({ routine, now }: { routine: Routine; now: Date }) {
-  const progress = getRoutineProgress(routine.startTime, routine.endTime, now);
+function RoutineCard({ routine, now }: { routine: RoutineCardModel; now: Date }) {
+  const computedProgress = getRoutineProgress(routine.startTime, routine.endTime, now);
+  const progress = routine.forcedStatus
+    ? { status: routine.forcedStatus === 'complete' ? 'complete' : 'upcoming', pct: routine.forcedPct ?? 0 }
+    : computedProgress;
   const duration = getRoutineDuration(routine.startTime, routine.endTime) ?? 0;
-  return (
-    <Link href={`/routine/${routine.id}`} className="routine-card card">
+  const content = (
+    <>
       <div className="routine-card-top">
         <div>
           <h3>{routine.name}</h3>
@@ -200,8 +235,14 @@ function RoutineCard({ routine, now }: { routine: Routine; now: Date }) {
       </div>
       <div className="routine-card-footer">
         <span>{progress.pct}% today</span>
-        <span>Open timeline</span>
+        <span>{routine.placeholder ? 'Placeholder' : 'Open timeline'}</span>
       </div>
-    </Link>
+    </>
   );
+
+  if (routine.placeholder) {
+    return <div className="routine-card card routine-placeholder-card">{content}</div>;
+  }
+
+  return <Link href={`/routine/${routine.id}`} className="routine-card card">{content}</Link>;
 }
