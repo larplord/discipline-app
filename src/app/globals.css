@@ -1040,3 +1040,33 @@ h1, h2, h3 {
   border-color: rgba(0, 229, 255, 0.28);
   color: #BFF8FF;
 }
+
+/* Exact command-center palette update */
+:root {
+  --bg-primary: #050A12;
+  --bg-secondary: #0B1624;
+  --bg-card: #102033;
+  --bg-card-hover: #13283f;
+  --bg-elevated: #102033;
+  --accent: #00E5FF;
+  --accent-light: #38BDF8;
+  --accent-glow: rgba(0, 229, 255, 0.18);
+  --accent-faint: rgba(0, 229, 255, 0.075);
+  --electric-blue: #008CFF;
+  --gold: #FFB000;
+  --gold-light: #FFB000;
+  --gold-glow: rgba(255, 176, 0, 0.13);
+  --green: #00FF9C;
+  --green-light: #00FF9C;
+  --green-faint: rgba(0, 255, 156, 0.09);
+  --red: #FF2E2E;
+  --red-faint: rgba(255, 46, 46, 0.1);
+  --orange: #FF6A00;
+  --text-primary: #E6F7FF;
+  --text-secondary: #8FB6C9;
+  --text-muted: #5D7F91;
+  --text-faint: #5D7F91;
+  --border: rgba(93, 127, 145, 0.18);
+  --border-accent: rgba(0, 229, 255, 0.34);
+  --sidebar-bg: rgba(5, 10, 18, 0.96);
+}

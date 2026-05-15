@@ -213,7 +213,7 @@ I found one likely matching fitness habit. Use the button below to mark it compl
     <section className={`assistant-chat-card ${compact ? 'assistant-chat-dashboard' : ''}`}>
       <div className="assistant-chat-header">
         <div>
-          <span>Private Daniel-only assistant</span>
+          <span>Noen online</span>
           <h2>{compact ? 'Noen Command Chat' : 'Ask Noen'}</h2>
         </div>
         <span className="assistant-status">Context online</span>

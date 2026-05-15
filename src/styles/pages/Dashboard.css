@@ -2061,3 +2061,17 @@
     min-height: 78px;
   }
 }
+
+/* Make Noen chat text easier to read */
+.polished-ai-stage .assistant-message {
+  font-size: clamp(1rem, 1.05vw, 1.12rem);
+}
+
+.polished-ai-stage .assistant-message p {
+  font-size: inherit;
+  line-height: 1.55;
+}
+
+.polished-ai-stage .assistant-input-row input {
+  font-size: 1rem;
+}

@@ -432,3 +432,17 @@
 }
 .assistant-message.user { background: rgba(0,229,255,0.12); border-color: rgba(0,229,255,0.22); }
 .assistant-status { color: #78F3FF; border-color: rgba(0,229,255,0.24); background: rgba(0,229,255,0.055); }
+
+/* Larger assistant text */
+.assistant-message {
+  font-size: 1rem;
+}
+
+.assistant-message p {
+  font-size: inherit;
+  line-height: 1.58;
+}
+
+.assistant-input-row input {
+  font-size: 1rem;
+}
