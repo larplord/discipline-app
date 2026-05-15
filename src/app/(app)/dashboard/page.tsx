@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { AssistantChat } from '@/components/AssistantChat';
 import { useUserData } from '@/components/UserDataProvider';
-import { todayProgress, weekProgress, isJournalCompleteForDailyScore } from '@/lib/scoring';
+import { weekProgress, isJournalCompleteForDailyScore } from '@/lib/scoring';
 import { getLevel } from '@/lib/levels';
 import '@/styles/pages/Dashboard.css';
 import '@/styles/pages/Assistant.css';

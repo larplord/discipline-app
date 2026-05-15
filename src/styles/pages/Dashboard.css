@@ -1940,3 +1940,124 @@
 .polished-nav-row {
   grid-template-columns: minmax(0, 1fr);
 }
+
+/* Chat + top nav polish */
+.polished-nav-row {
+  min-height: 92px;
+}
+
+.polished-tabs {
+  grid-template-columns: repeat(6, minmax(128px, 1fr));
+  gap: 12px;
+}
+
+.polished-tab {
+  min-height: 92px;
+  align-content: center;
+  border-radius: 22px;
+  padding: 14px 16px;
+  font-size: clamp(0.95rem, 1.18vw, 1.18rem);
+  background-position: center;
+}
+
+.polished-center-stack {
+  grid-template-rows: minmax(0, 1fr) minmax(122px, 0.2fr);
+}
+
+.polished-ai-stage {
+  display: flex;
+  min-height: 0;
+  padding: 0;
+}
+
+.polished-ai-stage .assistant-chat-dashboard {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 26px;
+}
+
+.polished-ai-stage .assistant-chat-header {
+  flex: 0 0 auto;
+  align-items: center;
+  padding: clamp(18px, 1.7vw, 26px) clamp(20px, 2vw, 32px) 12px;
+}
+
+.polished-ai-stage .assistant-chat-header h2 {
+  margin-top: 6px;
+  font-size: clamp(2.15rem, 3.4vw, 4rem);
+  line-height: 0.9;
+}
+
+.polished-ai-stage .assistant-messages {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 8px clamp(18px, 2vw, 32px) 0;
+  padding: clamp(14px, 1.4vw, 20px);
+  border: 1px solid rgba(103, 232, 249, 0.11);
+  border-radius: 22px;
+  background: rgba(1, 8, 15, 0.38);
+}
+
+.polished-ai-stage .assistant-message {
+  max-width: min(720px, 84%);
+  padding: 13px 15px;
+  border-radius: 18px;
+  font-size: 0.9rem;
+}
+
+.polished-ai-stage .assistant-message p {
+  line-height: 1.45;
+}
+
+.polished-ai-stage .assistant-starters {
+  flex: 0 0 auto;
+  padding: 12px clamp(18px, 2vw, 32px) 0;
+  gap: 8px;
+}
+
+.polished-ai-stage .assistant-starters button {
+  padding: 8px 11px;
+  font-size: 0.7rem;
+}
+
+.polished-ai-stage .assistant-input-row {
+  flex: 0 0 auto;
+  padding: 14px clamp(18px, 2vw, 32px) clamp(18px, 1.8vw, 28px);
+}
+
+.polished-ai-stage .assistant-input-row input {
+  min-height: 46px;
+  border-radius: 16px;
+  padding: 12px 15px;
+  background: rgba(1, 8, 15, 0.82);
+}
+
+.polished-ai-stage .assistant-input-row button {
+  min-width: 86px;
+  border-radius: 16px;
+}
+
+.polished-under-chat-grid,
+.polished-under-chat-grid .polished-card {
+  min-height: 122px;
+}
+
+@media (max-width: 1180px) {
+  .polished-nav-row,
+  .polished-tab {
+    min-height: 86px;
+  }
+}
+
+@media (max-width: 760px) {
+  .polished-tabs {
+    grid-template-columns: repeat(6, minmax(118px, 1fr));
+  }
+
+  .polished-tab {
+    min-height: 78px;
+  }
+}
