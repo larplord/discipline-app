@@ -41,81 +41,83 @@ export default function DashboardPage() {
   const currentProject = 'AI Creator Product Testing System';
 
   return (
-    <main className="cockpit-dashboard fade-in">
-      <header className="cockpit-nav-row">
-        <div className="cockpit-date-chip">
+    <main className="polished-dashboard fade-in">
+      <header className="polished-nav-row">
+        <div className="polished-brand">
           <span>{format(new Date(), 'EEE · MMM d')}</span>
-          <strong>{score}</strong>
+          <strong>Command Center</strong>
         </div>
-        <nav className="cockpit-nav-tabs" aria-label="Command modules">
+        <nav className="polished-tabs" aria-label="Command modules">
           {NAV_MODULES.map((item) => (
             item.disabled ? (
-              <div key={item.label} className={`command-nav-tab command-nav-${item.tone} command-nav-disabled`} aria-disabled="true">
+              <div key={item.label} className={`polished-tab command-nav-${item.tone} command-nav-disabled`} aria-disabled="true">
                 {item.label}
               </div>
             ) : item.href ? (
-              <Link key={`${item.label}-${item.href}`} href={item.href} className={`command-nav-tab command-nav-${item.tone}`}>
+              <Link key={`${item.label}-${item.href}`} href={item.href} className={`polished-tab command-nav-${item.tone}`}>
                 {item.label}
               </Link>
             ) : null
           ))}
         </nav>
+        <div className="polished-score">
+          <strong>{score}</strong>
+          <span>{level.title}</span>
+        </div>
       </header>
 
-      <section className="cockpit-main-grid">
-        <aside className="cockpit-side cockpit-left">
-          <div className="cockpit-card cockpit-health-card" aria-disabled="true">
-            <span className="command-card-label">Apple Watch later</span>
-            <h2>Health</h2>
-            <div className="cockpit-health-placeholders">
-              <div>Sleep score</div>
-              <div>What day of gym</div>
+      <section className="polished-main-grid">
+        <aside className="polished-column polished-left-column">
+          <div className="polished-card health-overview-card">
+            <div className="polished-card-head">
+              <span>Apple Watch later</span>
+              <h2>Health</h2>
+            </div>
+            <div className="health-preview-grid">
+              <PreviewMetric label="Sleep score" value="—" />
+              <PreviewMetric label="Gym day" value="—" />
             </div>
           </div>
-          <Link href="/system" className="cockpit-card cockpit-system-card system-reference-card">
-            <section className="system-ref-section system-ref-habits">
-              <h2>Habits</h2>
-              <div className="system-ref-stats">
-                <div>
-                  <strong>{completedHabits}/{habits.length}</strong>
-                  <span>Habits done</span>
-                </div>
-                <div>
-                  <strong>{weekPct}%</strong>
-                  <span>1 week avg</span>
-                </div>
-              </div>
-            </section>
-            <section className="system-ref-section system-ref-routines">
-              <h2>Routines</h2>
-              <div className="system-ref-routine-tiles">
-                <div>Fav 1 routine</div>
-                <div>Fav 2 routine</div>
-              </div>
-            </section>
-            <section className="system-ref-section system-ref-goals">
-              <h2>Goals</h2>
-              <div className="system-ref-goal-tiles">
-                <div>Long term goal</div>
-                <div>Short term goal</div>
-              </div>
-            </section>
+
+          <Link href="/system" className="polished-card system-overview-card">
+            <div className="polished-card-head">
+              <span>Daily operating system</span>
+              <h2>System</h2>
+            </div>
+            <div className="system-overview-stats">
+              <PreviewMetric label="Habits done" value={`${completedHabits}/${habits.length}`} />
+              <PreviewMetric label="Today" value={`${habitsPct}%`} />
+              <PreviewMetric label="Week avg" value={`${weekPct}%`} />
+              <PreviewMetric label="Goals" value={activeGoals} />
+            </div>
+            <div className="system-mini-lanes">
+              <div><span>Routines</span><strong>Fav 1 · Fav 2</strong></div>
+              <div><span>Goals</span><strong>Long term · Short term</strong></div>
+            </div>
           </Link>
         </aside>
 
-        <section className="cockpit-center">
-          <div className="cockpit-assistant-panel">
-            <AssistantChat mode="dashboard" />
-          </div>
+        <section className="polished-ai-stage">
+          <AssistantChat mode="dashboard" />
         </section>
 
-        <aside className="cockpit-side cockpit-right">
-          <CockpitCard href="/projects" title="Projects" label="Current push" detail={`${currentProject}. Keep shipping visible proof, not just planning.`} />
-          <div className="cockpit-card cockpit-focus-card">
-            <span className="command-card-label">Quick start</span>
-            <h2>Focus</h2>
-            <p>{focusToday} focus sessions today. Start one clean block.</p>
-            <div className="command-focus-buttons">
+        <aside className="polished-column polished-right-column">
+          <Link href="/projects" className="polished-card projects-overview-card">
+            <div className="polished-card-head">
+              <span>Current push</span>
+              <h2>Projects</h2>
+            </div>
+            <p>{currentProject}</p>
+            <small>Keep shipping visible proof, not just planning.</small>
+          </Link>
+
+          <div className="polished-card focus-overview-card">
+            <div className="polished-card-head">
+              <span>Quick start</span>
+              <h2>Focus</h2>
+            </div>
+            <p>{focusToday} focus sessions today.</p>
+            <div className="polished-focus-grid">
               <Link href="/focus">Deep work 60</Link>
               <Link href="/focus">Deep work 30</Link>
               <Link href="/focus">Short break</Link>
@@ -125,27 +127,29 @@ export default function DashboardPage() {
         </aside>
       </section>
 
-      <section className="cockpit-bottom-grid">
-        <CockpitCard href="/journal" title="Journal" label="Memory input" detail={journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'} />
-        <CockpitCard href="/identity" title="Identity" label="Rank / progression" detail={`${level.title} · ${Math.round(identityProfile.totalScore ?? 0)} XP`} />
+      <section className="polished-bottom-grid">
+        <Link href="/journal" className="polished-card">
+          <div className="polished-card-head">
+            <span>Memory input</span>
+            <h2>Journal</h2>
+          </div>
+          <p>{journalDone ? 'Debrief complete. Memory has signal.' : 'Debrief not done yet. Capture the lesson tonight.'}</p>
+        </Link>
+        <Link href="/identity" className="polished-card">
+          <div className="polished-card-head">
+            <span>Rank / progression</span>
+            <h2>Identity</h2>
+          </div>
+          <p>{level.title} · {Math.round(identityProfile.totalScore ?? 0)} XP</p>
+        </Link>
       </section>
     </main>
   );
 }
 
-function CockpitCard({ href, title, label, detail }: { href: string; title: string; label: string; detail: string }) {
+function PreviewMetric({ label, value }: { label: string; value: string | number }) {
   return (
-    <Link href={href} className="cockpit-card">
-      <span className="command-card-label">{label}</span>
-      <h2>{title}</h2>
-      <p>{detail}</p>
-    </Link>
-  );
-}
-
-function Metric({ value, label }: { value: string | number; label: string }) {
-  return (
-    <div className="command-metric">
+    <div className="preview-metric">
       <strong>{value}</strong>
       <span>{label}</span>
     </div>
