@@ -9,8 +9,8 @@ import { getLevel } from '@/lib/levels';
 import '@/styles/pages/Dashboard.css';
 import '@/styles/pages/Assistant.css';
 
-const NAV_MODULES = [
-  { href: '/fitness/bodybuilding', label: 'Health', tone: 'health' },
+const NAV_MODULES: Array<{ label: string; tone: string; href?: string; disabled?: boolean }> = [
+  { label: 'Health', tone: 'health', disabled: true },
   { href: '/projects', label: 'Money', tone: 'money' },
   { href: '/journal', label: 'Memory', tone: 'memory' },
   { href: '/focus', label: 'Risk', tone: 'risk' },
@@ -49,16 +49,29 @@ export default function DashboardPage() {
         </div>
         <nav className="cockpit-nav-tabs" aria-label="Command modules">
           {NAV_MODULES.map((item) => (
-            <Link key={`${item.label}-${item.href}`} href={item.href} className={`command-nav-tab command-nav-${item.tone}`}>
-              {item.label}
-            </Link>
+            item.disabled ? (
+              <div key={item.label} className={`command-nav-tab command-nav-${item.tone} command-nav-disabled`} aria-disabled="true">
+                {item.label}
+              </div>
+            ) : item.href ? (
+              <Link key={`${item.label}-${item.href}`} href={item.href} className={`command-nav-tab command-nav-${item.tone}`}>
+                {item.label}
+              </Link>
+            ) : null
           ))}
         </nav>
       </header>
 
       <section className="cockpit-main-grid">
         <aside className="cockpit-side cockpit-left">
-          <CockpitCard href="/fitness/bodybuilding" title="Health" label="Body system" detail="Training, nutrition, recovery, and body progress." />
+          <div className="cockpit-card cockpit-health-card" aria-disabled="true">
+            <span className="command-card-label">Apple Watch later</span>
+            <h2>Health</h2>
+            <div className="cockpit-health-placeholders">
+              <div>Sleep score</div>
+              <div>What day of gym</div>
+            </div>
+          </div>
           <Link href="/system" className="cockpit-card cockpit-system-card">
             <span className="command-card-label">Daily system</span>
             <h2>Habits / Goals / Routines</h2>

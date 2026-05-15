@@ -1113,3 +1113,45 @@
     min-height: 600px;
   }
 }
+
+.command-nav-disabled {
+  cursor: default;
+  user-select: none;
+}
+
+.command-nav-disabled:hover {
+  transform: none;
+  filter: none;
+}
+
+.cockpit-health-card {
+  cursor: default;
+}
+
+.cockpit-health-card h2 {
+  color: #00f5ff;
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  text-align: center;
+  text-shadow: 0 0 28px rgba(0, 245, 255, 0.16);
+}
+
+.cockpit-health-placeholders {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.cockpit-health-placeholders div {
+  min-height: clamp(48px, 7vh, 72px);
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #e3f4ff 0%, #cfe7f7 100%);
+  color: #02070c;
+  font-size: clamp(1.1rem, 2.1vw, 1.8rem);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
