@@ -135,17 +135,26 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
       await Promise.all(autoActions.map((action) => applyAction(action)));
       const autoLabels = autoActions.map((action) => action.habitName ?? 'habit').join(', ');
       const reply = String(data.reply ?? '');
+      const memoryUpdates = Number(data.memoryUpdates ?? 0);
+      const vaultDraftsQueued = Number(data.vaultDraftsQueued ?? 0);
+      const persistenceEnabled = data.persistenceEnabled !== false;
+      const memoryStatusLines = [
+        !persistenceEnabled ? '⚠️ Memory backend offline: this chat used app snapshot fallback, so long-term memory was not saved.' : '',
+        persistenceEnabled && memoryUpdates > 0 ? `🧠 Memory update queued/saved: ${memoryUpdates}. Check /memory.` : '',
+        persistenceEnabled && vaultDraftsQueued > 0 ? `🗂️ Vault draft queued: ${vaultDraftsQueued}. Check /memory.` : '',
+      ].filter(Boolean);
+      const memoryStatus = memoryStatusLines.length ? `\n\n${memoryStatusLines.join('\n')}` : '';
       setMessages((current) => [
         ...current,
         {
           role: 'assistant',
           content: autoActions.length > 0
-            ? `Logged it: ${autoLabels} marked complete. Nice work. done`
+            ? `Logged it: ${autoLabels} marked complete. Nice work.${memoryStatus} done`
             : fallbackActions.length > 0 && !reply.toLowerCase().includes('mark')
               ? `${reply}
 
-I found one likely matching fitness habit. Use the button below to mark it complete.`
-              : reply,
+I found one likely matching fitness habit. Use the button below to mark it complete.${memoryStatus}`
+              : `${reply}${memoryStatus}`,
           actions: manualActions,
         },
       ]);
