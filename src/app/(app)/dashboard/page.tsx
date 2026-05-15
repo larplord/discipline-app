@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { format } from 'date-fns';
 import { AssistantChat } from '@/components/AssistantChat';
 import { useUserData } from '@/components/UserDataProvider';
 import { todayProgress, weekProgress, isJournalCompleteForDailyScore } from '@/lib/scoring';
@@ -40,10 +39,6 @@ export default function DashboardPage() {
   return (
     <main className="polished-dashboard fade-in">
       <header className="polished-nav-row">
-        <div className="polished-brand">
-          <span>{format(new Date(), 'EEE · MMM d')}</span>
-          <strong>Command Center</strong>
-        </div>
         <nav className="polished-tabs" aria-label="Command modules">
           {NAV_MODULES.map((item) => (
             item.disabled ? (

@@ -1935,3 +1935,8 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Remove top-left brand block; nav fills row */
+.polished-nav-row {
+  grid-template-columns: minmax(0, 1fr);
+}
