@@ -83,6 +83,11 @@ export default function RoutineDetailPage() {
     }
   }
 
+  function openNextEmptyStep() {
+    const next = majorMarkers.find((marker) => !marker.task) ?? majorMarkers[0];
+    if (next) openTaskEditor(next.timeLabel, 'list');
+  }
+
   async function updateRoutineSettings(changes: Partial<Pick<Routine, 'name' | 'startTime' | 'endTime' | 'majorIntervalMinutes'>>) {
     if (!routine) return;
     const next = { ...routine, ...changes };
@@ -123,8 +128,9 @@ export default function RoutineDetailPage() {
   }
 
   return (
-    <div className="fade-in">
-      <div className="page-header">
+    <div className="routine-detail-hud fade-in">
+      <div className="routine-detail-bg" aria-hidden="true" />
+      <div className="page-header routine-detail-top">
         <Link href="/routine" className="routine-back-link">← Routine list</Link>
         <div className="routine-detail-header">
           <div>
@@ -140,7 +146,7 @@ export default function RoutineDetailPage() {
       <div className="page-body routine-page">
         {error && <div className="routine-alert">{error}</div>}
 
-        <section className="routine-settings card">
+        <section className="routine-settings card routine-control-bar">
           <label>
             <span className="section-label">Name</span>
             <input
@@ -176,7 +182,7 @@ export default function RoutineDetailPage() {
           </label>
         </section>
 
-        <section className="routine-timeline-card card">
+        <section className="routine-timeline-card card routine-detail-panel">
           <div className="routine-timeline-top">
             <div>
               <div className="routine-section-title">Timeline</div>
@@ -243,7 +249,7 @@ export default function RoutineDetailPage() {
           </div>
         </section>
 
-        <section className="routine-step-list card">
+        <section className="routine-step-list card routine-detail-panel">
           <div className="routine-timeline-top">
             <div>
               <div className="routine-section-title">Routine steps</div>
@@ -293,6 +299,9 @@ export default function RoutineDetailPage() {
               );
             })}
           </div>
+          <button type="button" className="routine-add-step-button" onClick={openNextEmptyStep}>
+            <span>+</span> Add Step
+          </button>
         </section>
       </div>
     </div>
