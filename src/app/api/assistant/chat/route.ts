@@ -3,7 +3,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin';
 import { loadAssistantContext, formatAssistantContext } from '@/lib/assistant/context';
 import { normalizeAssistantActions, type AssistantAction } from '@/lib/assistant/actions';
-import { normalizeMemorySensitivity, normalizeMemoryStatus, normalizeMemoryType, shouldAutoApproveMemory, type AssistantMemoryCandidate } from '@/lib/assistant/memory';
+import { normalizeMemorySensitivity, normalizeMemoryStatus, normalizeMemoryType, type AssistantMemoryCandidate } from '@/lib/assistant/memory';
 import { ASSISTANT_MEMORY_RULES, NOEN_PERSONALITY } from '@/lib/assistant/personality';
 
 export const runtime = 'nodejs';
@@ -97,7 +97,7 @@ Allowed memory fields:
 - memoryUpdates: 0-5 structured durable memory candidates. Shape: { text, type, sensitivity, tags, reason, status? }.
   - type must be one of: goal, project, school, money, fitness, business, preference, pattern, lesson, open_loop, vault, system.
   - sensitivity must be low, medium, or high.
-  - status may be pending or approved. Use approved only for low-risk, clearly durable operating context. Use pending for important, sensitive, uncertain, or personal context.
+  - status should be approved. Do not create pending review items; Daniel does not want a manual approval queue.
 - conversationSummary: an updated running summary, max 900 characters. Preserve important prior context and add the newest useful context.
 - vaultDrafts: 0-3 proposed Obsidian notes when Daniel explicitly asks to add/save something to the vault. Shape: { title, folder, content, reason }. These are queued for review; do not claim they were written to Obsidian.
 
@@ -110,8 +110,8 @@ Rules:
 - If you say you will log/mark/update something, include the matching action in the same JSON response.
 - Do not say an app action or vault write has already been applied unless the app confirms it.
 - If Daniel asks you to remember something, include it in memoryUpdates.
-- Do not save low-quality, duplicate, temporary, or vague memories.
-- If the memory could affect future decisions, identity, money, school, health, privacy, or long-term direction, set status pending so Daniel can review it.
+- Do not save low-quality, duplicate, temporary, vague, sensitive, or uncertain memories.
+- If something feels too sensitive or uncertain to save automatically, do not save it; mention it naturally instead of creating a review item.
 - If Daniel asks to add something to the vault, create a vaultDraft instead of pretending to write directly to local Obsidian.
 `;
 
@@ -248,7 +248,7 @@ function fallbackMemoryFromUserMessage(userMessage: string): AssistantMemoryCand
     sensitivity: 'low',
     tags: ['explicit-memory'],
     reason: 'Daniel explicitly asked Noen to remember this.',
-    status: 'pending',
+    status: 'approved',
   };
 }
 
@@ -267,7 +267,7 @@ async function saveAssistantState(uid: string, userMessage: string, result: Assi
   const memoryUpdates = fallbackMemory ? [fallbackMemory] : result.memoryUpdates;
 
   await Promise.all(memoryUpdates.map((candidate) => {
-    const status = candidate.status === 'approved' || shouldAutoApproveMemory(candidate) ? 'approved' : 'pending';
+    const status = 'approved';
     return db.collection('users').doc(uid).collection('assistantMemory').add({
       text: candidate.text,
       summary: candidate.text,

@@ -140,8 +140,8 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
       const persistenceEnabled = data.persistenceEnabled !== false;
       const memoryStatusLines = [
         !persistenceEnabled ? '⚠️ Memory backend offline: this chat used app snapshot fallback, so long-term memory was not saved.' : '',
-        persistenceEnabled && memoryUpdates > 0 ? `🧠 Memory update queued/saved: ${memoryUpdates}. Check /memory.` : '',
-        persistenceEnabled && vaultDraftsQueued > 0 ? `🗂️ Vault draft queued: ${vaultDraftsQueued}. Check /memory.` : '',
+        persistenceEnabled && memoryUpdates > 0 ? `🧠 Memory saved: ${memoryUpdates}.` : '',
+        persistenceEnabled && vaultDraftsQueued > 0 ? `🗂️ Vault draft queued: ${vaultDraftsQueued}.` : '',
       ].filter(Boolean);
       const memoryStatus = memoryStatusLines.length ? `\n\n${memoryStatusLines.join('\n')}` : '';
       setMessages((current) => [
