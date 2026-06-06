@@ -26,9 +26,9 @@ const ACTIVITY = [
 ];
 
 const NAV_ITEMS = [
-  { label: 'Projects', href: '/projects', icon: '▦' },
+  { label: 'Business', href: '/work-agents', icon: '▦' },
   { label: 'Agent', href: '/dashboard', icon: '◉', active: true },
-  { label: 'System', href: '/system', icon: '⌬' },
+  { label: 'Life', href: '/projects', icon: '⌬' },
 ];
 
 export default function DashboardPage() {

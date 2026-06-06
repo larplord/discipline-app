@@ -1,0 +1,206 @@
+.work-agents-page {
+  min-height: 100vh;
+  padding: 2rem 2rem 6.5rem;
+  color: var(--text-primary);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(96, 165, 250, 0.16), transparent 24rem),
+    radial-gradient(circle at 84% 10%, rgba(34, 211, 238, 0.12), transparent 22rem),
+    linear-gradient(135deg, #020617 0%, #08111f 52%, #030712 100%);
+}
+
+.work-agents-grid {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.78fr) minmax(360px, 1.35fr) minmax(240px, 0.72fr);
+  gap: 1rem;
+  min-height: calc(100vh - 8.5rem);
+  align-items: stretch;
+}
+
+.work-panel,
+.work-agent-card {
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  background: rgba(6, 10, 16, 0.72);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(18px);
+}
+
+.work-agents-hero,
+.work-status-panel {
+  border-radius: 2rem;
+  padding: 1.5rem;
+}
+
+.work-agents-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(34, 211, 238, 0.12), transparent 16rem),
+    rgba(6, 10, 16, 0.72);
+}
+
+.work-kicker,
+.work-agent-card span {
+  display: block;
+  color: var(--accent-light);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.work-agents-hero h1 {
+  margin: 0.65rem 0 1rem;
+  font-size: clamp(2.6rem, 6vw, 5.5rem);
+  line-height: 0.88;
+  letter-spacing: -0.08em;
+}
+
+.work-agents-hero p,
+.work-agent-card p,
+.work-status-stack p {
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.work-hero-actions {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 2rem;
+}
+
+.work-hero-actions a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3.1rem;
+  padding: 0 1rem;
+  border: 1px solid rgba(96, 165, 250, 0.18);
+  border-radius: 999px;
+  color: var(--text-primary);
+  background: rgba(96, 165, 250, 0.08);
+  font-weight: 850;
+}
+
+.work-hero-actions a::after {
+  content: '→';
+  color: var(--accent-light);
+}
+
+.work-agent-roster {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.work-agent-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.75rem;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 17rem;
+}
+
+.work-agent-card::before {
+  content: '';
+  position: absolute;
+  inset: auto -20% -34% 18%;
+  height: 12rem;
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.07);
+  filter: blur(18px);
+}
+
+.work-agent-card > div:last-child {
+  position: relative;
+  z-index: 1;
+}
+
+.work-agent-card h2 {
+  margin: 0.55rem 0 0.65rem;
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  letter-spacing: -0.055em;
+}
+
+.work-agent-card strong {
+  display: block;
+  margin-top: 1rem;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+}
+
+.work-agent-orb {
+  width: 4.4rem;
+  height: 4.4rem;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 36% 32%, rgba(255, 255, 255, 0.86), transparent 0.35rem),
+    radial-gradient(circle at 50% 54%, rgba(96, 165, 250, 0.86), rgba(37, 99, 235, 0.26) 58%, rgba(2, 6, 23, 0.76));
+  box-shadow: 0 0 48px rgba(96, 165, 250, 0.34);
+  margin-bottom: 2.5rem;
+}
+
+.work-status-panel h2 {
+  margin: 0.55rem 0 1rem;
+  font-size: 2rem;
+  letter-spacing: -0.06em;
+}
+
+.work-status-stack {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.work-status-stack article {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.9rem;
+  border: 1px solid rgba(96, 165, 250, 0.14);
+  border-radius: 1rem;
+  background: rgba(2, 6, 23, 0.34);
+}
+
+.work-status-stack span {
+  width: 0.64rem;
+  height: 0.64rem;
+  margin-top: 0.42rem;
+  border-radius: 999px;
+  background: var(--accent-light);
+  box-shadow: 0 0 18px rgba(96, 165, 250, 0.72);
+}
+
+.work-status-stack p {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 1100px) {
+  .work-agents-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .work-agent-roster {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .work-agents-page {
+    padding: 1rem 1rem 6rem;
+  }
+
+  .work-agent-roster {
+    grid-template-columns: 1fr;
+  }
+
+  .work-agent-card {
+    min-height: 14rem;
+  }
+}

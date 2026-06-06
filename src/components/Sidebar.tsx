@@ -8,6 +8,7 @@ import type { DayLog, Goal, Habit, JournalEntry, MacroSnapshot } from '@/lib/typ
 const NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: GridIcon },
   { href: '/assistant', label: 'Assistant', icon: AssistantIcon },
+  { href: '/work-agents', label: 'Work Agents', icon: BriefcaseIcon },
   { href: '/habits', label: 'Habits', icon: CheckCircleIcon },
   { href: '/goals', label: 'Goals', icon: TargetIcon },
   { href: '/projects', label: 'Projects', icon: ProjectsIcon },
@@ -191,6 +192,15 @@ function ProjectsIcon({ size = 20 }: { size?: number }) {
     <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 7h16M4 12h10M4 17h16" />
       <path strokeLinecap="round" strokeLinejoin="round" d="M17 10l3 2-3 2" />
+    </svg>
+  );
+}
+function BriefcaseIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6V5a2 2 0 012-2h2a2 2 0 012 2v1" />
+      <rect x="3" y="6" width="18" height="15" rx="2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 12h18M10 12v2h4v-2" />
     </svg>
   );
 }

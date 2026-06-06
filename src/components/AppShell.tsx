@@ -15,7 +15,7 @@ function ShellInner({ children }: { children: ReactNode }) {
   const data = useUserData();
   const router = useRouter();
   const pathname = usePathname();
-  const dashboardFullscreen = pathname === '/dashboard' || pathname === '/system' || pathname.startsWith('/goals') || pathname.startsWith('/habits') || pathname.startsWith('/routine');
+  const dashboardFullscreen = pathname === '/dashboard' || pathname === '/system' || pathname.startsWith('/work-agents') || pathname.startsWith('/goals') || pathname.startsWith('/habits') || pathname.startsWith('/routine');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const sidebarPreferenceRef = useRef(false);
@@ -210,7 +210,7 @@ function ShellInner({ children }: { children: ReactNode }) {
           <div style={{ width: 32 }} />
         </div>}
 
-        {dashboardFullscreen && pathname !== '/dashboard' && !pathname.startsWith('/habits') && !pathname.startsWith('/routine') && (
+        {dashboardFullscreen && pathname !== '/dashboard' && !pathname.startsWith('/work-agents') && !pathname.startsWith('/habits') && !pathname.startsWith('/routine') && (
           <Link href="/dashboard" className="fullscreen-dashboard-back">← Dashboard</Link>
         )}
         {children}
