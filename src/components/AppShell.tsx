@@ -8,6 +8,7 @@ import { getFirebaseAuth, getFirestoreDb } from '@/lib/firebase/client';
 import { useAuth } from '@/components/AuthProvider';
 import { UserDataProvider, useUserData } from '@/components/UserDataProvider';
 import { Sidebar } from '@/components/Sidebar';
+import { MainBottomNav, SectionTopNav, getNavSection } from '@/components/AppNavigation';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import { syncIdentityProgress } from '@/lib/syncIdentityProgress';
 
@@ -15,7 +16,8 @@ function ShellInner({ children }: { children: ReactNode }) {
   const data = useUserData();
   const router = useRouter();
   const pathname = usePathname();
-  const dashboardFullscreen = pathname === '/dashboard' || pathname === '/system' || pathname.startsWith('/work-agents') || pathname.startsWith('/goals') || pathname.startsWith('/habits') || pathname.startsWith('/routine');
+  const navSection = getNavSection(pathname);
+  const dashboardFullscreen = true;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const sidebarPreferenceRef = useRef(false);
@@ -192,7 +194,7 @@ function ShellInner({ children }: { children: ReactNode }) {
         />
       )}
 
-      <div className="main-content">
+      <div className={`main-content command-main-content ${navSection !== 'agent' ? 'has-section-nav' : ''}`}>
         {!dashboardFullscreen && <div className="mobile-topbar">
           <button
             type="button"
@@ -210,10 +212,9 @@ function ShellInner({ children }: { children: ReactNode }) {
           <div style={{ width: 32 }} />
         </div>}
 
-        {dashboardFullscreen && pathname !== '/dashboard' && !pathname.startsWith('/work-agents') && !pathname.startsWith('/habits') && !pathname.startsWith('/routine') && (
-          <Link href="/dashboard" className="fullscreen-dashboard-back">← Dashboard</Link>
-        )}
+        <SectionTopNav />
         {children}
+        <MainBottomNav />
       </div>
     </div>
   );

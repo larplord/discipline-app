@@ -25,12 +25,6 @@ const ACTIVITY = [
   'System checks placeholder',
 ];
 
-const NAV_ITEMS = [
-  { label: 'Business', href: '/work-agents', icon: '▦' },
-  { label: 'Agent', href: '/dashboard', icon: '◉', active: true },
-  { label: 'Life', href: '/projects', icon: '⌬' },
-];
-
 export default function DashboardPage() {
   return (
     <main className="agent-command-page fade-in">
@@ -82,20 +76,6 @@ export default function DashboardPage() {
           </div>
         </aside>
       </section>
-
-      <nav className="agent-bottom-nav" aria-label="Main navigation">
-        {NAV_ITEMS.map((item) => (
-          <Link
-            href={item.href}
-            key={item.label}
-            className={`agent-bottom-nav-item ${item.active ? 'active' : ''}`}
-            aria-current={item.active ? 'page' : undefined}
-          >
-            <span>{item.icon}</span>
-            <strong>{item.label}</strong>
-          </Link>
-        ))}
-      </nav>
     </main>
   );
 }

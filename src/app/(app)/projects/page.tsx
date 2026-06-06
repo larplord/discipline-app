@@ -116,7 +116,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="fade-in">
+    <div className="projects-page hud-page fade-in">
       <div className="page-header">
         <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
           <div>
