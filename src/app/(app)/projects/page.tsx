@@ -56,16 +56,7 @@ const emptyDraft: Draft = {
   progress: 0,
 };
 
-const initialProjects: Project[] = [
-  project('discipline-os', 'Discipline OS', 'Personal productivity system for habits, focus, and growth.', '◎', 'Active', 'High', 'Dashboard', 'Finalize dashboard widgets and connect live habit data.', 78, 'Today', 'May 25, 2025', 'System Architect'),
-  project('jarvis-assistant', 'Jarvis Assistant', 'AI assistant interface for voice, chat, and task automation.', '◉', 'Active', 'High', 'AI', 'Build orb interaction states and command routing.', 64, 'Yesterday', 'May 28, 2025', 'AI Designer'),
-  project('agent-workflow', 'Agent Workflow', 'Business agent system for marketing, research, and operations.', '⌘', 'Active', 'Medium', 'Automation', 'Map sub-agent roles and task handoff logic.', 51, '2 days ago', 'May 30, 2025', 'Workflow Lead'),
-  project('content-engine', 'Content Engine', 'Pipeline for generating and reviewing short-form content.', '▷', 'Needs Review', 'Medium', 'Content', 'Set up video generation loop and approval review.', 42, '3 days ago', 'May 31, 2025', 'Content Strategist'),
-  project('habit-tracker', 'Habit Tracker', 'Track habits, streaks, and consistency across routines.', '✓', 'Active', 'Low', 'Personal', 'Connect wearable data and improve analytics.', 35, 'May 14, 2025', 'Jun 10, 2025', 'Data Analyst'),
-  project('dashboard-redesign', 'Dashboard Redesign', 'Redesign the main dashboard for clarity and speed.', '▦', 'Active', 'Medium', 'Dashboard', 'Finalize new layout and micro-interactions.', 60, 'Today', 'Jun 5, 2025', 'UI/UX Designer'),
-  project('voice-command-system', 'Voice Command System', 'Advanced voice recognition and command execution.', '⌁', 'Paused', 'Low', 'AI', 'Improve intent detection accuracy.', 24, 'May 10, 2025', 'Jun 20, 2025', 'Voice Engineer'),
-  project('marketing-automation', 'Marketing Automation', 'Automated outreach, follow-ups, and campaign tracking.', '◇', 'Finished', 'Low', 'Automation', 'Review performance and optimize flows.', 100, 'May 12, 2025', 'May 12, 2025', 'Marketing Specialist'),
-];
+const initialProjects: Project[] = [];
 
 const statusFilters = ['All Projects', 'Active', 'Paused', 'Finished', 'Needs Review'];
 const categories = ['All', 'AI', 'Dashboard', 'Content', 'Automation', 'Personal'];
@@ -78,7 +69,7 @@ const files = ['habit_data_schema.json', 'widget_spec_v3.fig', 'analytics_spec_v
 export default function ProjectsPage() {
   const [screen, setScreen] = useState<Screen>('list');
   const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [selectedId, setSelectedId] = useState('discipline-os');
+  const [selectedId, setSelectedId] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Projects');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [sortBy, setSortBy] = useState('Progress');
@@ -90,7 +81,10 @@ export default function ProjectsPage() {
   const [milestoneCount, setMilestoneCount] = useState(5);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const selectedProject = projects.find((p) => p.id === selectedId) ?? projects[0];
+  const selectedProject = projects.find((p) => p.id === selectedId);
+  const hasProjects = projects.length > 0;
+  const averageProgress = hasProjects ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length) : 0;
+  const completionRate = hasProjects ? Math.round((projects.filter((p) => p.status === 'Finished').length / projects.length) * 100) : 0;
 
   const visibleProjects = useMemo(() => {
     const filtered = projects.filter((item) => {
@@ -109,9 +103,9 @@ export default function ProjectsPage() {
   const stats = [
     { label: 'Total Projects', value: String(projects.length), note: groupBy === 'None' ? 'Across all categories' : `Grouped by ${groupBy}`, icon: '◎' },
     { label: 'Active Projects', value: String(projects.filter((p) => p.status === 'Active').length), note: 'Currently in progress', icon: '◔' },
-    { label: 'Overall Progress', value: `${Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length)}%`, note: '+6% vs last 7 days', icon: '◕' },
-    { label: 'Completion Rate', value: `${Math.round((projects.filter((p) => p.status === 'Finished').length / projects.length) * 100)}%`, note: 'Completed projects', icon: '↗' },
-    { label: 'Due This Week', value: '5', note: 'Across 4 projects', icon: '▣' },
+    { label: 'Overall Progress', value: `${averageProgress}%`, note: hasProjects ? '+6% vs last 7 days' : 'No active data yet', icon: '◕' },
+    { label: 'Completion Rate', value: `${completionRate}%`, note: 'Completed projects', icon: '↗' },
+    { label: 'Due This Week', value: hasProjects ? '5' : '0', note: hasProjects ? 'Across 4 projects' : 'Nothing due yet', icon: '▣' },
   ];
 
   function openAdd(projectToEdit?: Project) {
@@ -165,7 +159,7 @@ export default function ProjectsPage() {
     return <AddProjectScreen draft={draft} setDraft={setDraft} draftSaved={draftSaved} onSaveDraft={() => setDraftSaved(true)} onCreate={createProject} onBack={() => setScreen('list')} taskCount={taskCount} setTaskCount={setTaskCount} milestoneCount={milestoneCount} setMilestoneCount={setMilestoneCount} />;
   }
 
-  if (screen === 'overview') {
+  if (screen === 'overview' && selectedProject) {
     return <ProjectOverviewScreen project={selectedProject} menuOpen={menuOpen} setMenuOpen={setMenuOpen} onBack={() => setScreen('list')} onEdit={() => openAdd(selectedProject)} onAddTask={() => setTaskCount((count) => count + 1)} taskCount={taskCount} milestoneCount={milestoneCount} setMilestoneCount={setMilestoneCount} />;
   }
 
@@ -198,29 +192,41 @@ export default function ProjectsPage() {
       </section>
 
       <section className={`projects-card-grid ${viewMode === 'list' ? 'list-mode' : ''}`} aria-label="Active project cards">
-        {visibleProjects.map((item) => <ProjectCard project={item} key={item.id} onOpen={() => { setSelectedId(item.id); setScreen('overview'); }} />)}
+        {visibleProjects.length > 0 ? visibleProjects.map((item) => <ProjectCard project={item} key={item.id} onOpen={() => { setSelectedId(item.id); setScreen('overview'); }} />) : <EmptyProjectsState onCreate={() => openAdd()} />}
       </section>
 
-      <section className="project-detail-grid-v2" aria-label="Project details">
+      {hasProjects && <section className="project-detail-grid-v2" aria-label="Project details">
         {projects.slice(0, 2).map((item) => <ProjectDetailCard project={item} key={item.id} onOpen={() => { setSelectedId(item.id); setScreen('overview'); }} />)}
-      </section>
+      </section>}
 
-      <section className="project-intel-grid">
+      {hasProjects && <section className="project-intel-grid">
         <article className="project-panel ai-summary-panel">
           <div className="panel-heading"><span className="panel-icon">☷</span><h2>AI Project Summary</h2></div>
-          <p>You have {projects.filter((p) => p.status === 'Active').length} active projects. Jarvis Assistant and Discipline OS remain the highest priorities. Content Engine is waiting on review workflow setup.</p>
-          <button type="button" className="text-link" onClick={() => { setSelectedId('discipline-os'); setScreen('overview'); }}>View AI Recommendations →</button>
+          <p>You have {projects.filter((p) => p.status === 'Active').length} active projects. The command centre is ready for your first live project.</p>
+          <button type="button" className="text-link" onClick={() => { if (projects[0]) { setSelectedId(projects[0].id); setScreen('overview'); } }}>View AI Recommendations →</button>
         </article>
         <article className="project-panel next-actions-panel">
           <div className="panel-heading"><span className="panel-icon">☑</span><h2>Next Actions</h2></div>
           <ol>{projects.slice(0, 5).map((item) => <li key={item.id}>{item.nextStep}</li>)}</ol>
-          <button type="button" className="text-link" onClick={() => { setSelectedId(projects[0].id); setScreen('overview'); }}>View all actions →</button>
+          <button type="button" className="text-link" onClick={() => { if (projects[0]) { setSelectedId(projects[0].id); setScreen('overview'); } }}>View all actions →</button>
         </article>
-      </section>
+      </section>}
 
-      <TimelinePanel projects={projects} />
-      <FooterPanels />
+      {hasProjects && <TimelinePanel projects={projects} />}
+      {hasProjects && <FooterPanels />}
     </main>
+  );
+}
+
+
+function EmptyProjectsState({ onCreate }: { onCreate: () => void }) {
+  return (
+    <article className="project-panel empty-projects-panel">
+      <span className="panel-icon">◎</span>
+      <h2>Clean slate ready</h2>
+      <p>No projects are loaded. Create your first project to populate the dashboard, timeline, actions, and overview systems.</p>
+      <button type="button" className="projects-new-button compact" onClick={onCreate}>＋ Add First Project</button>
+    </article>
   );
 }
 

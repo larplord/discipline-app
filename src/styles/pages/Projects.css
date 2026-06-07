@@ -574,3 +574,87 @@ textarea {
   .kanban-grid { grid-template-columns: 1fr; }
   .activity-list li { grid-template-columns: 1fr; gap: 0.2rem; }
 }
+
+/* Final scale-down pass for Projects: keep the layout, reduce the visual zoom. */
+.projects-hud-page {
+  width: min(1520px, calc(100% - 2.25rem));
+  padding-top: 0.45rem;
+  padding-bottom: 5.2rem;
+  font-size: 13px;
+}
+
+.projects-hero { margin-bottom: 0.65rem; }
+.projects-hero h1,
+.overview-title h1 { font-size: clamp(1.65rem, 2.45vw, 2.25rem); }
+.projects-hero p,
+.overview-title p,
+.form-panel-title p,
+.timeline-head p,
+.panel-copy { font-size: 0.78rem; }
+
+.projects-stat-grid { gap: 0.62rem; margin-bottom: 0.72rem; }
+.project-stat-card { min-height: 5.25rem; padding: 0.72rem; gap: 0.62rem; }
+.project-stat-icon,
+.project-card-icon,
+.panel-icon { width: 2.55rem; height: 2.55rem; font-size: 1.12rem; }
+.project-stat-card strong { font-size: 1.22rem; }
+
+.project-toolbar { gap: 0.5rem; margin-bottom: 0.65rem; padding-bottom: 0.5rem; }
+.toolbar-pills button,
+.view-toggle button,
+.sort-row select,
+.calendar-heading button { min-height: 1.78rem; padding: 0 0.58rem; font-size: 0.68rem; }
+.sort-row select { min-width: 8.8rem; }
+.view-toggle button { width: 2.25rem; }
+
+.projects-card-grid,
+.project-detail-grid-v2,
+.project-intel-grid,
+.project-footer-grid,
+.overview-grid { gap: 0.66rem; margin-top: 0.66rem; }
+.project-overview-card { min-height: 10.4rem; padding: 0.86rem 1rem 0.8rem; }
+.project-title-copy h2 { font-size: 0.98rem; }
+.project-title-copy p,
+.next-step,
+.project-overview-card footer strong,
+.detail-panel dd,
+.info-list dd { font-size: 0.7rem; }
+.project-progress-line strong { font-size: 0.92rem; }
+.project-panel { padding: 0.88rem 0.96rem; }
+.panel-heading h2,
+.section-title h2,
+.project-panel h3,
+.side-panel h2 { font-size: 0.92rem; }
+
+.empty-projects-panel {
+  grid-column: 1 / -1;
+  min-height: 13rem;
+  display: grid;
+  place-items: center;
+  justify-items: center;
+  text-align: center;
+  gap: 0.65rem;
+}
+
+.empty-projects-panel p {
+  max-width: 34rem;
+  color: var(--project-muted);
+  font-size: 0.82rem;
+}
+
+.add-project-layout { grid-template-columns: minmax(0, 1fr) 20rem; gap: 0.7rem; }
+.add-main-column,
+.add-side-column { gap: 0.66rem; }
+.form-panel-title { margin-bottom: 0.65rem; }
+.hud-field,
+.choice-group { margin-bottom: 0.5rem; }
+.hud-field div { min-height: 2rem; }
+.project-card-icon.large { width: 3.55rem; height: 3.55rem; font-size: 1.72rem; }
+.overview-metric-strip { padding: 0.72rem; gap: 0.6rem; }
+.kanban-grid { gap: 0.42rem; }
+.kanban-column { min-height: 10.2rem; padding: 0.46rem; }
+.schedule-cards div { min-height: 5.6rem; padding: 0.55rem; }
+
+@media (max-width: 900px) {
+  .projects-hud-page { width: calc(100% - 0.9rem); padding-bottom: 4.8rem; }
+}
