@@ -576,3 +576,384 @@
 }
 .bb-stat-value.accent-blue { color: #38BDF8; }
 .bb-stat-value.accent-orange { color: #FFB000; }
+
+/* Health HUD reference page */
+.health-page {
+  min-height: calc(100vh - 3.9rem);
+  padding: 1.15rem min(4.2vw, 4rem) 5.2rem;
+  color: #f2feff;
+}
+
+.health-grid {
+  width: min(1460px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.02fr);
+  gap: 1.8rem 2rem;
+}
+
+.health-card,
+.health-custom-widget {
+  border-radius: 1.05rem;
+  border: 1px solid rgba(18, 243, 255, 0.5) !important;
+  overflow: hidden;
+}
+
+.health-card {
+  min-height: 27rem;
+  padding: 1.75rem 2.1rem 1.7rem;
+}
+
+.health-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1.45rem;
+  margin-bottom: 2.7rem;
+}
+
+.health-card-header h1 {
+  margin: 0;
+  color: var(--hud-cyan);
+  font-size: clamp(1.55rem, 2.3vw, 2rem);
+  line-height: 1;
+  letter-spacing: -0.055em;
+  text-shadow: 0 0 18px rgba(18, 243, 255, 0.22);
+}
+
+.health-card-header p {
+  margin-top: 0.55rem;
+  color: rgba(245, 253, 255, 0.9);
+  font-size: clamp(0.95rem, 1.25vw, 1.12rem);
+  line-height: 1.35;
+}
+
+.health-icon {
+  width: 4.6rem;
+  height: 4.6rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid rgba(18, 243, 255, 0.62);
+  color: var(--hud-cyan);
+  background: radial-gradient(circle, rgba(18, 243, 255, 0.16), rgba(0, 10, 16, 0.9));
+  box-shadow: inset 0 0 28px rgba(18, 243, 255, 0.11), 0 0 24px rgba(18, 243, 255, 0.1);
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+.water-icon {
+  font-size: 2.7rem;
+  transform: rotate(-34deg);
+}
+
+.water-progress-block {
+  margin-top: 2.2rem;
+  padding: 0 0.55rem 1.85rem;
+  border-bottom: 1px solid rgba(184, 253, 255, 0.18);
+}
+
+.water-progress-head,
+.water-progress-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.water-progress-head span,
+.factor-title {
+  color: var(--hud-cyan);
+  font-weight: 800;
+}
+
+.water-progress-head strong {
+  color: var(--hud-cyan);
+  font-size: clamp(1.55rem, 2.2vw, 2rem);
+  line-height: 1;
+}
+
+.water-progress-track {
+  height: 1.05rem;
+  margin: 0.65rem 0 0.85rem;
+  border: 1px solid rgba(18, 243, 255, 0.48);
+  border-radius: 999px;
+  background: rgba(18, 243, 255, 0.1);
+  overflow: hidden;
+  box-shadow: inset 0 0 14px rgba(0,0,0,0.55);
+}
+
+.water-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #19f4ff, var(--hud-cyan));
+  box-shadow: 0 0 24px rgba(18, 243, 255, 0.76);
+}
+
+.water-progress-foot {
+  color: var(--hud-cyan);
+  font-weight: 800;
+  font-size: 1.02rem;
+}
+
+.water-total {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  align-items: center;
+  gap: 1.55rem;
+  padding: 1.65rem 0.8rem 0;
+}
+
+.water-badge {
+  width: 6.1rem;
+  height: 6.8rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(18, 243, 255, 0.56);
+  border-radius: 1rem;
+  color: var(--hud-cyan);
+  background: rgba(1, 20, 28, 0.72);
+  box-shadow: inset 0 0 24px rgba(18, 243, 255, 0.08), 0 0 22px rgba(18, 243, 255, 0.07);
+  font-size: 3.2rem;
+}
+
+.water-total strong {
+  display: block;
+  color: rgba(245, 253, 255, 0.72);
+  font-size: clamp(2.05rem, 3.7vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.055em;
+}
+
+.water-total strong span {
+  color: var(--hud-cyan);
+  text-shadow: 0 0 18px rgba(18, 243, 255, 0.38);
+}
+
+.water-total p {
+  margin-top: 1.1rem;
+  color: rgba(245, 253, 255, 0.88);
+  font-size: clamp(0.94rem, 1.2vw, 1.08rem);
+}
+
+.energy-card { padding-bottom: 1rem; }
+.energy-card .health-card-header { margin-bottom: 0.9rem; }
+
+.health-chart {
+  position: relative;
+  height: 12.5rem;
+  margin: 0.3rem 0 1rem;
+  padding-left: 3.5rem;
+  padding-bottom: 1.95rem;
+}
+
+.health-chart svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.chart-grid {
+  stroke: rgba(18, 243, 255, 0.28);
+  stroke-width: 0.42;
+  stroke-dasharray: 1.2 1.2;
+}
+
+.chart-axis {
+  stroke: rgba(245, 253, 255, 0.68);
+  stroke-width: 0.45;
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--hud-cyan);
+  stroke-width: 1.05;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px rgba(18, 243, 255, 0.85));
+}
+
+.chart-dot {
+  fill: var(--hud-cyan);
+  stroke: rgba(245, 253, 255, 0.8);
+  stroke-width: 0.25;
+  vector-effect: non-scaling-stroke;
+}
+
+.energy-axis {
+  position: absolute;
+  color: rgba(245, 253, 255, 0.88);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.energy-axis-y {
+  left: 0.1rem;
+  top: 0.2rem;
+  bottom: 2.9rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: right;
+  min-width: 2.2rem;
+}
+
+.energy-axis-x {
+  left: 3.35rem;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+.energy-y-label {
+  position: absolute;
+  left: -0.72rem;
+  top: 45%;
+  transform: rotate(-90deg);
+  color: rgba(245, 253, 255, 0.88);
+  font-size: 0.78rem;
+}
+
+.factor-panel {
+  position: relative;
+  margin: 0.2rem 0 0;
+  padding: 1.12rem 1.1rem 0.85rem;
+  border: 1px solid rgba(18, 243, 255, 0.5);
+  border-radius: 0.85rem;
+  background: rgba(0, 9, 14, 0.62);
+}
+
+.factor-title {
+  position: absolute;
+  top: -1.15rem;
+  left: 1.1rem;
+  background: #00070b;
+  padding: 0 0.25rem;
+}
+
+.factor-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.factor-item {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr;
+  align-items: center;
+  gap: 0.62rem;
+  padding: 0 0.9rem;
+  border-right: 1px solid rgba(18, 243, 255, 0.28);
+  min-width: 0;
+}
+.factor-item:first-child { padding-left: 0; }
+.factor-item:last-child { border-right: 0; padding-right: 0; }
+
+.factor-icon {
+  color: var(--hud-cyan);
+  font-size: 2rem;
+  line-height: 1;
+  text-shadow: 0 0 14px rgba(18, 243, 255, 0.45);
+}
+
+.factor-item strong {
+  display: block;
+  color: #f5fdff;
+  font-size: 0.98rem;
+  line-height: 1.1;
+}
+
+.factor-item small {
+  display: block;
+  margin-top: 0.28rem;
+  color: rgba(245, 253, 255, 0.72);
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.health-custom-widget {
+  position: relative;
+  min-height: 15.2rem;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 2rem;
+  text-align: center;
+  isolation: isolate;
+}
+
+.widget-orbit {
+  position: absolute;
+  inset: auto 0 0;
+  height: 63%;
+  opacity: 0.42;
+  background:
+    radial-gradient(ellipse at 16% 78%, transparent 0 28%, rgba(18, 243, 255, 0.58) 29%, transparent 31%),
+    radial-gradient(ellipse at 86% 78%, transparent 0 24%, rgba(18, 243, 255, 0.52) 25%, transparent 27%),
+    linear-gradient(14deg, transparent 44%, rgba(18, 243, 255, 0.35) 45%, transparent 46%),
+    linear-gradient(-14deg, transparent 44%, rgba(18, 243, 255, 0.28) 45%, transparent 46%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.custom-question {
+  width: 4rem;
+  height: 4rem;
+  display: grid;
+  place-items: center;
+  margin-bottom: 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(18, 243, 255, 0.6);
+  color: var(--hud-cyan);
+  font-size: 2.4rem;
+  font-weight: 700;
+  background: rgba(0, 10, 16, 0.7);
+  box-shadow: 0 0 20px rgba(18, 243, 255, 0.12), inset 0 0 20px rgba(18, 243, 255, 0.08);
+}
+
+.health-custom-widget h2 {
+  color: var(--hud-cyan);
+  font-size: clamp(1.1rem, 1.6vw, 1.45rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.health-custom-widget p {
+  margin: 0.55rem 0 0.9rem;
+  color: rgba(245, 253, 255, 0.9);
+}
+
+.health-custom-widget button {
+  min-width: 8.7rem;
+  border: 1px solid rgba(18, 243, 255, 0.62);
+  border-radius: 0.35rem;
+  background: rgba(0, 10, 16, 0.62);
+  color: var(--hud-cyan);
+  font: inherit;
+  font-weight: 800;
+  padding: 0.58rem 1.05rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.health-custom-widget button:hover {
+  background: rgba(18, 243, 255, 0.12);
+  box-shadow: 0 0 18px rgba(18, 243, 255, 0.18);
+}
+
+@media (max-width: 1100px) {
+  .health-grid { grid-template-columns: 1fr; }
+  .health-card { min-height: auto; }
+}
+
+@media (max-width: 760px) {
+  .health-page { padding-inline: 1rem; }
+  .health-card { padding: 1.25rem; }
+  .health-card-header { align-items: flex-start; gap: 0.9rem; margin-bottom: 1.4rem; }
+  .health-icon { width: 3.35rem; height: 3.35rem; font-size: 1.8rem; }
+  .water-total { grid-template-columns: 1fr; gap: 0.9rem; }
+  .factor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.9rem 0; }
+  .factor-item:nth-child(2) { border-right: 0; }
+  .health-chart { padding-left: 2.8rem; }
+  .energy-axis-x { font-size: 0.65rem; }
+}
