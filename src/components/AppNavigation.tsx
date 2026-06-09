@@ -25,7 +25,7 @@ const BUSINESS_NAV: NavItem[] = [
 
 const LIFE_NAV: NavItem[] = [
   { label: 'Health', href: '/fitness', icon: '✚' },
-  { label: 'Sleep', href: '/routine', icon: '☾' },
+  { label: 'Sleep', href: '/fitness/sleep', icon: '☾' },
   { label: 'Daily', href: '/habits', icon: '☼' },
   { label: '???', href: '/goals', icon: '?' },
 ];
@@ -75,7 +75,7 @@ export function SectionTopNav() {
   return (
     <nav className="hud-section-nav" aria-label={`${section} section navigation`}>
       {items.map((item) => {
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = pathname === item.href || (item.href !== '/fitness' && pathname.startsWith(`${item.href}/`));
         return (
           <Link
             href={item.href}
