@@ -1,10 +1,5 @@
+import { hevyWorkoutData } from '@/data/hevyWorkoutData';
 import '@/styles/pages/Fitness.css';
-
-const prs = [
-  { lift: 'Bench Press', value: '225 lb', date: 'May 12' },
-  { lift: 'Romanian Deadlift', value: '315 lb', date: 'May 10' },
-  { lift: 'Pull Ups', value: '+5 lbs', date: 'May 8' },
-];
 
 const quickAdds = ['+8 oz', '+12 oz', '+16 oz', '+24 oz'];
 
@@ -34,17 +29,17 @@ const supplements = [
 ];
 
 const coachWins = [
-  'Training volume is up 12% this week.',
-  'Recovery score is strong—keep it up.',
-  'You’re hitting your protein target consistently.',
-  'Steps and movement are on track.',
+  'Hevy archive imported: 100 workouts and 1,132 logged sets.',
+  'Lat pulldown, Smith bench, and pec deck are carrying the most total volume.',
+  'Latest week is active again with 2 sessions logged.',
+  'Leg extension and squat both posted strong recent top sets on Jun 2.',
 ];
 
 const coachFocus = [
-  'Hydration is a bit low—aim for 96 oz daily.',
-  'Slight calorie deficit—good for body comp.',
-  'Sleep could be longer by ~30–60 min.',
-  'Add a 10–15 min mobility session on rest days.',
+  'Current week is 33% below the previous active week—add 1–2 sessions if recovery allows.',
+  'Latest session was arms and shoulders; rotate back to legs or pull work next.',
+  'Keep the heavy lower-body pattern warm: squat, RDL, leg extension, hamstring curl.',
+  'Connect the Hevy API later for automatic sync; this view is powered by the CSV import.',
 ];
 
 function CardMenu() {
@@ -86,6 +81,8 @@ function StepsBars() {
 }
 
 export default function HealthPage() {
+  const { nextMilestone } = hevyWorkoutData;
+
   return (
     <main className="health-page health-command-page hud-page fade-in">
       <section className="health-dashboard-grid">
@@ -97,47 +94,69 @@ export default function HealthPage() {
             </div>
             <div className="hevy-emblem" aria-hidden="true">⌘</div>
           </header>
-          <div className="sync-state"><span /> Connected to Hevy</div>
-          <p className="sync-time">Last synced: Today, 8:42 AM <span aria-hidden="true">↻</span></p>
+          <div className="sync-state"><span /> Hevy CSV imported</div>
+          <p className="sync-time">Last synced: {hevyWorkoutData.lastSynced} · {hevyWorkoutData.dateRange} <span aria-hidden="true">↻</span></p>
 
           <div className="hevy-split-box">
             <div className="split-current">
               <span className="mini-icon">⌁</span>
-              <small>Current split</small>
-              <strong>Push / Pull / Legs (PPL)</strong>
+              <small>Training archive</small>
+              <strong>{hevyWorkoutData.totalWorkouts} workouts · {hevyWorkoutData.totalSets.toLocaleString()} sets · {hevyWorkoutData.totalVolume.toLocaleString()} lb moved</strong>
             </div>
             <div className="workout-pair">
               <div>
                 <small>Last workout</small>
-                <strong>Pull – Back &amp; Biceps</strong>
-                <span>May 15, 2025</span>
+                <strong>{hevyWorkoutData.latestWorkout.name}</strong>
+                <span>{hevyWorkoutData.latestWorkout.display} · {hevyWorkoutData.latestWorkout.sets} sets · {hevyWorkoutData.latestWorkout.volume.toLocaleString()} lb</span>
                 <em>✓</em>
               </div>
               <div>
-                <small>Next workout</small>
-                <strong>Legs – Quads &amp; Hamstrings</strong>
-                <span>May 17, 2025</span>
-                <em>→</em>
+                <small>Previous workout</small>
+                <strong>{hevyWorkoutData.previousWorkout.name}</strong>
+                <span>{hevyWorkoutData.previousWorkout.display} · {hevyWorkoutData.previousWorkout.sets} sets · {hevyWorkoutData.previousWorkout.volume.toLocaleString()} lb</span>
+                <em>↺</em>
               </div>
             </div>
             <div className="hevy-bottom-grid">
               <div>
                 <small>Weekly volume</small>
-                <strong>18,450 lb</strong>
-                <span className="positive">+12% vs last week</span>
+                <strong>{hevyWorkoutData.weeklyVolume.toLocaleString()} lb</strong>
+                <span className="hevy-warning">{hevyWorkoutData.weeklyVolumeChange}</span>
               </div>
               <div>
                 <small>Workouts this week</small>
-                <strong>4 / 6</strong>
-                <div className="mini-progress-dots"><span /><span /><span /><span /><i /><i /></div>
+                <strong>{hevyWorkoutData.workoutsThisWeek} / {hevyWorkoutData.weeklyGoal}</strong>
+                <div className="mini-progress-dots">
+                  {Array.from({ length: hevyWorkoutData.weeklyGoal }).map((_, index) => (
+                    index < hevyWorkoutData.workoutsThisWeek ? <span key={index} /> : <i key={index} />
+                  ))}
+                </div>
               </div>
               <div>
                 <small className="cyan-text">Recent PRs</small>
                 <ul className="pr-list">
-                  {prs.map((pr) => <li key={pr.lift}><span>{pr.lift}</span><strong>{pr.value}</strong><em>{pr.date}</em></li>)}
+                  {hevyWorkoutData.prs.map((pr) => <li key={pr.lift}><span>{pr.lift}</span><strong>{pr.value}</strong><em>{pr.date}</em></li>)}
                 </ul>
-                <LinkAction>View all PRs</LinkAction>
+                <LinkAction>Imported from CSV</LinkAction>
               </div>
+            </div>
+            <div className="hevy-import-grid">
+              <section>
+                <small>Recent sessions</small>
+                <div className="hevy-session-list">
+                  {hevyWorkoutData.recentWorkouts.map((workout) => (
+                    <p key={`${workout.name}-${workout.date}`}><span>{workout.date}</span><strong>{workout.name}</strong><em>{workout.sets} sets · {workout.volume}</em></p>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <small>Top volume lifts</small>
+                <div className="hevy-session-list">
+                  {hevyWorkoutData.topVolume.map((lift) => (
+                    <p key={lift.name}><span>{lift.maxWeight}</span><strong>{lift.name}</strong><em>{lift.sets} sets · {lift.volume}</em></p>
+                  ))}
+                </div>
+              </section>
             </div>
           </div>
         </article>
@@ -147,16 +166,16 @@ export default function HealthPage() {
             <div className="title-cluster"><span className="panel-icon">♕</span><h1>Next Gym Milestone</h1></div>
           </header>
           <p className="target-label">Target Lift</p>
-          <h2>Bench Press <span>245 lb</span></h2>
-          <p className="record-label">Personal record: 225 lb</p>
-          <div className="milestone-arc" aria-label="92 percent milestone progress"><span>92%</span><small>of the way there</small></div>
-          <div className="milestone-scale"><span><strong>225 lb</strong><small>Current</small></span><span><strong>245 lb</strong><small>Goal</small></span></div>
+          <h2>{nextMilestone.lift} <span>{nextMilestone.goal}</span></h2>
+          <p className="record-label">{nextMilestone.recordLabel}</p>
+          <div className="milestone-arc" aria-label={`${nextMilestone.progress} percent milestone progress`}><span>{nextMilestone.progress}%</span><small>of the way there</small></div>
+          <div className="milestone-scale"><span><strong>{nextMilestone.current}</strong><small>Current</small></span><span><strong>{nextMilestone.goal}</strong><small>Goal</small></span></div>
           <div className="milestone-stats">
-            <div><span>♙</span><strong>10 lb</strong><small>To go</small></div>
-            <div><span>◷</span><strong>2–3</strong><small>Sessions est.</small></div>
-            <div><span>⌁</span><strong>1–2 weeks</strong><small>Est. time</small></div>
+            <div><span>♙</span><strong>{nextMilestone.remaining}</strong><small>To go</small></div>
+            <div><span>◷</span><strong>{nextMilestone.sessionsEstimate}</strong><small>Sessions est.</small></div>
+            <div><span>⌁</span><strong>{nextMilestone.source}</strong><small>Data source</small></div>
           </div>
-          <p className="panel-note">☆ Stay consistent and you’ve got this.</p>
+          <p className="panel-note">☆ {nextMilestone.note}</p>
         </article>
 
         <article className="health-panel hydration-panel hud-card">

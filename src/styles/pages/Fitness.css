@@ -683,6 +683,15 @@
 .pr-list li { display:grid; grid-template-columns:1fr auto auto; gap:0.55rem; color:#f7feff; font-size:0.72rem; }
 .pr-list strong { font-size:0.74rem; }
 .pr-list em { color:rgba(238,254,255,0.48); font-style:normal; }
+.hevy-warning { color:#f4c14e !important; }
+.hevy-import-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); border-top:1px solid rgba(18,243,255,0.13); }
+.hevy-import-grid section { padding:0.95rem 1rem; border-right:1px solid rgba(18,243,255,0.13); }
+.hevy-import-grid section:last-child { border-right:0; }
+.hevy-session-list { display:grid; gap:0.38rem; margin-top:0.45rem; }
+.hevy-session-list p { display:grid; grid-template-columns:auto 1fr auto; gap:0.6rem; align-items:baseline; margin:0; color:rgba(238,254,255,0.82); font-size:0.72rem; }
+.hevy-session-list span { color:var(--hud-cyan); font-weight:800; font-variant-numeric:tabular-nums; }
+.hevy-session-list strong { color:#f7feff; font-size:0.76rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hevy-session-list em { color:rgba(238,254,255,0.55); font-style:normal; text-align:right; }
 .health-link-action { display:inline-flex; align-items:center; gap:0.45rem; color:var(--hud-cyan); font-weight:800; font-size:0.78rem; margin-top:0.55rem; }
 
 .target-label { margin: 1.15rem 0 0.28rem; color:rgba(238,254,255,0.62); font-size:0.72rem; }
@@ -792,7 +801,8 @@
   .hevy-panel, .coach-panel { grid-column:auto; }
   .sync-state, .sync-time { margin-left:0; margin-top:0.5rem; }
   .hevy-emblem { width:4.8rem; height:4.8rem; margin-right:0; }
-  .workout-pair > div, .hevy-bottom-grid > div, .coach-grid section { border-right:0; border-bottom:1px solid rgba(18,243,255,.12); }
+  .workout-pair > div, .hevy-bottom-grid > div, .hevy-import-grid section, .coach-grid section { border-right:0; border-bottom:1px solid rgba(18,243,255,.12); }
+  .hevy-import-grid { grid-template-columns:1fr; }
   .quick-add-grid { grid-template-columns:repeat(2,1fr); }
   .coach-grid section { padding-right:0; padding-bottom:0.7rem; }
   .consistency-card button { position:static; margin-top:0.4rem; }
