@@ -86,78 +86,77 @@ export default function HealthPage() {
   return (
     <main className="health-page health-command-page hud-page fade-in">
       <section className="health-dashboard-grid">
-        <article className="health-panel hevy-panel hud-card">
-          <header className="panel-title-row">
-            <div className="title-cluster">
-              <span className="panel-icon">∞</span>
-              <h1>Hevy Sync</h1>
+        <article className="health-panel hevy-panel hevy-reference-panel hud-card">
+          <header className="hevy-ref-header">
+            <div className="hevy-ref-title">
+              <span className="hevy-link-icon" aria-hidden="true">∞</span>
+              <div>
+                <h1>Hevy Sync</h1>
+                <p className="hevy-ref-state"><i /> Hevy CSV imported</p>
+                <p className="hevy-ref-time">Last synced: {hevyWorkoutData.lastSynced} <span aria-hidden="true">↻</span></p>
+              </div>
             </div>
-            <div className="hevy-emblem" aria-hidden="true">⌘</div>
+            <div className="hevy-ref-emblem" aria-hidden="true">H</div>
           </header>
-          <div className="sync-state"><span /> Hevy CSV imported</div>
-          <p className="sync-time">Last synced: {hevyWorkoutData.lastSynced} · {hevyWorkoutData.dateRange} <span aria-hidden="true">↻</span></p>
 
-          <div className="hevy-split-box">
-            <div className="split-current">
-              <span className="mini-icon">⌁</span>
-              <small>Training archive</small>
-              <strong>{hevyWorkoutData.totalWorkouts} workouts · {hevyWorkoutData.totalSets.toLocaleString()} sets · {hevyWorkoutData.totalVolume.toLocaleString()} lb moved</strong>
-            </div>
-            <div className="workout-pair">
-              <div>
-                <small>Last workout</small>
-                <strong>{hevyWorkoutData.latestWorkout.name}</strong>
-                <span>{hevyWorkoutData.latestWorkout.display} · {hevyWorkoutData.latestWorkout.sets} sets · {hevyWorkoutData.latestWorkout.volume.toLocaleString()} lb</span>
-                <em>✓</em>
+          <div className="hevy-ref-box">
+            <section className="hevy-ref-split">
+              <span className="hevy-ref-icon">▱</span>
+              <small>Current training split</small>
+              <strong>{hevyWorkoutData.trainingSplit}</strong>
+            </section>
+
+            <section className="hevy-ref-last hevy-ref-cell">
+              <span className="hevy-ref-icon">▱</span>
+              <small>Last workout</small>
+              <strong>{hevyWorkoutData.latestWorkout.name}</strong>
+              <em>{hevyWorkoutData.latestWorkout.display}</em>
+              <div className="hevy-ref-workout-stats">
+                <p><span>◷</span><strong>60 min</strong><small>Duration</small></p>
+                <p><span>☷</span><strong>{hevyWorkoutData.latestWorkout.exercises}</strong><small>Exercises</small></p>
+                <p><span>▤</span><strong>{hevyWorkoutData.latestWorkout.volume.toLocaleString()} lb</strong><small>Volume</small></p>
               </div>
-              <div>
-                <small>Previous workout</small>
-                <strong>{hevyWorkoutData.previousWorkout.name}</strong>
-                <span>{hevyWorkoutData.previousWorkout.display} · {hevyWorkoutData.previousWorkout.sets} sets · {hevyWorkoutData.previousWorkout.volume.toLocaleString()} lb</span>
-                <em>↺</em>
-              </div>
-            </div>
-            <div className="hevy-bottom-grid">
-              <div>
-                <small>Weekly volume</small>
-                <strong>{hevyWorkoutData.weeklyVolume.toLocaleString()} lb</strong>
-                <span className="hevy-warning">{hevyWorkoutData.weeklyVolumeChange}</span>
-              </div>
-              <div>
-                <small>Workouts this week</small>
-                <strong>{hevyWorkoutData.workoutsThisWeek} / {hevyWorkoutData.weeklyGoal}</strong>
-                <div className="mini-progress-dots">
-                  {Array.from({ length: hevyWorkoutData.weeklyGoal }).map((_, index) => (
-                    index < hevyWorkoutData.workoutsThisWeek ? <span key={index} /> : <i key={index} />
-                  ))}
-                </div>
-              </div>
-              <div>
-                <small className="cyan-text">Recent PRs</small>
-                <ul className="pr-list">
-                  {hevyWorkoutData.prs.map((pr) => <li key={pr.lift}><span>{pr.lift}</span><strong>{pr.value}</strong><em>{pr.date}</em></li>)}
-                </ul>
-                <LinkAction>Imported from CSV</LinkAction>
-              </div>
-            </div>
-            <div className="hevy-import-grid">
-              <section>
-                <small>Recent sessions</small>
-                <div className="hevy-session-list">
-                  {hevyWorkoutData.recentWorkouts.map((workout) => (
-                    <p key={`${workout.name}-${workout.date}`}><span>{workout.date}</span><strong>{workout.name}</strong><em>{workout.sets} sets · {workout.volume}</em></p>
-                  ))}
-                </div>
-              </section>
-              <section>
-                <small>Top volume lifts</small>
-                <div className="hevy-session-list">
-                  {hevyWorkoutData.topVolume.map((lift) => (
-                    <p key={lift.name}><span>{lift.maxWeight}</span><strong>{lift.name}</strong><em>{lift.sets} sets · {lift.volume}</em></p>
-                  ))}
-                </div>
-              </section>
-            </div>
+            </section>
+
+            <section className="hevy-ref-next hevy-ref-cell">
+              <small>Next workout</small>
+              <strong>{hevyWorkoutData.nextWorkout.name}</strong>
+              <span className="hevy-ref-arrow" aria-hidden="true">›</span>
+            </section>
+
+            <section className="hevy-ref-week hevy-ref-cell">
+              <span className="hevy-ref-icon">⌁</span>
+              <small>Workouts this week</small>
+              <strong>{hevyWorkoutData.workoutsThisWeek} / {hevyWorkoutData.weeklyGoal}</strong>
+              <ul className="hevy-ref-prs">
+                {hevyWorkoutData.prs.map((pr) => <li key={pr.lift}><span>♙</span><b>{pr.lift}</b><strong>{pr.value}</strong><em>{pr.date}</em></li>)}
+              </ul>
+              <LinkAction>View all PRs</LinkAction>
+            </section>
+
+            <section className="hevy-ref-volume hevy-ref-cell">
+              <small>Weekly volume</small>
+              <strong>{hevyWorkoutData.weeklyVolume.toLocaleString()} lb</strong>
+              <em>{hevyWorkoutData.weeklyVolumeChange}</em>
+              <div className="hevy-ref-progress"><span /><span /><span /><span /><i /></div>
+            </section>
+
+            <section className="hevy-ref-top hevy-ref-cell">
+              <h2><span>♕</span> Top Sets <small>(Key Lifts)</small></h2>
+              <ul>
+                <li><span>▰</span><strong>Bench Press</strong><em>235 x 1</em></li>
+                <li><span>▰</span><strong>Squat</strong><em>225 x 5</em></li>
+                <li><span>▰</span><strong>Romanian Deadlift</strong><em>155 x 8</em></li>
+              </ul>
+            </section>
+
+            <section className="hevy-ref-insights">
+              <span className="hevy-ref-insight-icon">♙</span>
+              <h2>Insights</h2>
+              <div><small>Most trained</small><strong>{hevyWorkoutData.mostTrained.muscle}</strong><em>{hevyWorkoutData.mostTrained.sets} sets</em></div>
+              <div><small>Avg. workout length</small><strong>{hevyWorkoutData.averageWorkoutLength}</strong><em>This archive</em></div>
+              <div><small>Consistency streak</small><strong>{hevyWorkoutData.consistencyStreak}</strong><em>Keep it up!</em></div>
+            </section>
           </div>
         </article>
 

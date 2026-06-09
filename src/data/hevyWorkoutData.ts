@@ -9,6 +9,17 @@ export const hevyWorkoutData = {
   weeklyVolumeChange: '-33% vs previous active week',
   workoutsThisWeek: 2,
   weeklyGoal: 4,
+  trainingSplit: 'Push / Pull / Legs (PPL)',
+  nextWorkout: {
+    name: 'Legs — Quads & Hamstrings',
+    focus: 'Lower-body rotation after latest arms session',
+  },
+  averageWorkoutLength: '70 min',
+  consistencyStreak: '7 days',
+  mostTrained: {
+    muscle: 'Back',
+    sets: 77,
+  },
   latestWorkout: {
     name: 'Arms & Shoulders',
     display: 'Jun 6, 2026',
