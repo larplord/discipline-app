@@ -26,7 +26,7 @@ const BUSINESS_NAV: NavItem[] = [
 const LIFE_NAV: NavItem[] = [
   { label: 'Health', href: '/fitness', icon: '✚' },
   { label: 'Sleep', href: '/fitness/sleep', icon: '☾' },
-  { label: 'Daily', href: '/habits', icon: '☼' },
+  { label: 'Daily', href: '/fitness/daily', icon: '☼' },
   { label: '???', href: '/goals', icon: '?' },
 ];
 
