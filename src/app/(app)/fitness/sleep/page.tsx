@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import '@/styles/pages/Fitness.css';
 
 const sleepStages = [
@@ -61,11 +62,11 @@ function SleepPanel({ children, className = '' }: { children: React.ReactNode; c
   return <article className={`sleep-panel hud-card ${className}`}>{children}</article>;
 }
 
-function SleepTitle({ icon, title, action }: { icon: string; title: string; action?: string }) {
+function SleepTitle({ icon, title, action, href }: { icon: string; title: string; action?: string; href?: string }) {
   return (
     <header className="sleep-card-title">
       <div><span>{icon}</span><h2>{title}</h2></div>
-      {action ? <small>{action}</small> : null}
+      {action && href ? <Link href={href}>{action}</Link> : action ? <small>{action}</small> : null}
     </header>
   );
 }
@@ -117,7 +118,7 @@ export default function SleepPage() {
         </SleepPanel>
 
         <SleepPanel>
-          <SleepTitle icon="〽" title="Sleep Stages" action="Learn more ›" />
+          <SleepTitle icon="〽" title="Sleep Stages" action="Learn more ›" href="/fitness/sleep/stages" />
           <div className="sleep-stages-body">
             <div className="sleep-donut" />
             <div className="stage-list">{sleepStages.map((stage) => <p key={stage.label}><i className={stage.tone} /><span>{stage.label}</span><strong>{stage.value}</strong><em>{stage.pct}</em></p>)}</div>
@@ -140,25 +141,25 @@ export default function SleepPage() {
 
         <SleepPanel>
           <SleepTitle icon="◷" title="Bedtime Consistency / Schedule" />
-          <div className="sleep-schedule-grid"><div className="sleep-goals"><p><small>Bedtime Goal</small><strong>10:30 <em>PM</em></strong><a>Edit</a></p><p><small>Wake Goal</small><strong>6:30 <em>AM</em></strong><a>Edit</a></p></div><ScoreRing score={86} label="Consistency" sub="7-Day" className="small" /><div className="sleep-window"><small>Avg. Bedtime Drift</small><strong>+18m</strong><em>On target</em><hr /><small>Ideal Sleep Window</small><span>10:15 PM – 6:30 AM<br />8h 15m</span></div></div>
-          <footer className="sleep-panel-foot"><span>☆ Great job being consistent! Keep it up.</span></footer>
+          <div className="sleep-schedule-grid"><div className="sleep-goals"><p><small>Bedtime Goal</small><strong>10:30 <em>PM</em></strong><Link href="/fitness/sleep/schedule">Edit</Link></p><p><small>Wake Goal</small><strong>6:30 <em>AM</em></strong><Link href="/fitness/sleep/schedule">Edit</Link></p></div><ScoreRing score={86} label="Consistency" sub="7-Day" className="small" /><div className="sleep-window"><small>Avg. Bedtime Drift</small><strong>+18m</strong><em>On target</em><hr /><small>Ideal Sleep Window</small><span>10:15 PM – 6:30 AM<br />8h 15m</span></div></div>
+          <footer className="sleep-panel-foot"><span>☆ Great job being consistent! Keep it up.</span><Link href="/fitness/sleep/schedule">Open schedule</Link></footer>
         </SleepPanel>
 
         <SleepPanel>
           <SleepTitle icon="☾" title="Wind-down / Tonight" />
           <div className="wind-grid"><div className="wind-cards"><div><small>Next Bedtime</small><strong>10:30 <em>PM</em></strong></div><div><small>Wind-down Reminder</small><strong>9:45 <em>PM</em></strong><span>45m before bed</span></div></div><div><h3>Wind-down checklist</h3>{checklist.map(([item, done]) => <p key={item}><i className={done ? 'done' : ''}>{done ? '✓' : '○'}</i>{item}</p>)}</div></div>
-          <footer className="sleep-panel-foot"><span>☆ Build a consistent wind-down routine.</span></footer>
+          <footer className="sleep-panel-foot"><span>☆ Build a consistent wind-down routine.</span><Link href="/fitness/sleep/schedule">Tune routine</Link></footer>
         </SleepPanel>
 
         <SleepPanel>
-          <SleepTitle icon="⊘" title="Sleep Factors / Notes" action="Today⌄" />
+          <SleepTitle icon="⊘" title="Sleep Factors / Notes" action="Today⌄" href="/fitness/sleep/notes" />
           <div className="sleep-factor-grid">{factors.map((factor) => <div className="sleep-factor" key={factor.label}><span className={factor.tone}>◉</span><small>{factor.label}</small><strong>{factor.value}</strong>{factor.detail ? <em>{factor.detail}</em> : null}</div>)}</div>
-          <footer className="sleep-note-add">▧ Add notes about your day <strong>⊕</strong></footer>
+          <Link href="/fitness/sleep/notes" className="sleep-note-add">▧ Add notes about your day <strong>⊕</strong></Link>
         </SleepPanel>
 
         <SleepPanel className="sleep-coach-panel">
           <header className="coach-header"><div className="title-cluster"><span className="panel-icon">✣</span><h1>AI Sleep Coach Insight</h1></div><small>Updated today, 8:42 AM</small></header>
-          <div className="coach-grid sleep-coach-grid"><section><h3>What’s going well</h3>{wins.map((item) => <p key={item}><span>◎</span>{item}</p>)}</section><section><h3>Focus next</h3>{focus.map((item) => <p key={item}><span>→</span>{item}</p>)}</section><section className="sleep-week-card"><h3>This week at a glance</h3><div className="sleep-glance"><div><small>Avg. Sleep</small><strong>7h 31m</strong></div><div><small>Avg. Score</small><strong>83</strong></div><div><small>Best Night</small><strong>8h 03m</strong><em>Sun</em></div></div><button type="button">View detailed analysis</button></section></div>
+          <div className="coach-grid sleep-coach-grid"><section><h3>What’s going well</h3>{wins.map((item) => <p key={item}><span>◎</span>{item}</p>)}</section><section><h3>Focus next</h3>{focus.map((item) => <p key={item}><span>→</span>{item}</p>)}</section><section className="sleep-week-card"><h3>This week at a glance</h3><div className="sleep-glance"><div><small>Avg. Sleep</small><strong>7h 31m</strong></div><div><small>Avg. Score</small><strong>83</strong></div><div><small>Best Night</small><strong>8h 03m</strong><em>Sun</em></div></div><Link href="/fitness/sleep/analysis">View detailed analysis</Link></section></div>
         </SleepPanel>
       </section>
     </main>

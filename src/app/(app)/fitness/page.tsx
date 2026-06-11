@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { hevyWorkoutData } from '@/data/hevyWorkoutData';
 import '@/styles/pages/Fitness.css';
 
@@ -42,12 +43,12 @@ const coachFocus = [
   'Connect the Hevy API later for automatic sync; this view is powered by the CSV import.',
 ];
 
-function CardMenu() {
-  return <span className="health-menu" aria-hidden="true">⋮</span>;
+function CardMenu({ href }: { href: string }) {
+  return <Link className="health-menu" href={href} aria-label="Open details">⋮</Link>;
 }
 
-function LinkAction({ children }: { children: React.ReactNode }) {
-  return <span className="health-link-action">{children} <span aria-hidden="true">›</span></span>;
+function LinkAction({ href, children }: { href: string; children: React.ReactNode }) {
+  return <Link className="health-link-action" href={href}>{children} <span aria-hidden="true">›</span></Link>;
 }
 
 function MiniTrendChart() {
@@ -121,7 +122,7 @@ export default function HealthPage() {
             <section className="hevy-ref-next hevy-ref-cell">
               <small>Next workout</small>
               <strong>{hevyWorkoutData.nextWorkout.name}</strong>
-              <span className="hevy-ref-arrow" aria-hidden="true">›</span>
+              <Link className="hevy-ref-arrow" href="/fitness/bodybuilding" aria-label="Open next workout">›</Link>
             </section>
 
             <section className="hevy-ref-week hevy-ref-cell">
@@ -131,7 +132,7 @@ export default function HealthPage() {
               <ul className="hevy-ref-prs">
                 {hevyWorkoutData.prs.map((pr) => <li key={pr.lift}><span>♙</span><b>{pr.lift}</b><strong>{pr.value}</strong><em>{pr.date}</em></li>)}
               </ul>
-              <LinkAction>View all PRs</LinkAction>
+              <LinkAction href="/fitness/prs">View all PRs</LinkAction>
             </section>
 
             <section className="hevy-ref-volume hevy-ref-cell">
@@ -178,18 +179,18 @@ export default function HealthPage() {
         </article>
 
         <article className="health-panel hydration-panel hud-card">
-          <header className="small-card-title"><div><span>♢</span><h2>Hydration</h2></div><CardMenu /></header>
+          <header className="small-card-title"><div><span>♢</span><h2>Hydration</h2></div><CardMenu href="/fitness/hydration" /></header>
           <small>Daily goal</small>
           <div className="metric-row"><strong>96 oz</strong><span>75%</span></div>
           <div className="health-bar"><span style={{ width: '75%' }} /></div>
           <div className="split-metric"><span><strong>72 oz</strong><small>Consumed</small></span><span><strong>24 oz</strong><small>Remaining</small></span></div>
           <p className="quick-add-label">Quick add</p>
-          <div className="quick-add-grid">{quickAdds.map((add) => <button key={add} type="button">{add}</button>)}</div>
-          <button className="log-custom" type="button">⊙ Log custom amount</button>
+          <div className="quick-add-grid">{quickAdds.map((add) => <Link key={add} href="/fitness/hydration">{add}</Link>)}</div>
+          <Link className="log-custom" href="/fitness/hydration">⊙ Log custom amount</Link>
         </article>
 
         <article className="health-panel readiness-panel hud-card">
-          <header className="small-card-title"><div><span>♡</span><h2>Recovery / Readiness</h2></div><CardMenu /></header>
+          <header className="small-card-title"><div><span>♡</span><h2>Recovery / Readiness</h2></div><CardMenu href="/fitness/sleep" /></header>
           <div className="readiness-ring"><span>82</span></div>
           <p className="readiness-label">Recovery Score</p>
           <strong className="readiness-good">Good</strong>
@@ -198,22 +199,22 @@ export default function HealthPage() {
         </article>
 
         <article className="health-panel macros-panel hud-card">
-          <header className="small-card-title"><div><span>♧</span><h2>Nutrition / Macros</h2></div><CardMenu /></header>
+          <header className="small-card-title"><div><span>♧</span><h2>Nutrition / Macros</h2></div><CardMenu href="/fitness/nutrition" /></header>
           <div className="macro-list">{macros.map((macro) => <div className="macro-line" key={macro.label}><div><span>{macro.label}</span><strong>{macro.value}</strong><em>{macro.percent}</em></div><div className={`macro-bar ${macro.tone}`}><span style={{ width: macro.width }} /></div></div>)}</div>
-          <LinkAction>View full nutrition</LinkAction>
+          <LinkAction href="/fitness/nutrition">View full nutrition</LinkAction>
         </article>
 
         <article className="health-panel body-panel hud-card">
-          <header className="small-card-title"><div><span>♙</span><h2>Body Metrics</h2></div><CardMenu /></header>
+          <header className="small-card-title"><div><span>♙</span><h2>Body Metrics</h2></div><CardMenu href="/fitness/metrics" /></header>
           <small>Bodyweight</small>
           <div className="body-main-metric"><strong>179.6 lb</strong><span>-1.6 lb<small>vs last week</small></span></div>
           <MiniTrendChart />
           <div className="body-stats"><div><small>Body Fat</small><strong>13.2%</strong><span>-0.6%</span></div><div><small>Lean Mass</small><strong>155.8 lb</strong><span>+0.8 lb</span></div><div><small>Waist</small><strong>32.1 in</strong><span>-0.3 in</span></div></div>
-          <LinkAction>View full metrics</LinkAction>
+          <LinkAction href="/fitness/metrics">View full metrics</LinkAction>
         </article>
 
         <article className="health-panel steps-panel hud-card">
-          <header className="small-card-title"><div><span>⌁</span><h2>Steps / Movement</h2></div><CardMenu /></header>
+          <header className="small-card-title"><div><span>⌁</span><h2>Steps / Movement</h2></div><CardMenu href="/fitness/daily/activity" /></header>
           <div className="metric-row"><strong>8,642 <small>/ 10,000</small></strong><span>86%</span></div>
           <div className="health-bar"><span style={{ width: '86%' }} /></div>
           <StepsBars />
@@ -222,10 +223,10 @@ export default function HealthPage() {
         </article>
 
         <article className="health-panel supplements-panel hud-card">
-          <header className="small-card-title"><div><span>✓</span><h2>Supplements / Habits</h2></div><CardMenu /></header>
+          <header className="small-card-title"><div><span>✓</span><h2>Supplements / Habits</h2></div><CardMenu href="/fitness/daily/habits" /></header>
           <small>Today</small>
           <div className="supplement-list">{supplements.map((item) => <div key={item.name}><span>◷ {item.name}</span><strong>{item.amount}</strong><em className={item.done ? 'done' : ''}>{item.done ? '✓' : '○'}</em></div>)}</div>
-          <LinkAction>Manage habits</LinkAction>
+          <LinkAction href="/fitness/daily/habits">Manage habits</LinkAction>
         </article>
 
         <article className="health-panel coach-panel hud-card">
@@ -233,7 +234,7 @@ export default function HealthPage() {
           <div className="coach-grid">
             <section><h3>What’s going well</h3>{coachWins.map((item) => <p key={item}><span>✓</span>{item}</p>)}</section>
             <section><h3>Focus next</h3>{coachFocus.map((item) => <p key={item}><span>➜</span>{item}</p>)}</section>
-            <section className="consistency-card"><h3>Weekly consistency score</h3><div className="consistency-ring"><span>87%</span></div><strong>Great week!</strong><button type="button">View weekly breakdown</button></section>
+            <section className="consistency-card"><h3>Weekly consistency score</h3><div className="consistency-ring"><span>87%</span></div><strong>Great week!</strong><Link href="/fitness/weekly">View weekly breakdown</Link></section>
           </div>
         </article>
       </section>

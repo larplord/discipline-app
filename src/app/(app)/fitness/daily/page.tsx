@@ -30,7 +30,7 @@ export default function DailyPage() {
     <main className="daily-page health-command-page hud-page fade-in">
       <header className="daily-hero">
         <div className="title-cluster"><span className="panel-icon">☼</span><div><h1>Daily</h1><p>Plan your day, stay on track, and build momentum.</p></div></div>
-        <div className="daily-date"><span>▣</span><strong>May 16, 2025</strong><small>Friday</small><button>‹</button><button>›</button></div>
+        <div className="daily-date"><span>▣</span><strong>May 16, 2025</strong><small>Friday</small><Link href="/fitness/daily/timeline">‹</Link><Link href="/fitness/daily/timeline">›</Link></div>
       </header>
 
       <section className="daily-stat-grid">
@@ -54,11 +54,11 @@ export default function DailyPage() {
           <CardLink href="/fitness/daily/checklist"><h2>Daily Checklist</h2><div className="daily-check-body"><div className="daily-ring large">60%<small>6 / 10</small></div><div>{checklist.map((item, i) => <p key={item}><b>{i < 4 ? '✓' : '○'}</b>{item}</p>)}</div></div></CardLink>
         </article>
 
-        <article className="daily-panel hud-card"><h2>Top Priorities</h2>{['Finish project proposal','Study for exam','Workout & mobility'].map((p, i) => <p className="priority-row" key={p}><b>{i+1}</b><span>{p}</span><em>{i < 2 ? 'High' : 'Medium'}</em><strong>{i !== 1 ? '✓' : '○'}</strong></p>)}<footer>Manage priorities <span>→</span></footer></article>
-        <article className="daily-panel hud-card"><h2>Focus Sessions</h2><div className="daily-progress"><span style={{width:'67%'}} /></div>{['9:00 AM – 10:30 AM Deep Work: Project','1:00 PM – 2:30 PM Study Session','4:00 PM – 5:00 PM Work Block'].map(x => <p className="daily-row" key={x}><span>{x}</span><b>○</b></p>)}<footer>View focus history <span>→</span></footer></article>
-        <article className="daily-panel hud-card small"><h2>Nutrition</h2><p className="daily-row"><span>Water</span><em>1.6 / 2 L</em><b>＋</b></p><p className="daily-row"><span>Meals</span><em>2 / 3</em><b>＋</b></p><footer>View nutrition log <span>→</span></footer></article>
+        <article className="daily-panel hud-card"><CardLink href="/fitness/daily/priorities"><h2>Top Priorities</h2>{['Finish project proposal','Study for exam','Workout & mobility'].map((p, i) => <p className="priority-row" key={p}><b>{i+1}</b><span>{p}</span><em>{i < 2 ? 'High' : 'Medium'}</em><strong>{i !== 1 ? '✓' : '○'}</strong></p>)}</CardLink></article>
+        <article className="daily-panel hud-card"><CardLink href="/fitness/daily/focus"><h2>Focus Sessions</h2><div className="daily-progress"><span style={{width:'67%'}} /></div>{['9:00 AM – 10:30 AM Deep Work: Project','1:00 PM – 2:30 PM Study Session','4:00 PM – 5:00 PM Work Block'].map(x => <p className="daily-row" key={x}><span>{x}</span><b>○</b></p>)}</CardLink></article>
+        <article className="daily-panel hud-card small"><CardLink href="/fitness/daily/nutrition"><h2>Nutrition</h2><p className="daily-row"><span>Water</span><em>1.6 / 2 L</em><b>＋</b></p><p className="daily-row"><span>Meals</span><em>2 / 3</em><b>＋</b></p></CardLink></article>
         <article className="daily-panel hud-card small"><CardLink href="/fitness/daily/wins"><h2>Daily Wins</h2>{['Completed morning routine','Hit my focus goals','Read 20 pages','Stayed consistent'].map((w,i) => <p className="daily-row" key={w}><span>{w}</span><b>{i<3?'✓':'○'}</b></p>)}</CardLink></article>
-        <article className="daily-panel hud-card small"><h2>Activity</h2><strong className="big-number">7,842</strong><small>Steps</small><div className="bar-spark">{Array.from({length:22}).map((_,i)=><i key={i} style={{height:`${15+((i*17)%55)}%`}} />)}</div><footer>View activity <span>→</span></footer></article>
+        <article className="daily-panel hud-card small"><CardLink href="/fitness/daily/activity"><h2>Activity</h2><strong className="big-number">7,842</strong><small>Steps</small><div className="bar-spark">{Array.from({length:22}).map((_,i)=><i key={i} style={{height:`${15+((i*17)%55)}%`}} />)}</div></CardLink></article>
         <article className="daily-panel hud-card full"><h2>AI Daily Insight</h2><div className="coach-grid"><section><h3>What’s going well</h3><p>Great consistency with habits.</p><p>Solid focus time — keep it up.</p><p>You’re prioritizing what matters.</p></section><section><h3>Focus on next</h3><p>Finish your top priority today.</p><p>Stay hydrated and take breaks.</p><p>Limit distractions this evening.</p></section><section><div className="daily-ring">78%</div><strong>Consistency Score</strong><p>You’re building strong momentum.</p></section></div></article>
       </section>
     </main>

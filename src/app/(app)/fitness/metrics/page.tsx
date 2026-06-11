@@ -1,0 +1,5 @@
+import { LifeDetailPage } from '@/components/fitness/LifeDetailPage';
+
+export default function MetricsDetailPage() {
+  return <LifeDetailPage eyebrow="Health" title="Body Metrics" subtitle="Manual body metrics, trend notes, and progress snapshots while device sync waits." icon="♙" backHref="/fitness" backLabel="Health" primaryAction="Add body check-in" stats={[{ label: 'Bodyweight', value: '179.6 lb', note: '-1.6 vs last week' }, { label: 'Body fat', value: '13.2%', note: 'manual estimate' }, { label: 'Waist', value: '32.1 in', note: '-0.3 in' }]} items={[{ title: 'Morning weigh-in', meta: '179.6 lb', detail: 'Logged manually', tone: 'good' }, { title: 'Progress photo', meta: 'Due today', detail: 'Attach later when uploads are wired', tone: 'warn' }, { title: 'Weekly trend', meta: 'Cutting steady', detail: 'Average is moving correctly', tone: 'cyan' }]} sideTitle="Measurement protocol" sideItems={["Weigh after waking", "Measure waist once per week", "Use weekly averages, not one noisy day"]} />;
+}

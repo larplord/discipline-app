@@ -1,0 +1,5 @@
+import { LifeDetailPage } from '@/components/fitness/LifeDetailPage';
+
+export default function HydrationDetailPage() {
+  return <LifeDetailPage eyebrow="Health" title="Hydration Log" subtitle="Quick-add water, review the day, and keep the hydration card feeling live without any watch sync." icon="♢" backHref="/fitness" backLabel="Health" primaryAction="Add custom amount" stats={[{ label: 'Consumed', value: '72 oz', note: '75% of goal' }, { label: 'Remaining', value: '24 oz', note: 'before 9:30 PM' }, { label: 'Best streak', value: '12 days', note: 'hydration target' }]} items={[{ title: '+8 oz water', meta: 'Small glass', detail: 'Adds a light hydration check-in', tone: 'cyan' }, { title: '+16 oz bottle', meta: 'Common add', detail: 'Best for post-workout logging', tone: 'good' }, { title: '+24 oz shaker', meta: 'Large add', detail: 'Useful after gym or outdoor work', tone: 'warn' }]} sideTitle="Today’s routine" sideItems={["Morning bottle after wake-up", "Refill before workout", "Finish remaining water before wind-down"]} />;
+}
