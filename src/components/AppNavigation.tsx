@@ -13,7 +13,7 @@ type NavItem = {
 const MAIN_NAV: NavItem[] = [
   { label: 'Agent', href: '/dashboard', icon: '🤖', eyebrow: 'AI tools and automation' },
   { label: 'Business', href: '/work-agents', icon: '💼', eyebrow: 'Projects and operations' },
-  { label: 'Life', href: '/habits', icon: '♡', eyebrow: 'Personal growth and balance' },
+  { label: 'Life', href: '/fitness', icon: '♡', eyebrow: 'Health and personal balance' },
 ];
 
 const BUSINESS_NAV: NavItem[] = [

@@ -5,8 +5,6 @@ import { usePathname } from 'next/navigation';
 
 const TABS = [
   { href: '/fitness/bodybuilding', label: 'Bodybuilding', match: (p: string) => p.startsWith('/fitness/bodybuilding') },
-  { href: '/fitness/page-2', label: 'Page 2', match: (p: string) => p === '/fitness/page-2' },
-  { href: '/fitness/page-3', label: 'Page 3', match: (p: string) => p === '/fitness/page-3' },
 ] as const;
 
 export function FitnessSubnav() {
