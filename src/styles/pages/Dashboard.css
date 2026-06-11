@@ -2657,3 +2657,103 @@
     padding: 3rem 0;
   }
 }
+
+/* Phone-only agent dashboard fit: desktop/tablet layout above 640px is unchanged. */
+@media (max-width: 640px) {
+  .agent-command-page {
+    min-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0.75rem 0.75rem calc(5.75rem + env(safe-area-inset-bottom, 0px));
+    background:
+      radial-gradient(circle at 50% 20%, rgba(96, 165, 250, 0.14), transparent 14rem),
+      radial-gradient(circle at 20% 75%, rgba(16, 185, 129, 0.065), transparent 12rem),
+      linear-gradient(135deg, #05070b 0%, #080b10 48%, #030509 100%);
+  }
+
+  .agent-command-grid {
+    gap: 0.85rem;
+  }
+
+  .agent-orb-stage {
+    min-height: clamp(13rem, 38dvh, 19rem);
+    padding: 1.2rem 0 0.9rem;
+  }
+
+  .agent-orb-shell {
+    width: clamp(150px, 52vw, 215px);
+    filter: drop-shadow(0 0 30px rgba(96, 165, 250, 0.36));
+  }
+
+  .agent-orb-rings {
+    box-shadow:
+      0 0 0 12px rgba(96, 165, 250, 0.022),
+      0 0 0 26px rgba(96, 165, 250, 0.015),
+      inset 0 0 38px rgba(96, 165, 250, 0.14);
+  }
+
+  .agent-panel {
+    align-self: stretch;
+    min-height: auto;
+    border-radius: 22px;
+    padding: 0.8rem;
+  }
+
+  .agent-panel-link-head,
+  .agent-panel-head-static {
+    margin-bottom: 0.75rem;
+    padding: 0.7rem 0.75rem;
+    border-radius: 16px;
+  }
+
+  .agent-panel h1 {
+    font-size: 1.45rem;
+  }
+
+  .agent-kicker {
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+  }
+
+  .agent-project-list,
+  .agent-activity-stack {
+    gap: 0.6rem;
+  }
+
+  .agent-project-card,
+  .agent-activity-card {
+    border-radius: 16px;
+    padding: 0.78rem;
+  }
+
+  .agent-project-card h2,
+  .agent-activity-card h2 {
+    font-size: 0.88rem;
+  }
+
+  .agent-project-card p,
+  .agent-activity-card p,
+  .agent-project-card > span {
+    font-size: 0.7rem;
+    line-height: 1.35;
+  }
+
+  .agent-project-card > span {
+    margin-top: 0.55rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .agent-command-page {
+    padding-left: 0.55rem;
+    padding-right: 0.55rem;
+  }
+
+  .agent-orb-stage {
+    min-height: 12rem;
+  }
+
+  .agent-orb-shell {
+    width: 142px;
+  }
+}

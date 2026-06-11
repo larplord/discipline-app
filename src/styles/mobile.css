@@ -75,3 +75,128 @@
     padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* Phone usability pass — scoped to handheld widths only. */
+@media (max-width: 640px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overscroll-behavior-x: none;
+  }
+
+  .command-main-content {
+    min-height: 100dvh;
+    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .command-main-content.has-section-nav {
+    padding-top: calc(3.65rem + env(safe-area-inset-top, 0px));
+  }
+
+  .hud-section-nav {
+    top: max(0.35rem, env(safe-area-inset-top, 0px));
+    width: calc(100vw - 0.75rem);
+    height: 3rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-radius: 0.65rem;
+  }
+
+  .hud-section-nav-item {
+    min-width: 0;
+    gap: 0.2rem;
+    padding: 0 0.18rem;
+    font-size: 0.72rem;
+    line-height: 1;
+  }
+
+  .hud-section-nav-item span {
+    font-size: 0.82rem;
+  }
+
+  .hud-section-nav-item strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hud-section-nav-item.active::after {
+    left: 24%;
+    right: 24%;
+  }
+
+  .hud-main-nav {
+    bottom: max(0.45rem, env(safe-area-inset-bottom, 0px));
+    width: calc(100vw - 0.75rem);
+    min-height: 3.65rem;
+    border-radius: 0.85rem;
+  }
+
+  .hud-main-nav-item {
+    grid-template-columns: 1fr;
+    place-items: center;
+    gap: 0.22rem;
+    min-width: 0;
+    padding: 0.42rem 0.2rem 0.5rem;
+    text-align: center;
+  }
+
+  .hud-main-icon {
+    width: 1.85rem;
+    height: 1.85rem;
+    font-size: 0.86rem;
+  }
+
+  .hud-main-copy {
+    min-width: 0;
+    display: block;
+    line-height: 1;
+  }
+
+  .hud-main-copy strong {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.72rem;
+    letter-spacing: -0.02em;
+  }
+
+  .hud-main-copy small,
+  .hud-main-arrow {
+    display: none;
+  }
+
+  .hud-main-nav-item.active::after {
+    left: 30%;
+    right: 30%;
+  }
+
+  .page-header {
+    padding: 1rem 0.9rem 0;
+    margin-bottom: 0.85rem;
+  }
+
+  .page-body {
+    padding: 0 0.9rem calc(5.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .card {
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .hud-section-nav-item {
+    font-size: 0.66rem;
+  }
+
+  .hud-section-nav-item span {
+    display: none;
+  }
+
+  .hud-main-copy strong {
+    font-size: 0.68rem;
+  }
+}
