@@ -47,9 +47,9 @@ const emptyDraft: Draft = {
   category: 'AI',
   priority: 'High',
   status: 'Active',
-  startDate: 'May 11, 2025',
-  dueDate: 'May 25, 2025',
-  agent: 'Jarvis Assistant',
+  startDate: '',
+  dueDate: '',
+  agent: '',
   tags: '',
   nextStep: '',
   notes: '',
@@ -62,9 +62,9 @@ const statusFilters = ['All Projects', 'Active', 'Paused', 'Finished', 'Needs Re
 const categories = ['All', 'AI', 'Dashboard', 'Content', 'Automation', 'Personal'];
 const agents = ['Jarvis Assistant', 'Agent Workflow', 'Content Engine', 'System Architect', 'Data Analyst', 'AI Engineer'];
 const lifecycle = ['Idea', 'Planning', 'Design', 'Build', 'Testing', 'Launch'];
-const starterTasks = ['Define project scope & objectives', 'Research & gather requirements', 'Create initial project plan', 'Design system architecture', 'Setup project environment'];
-const updates = ['Habit widgets connected successfully', 'Dashboard layout finalized and reviewed', 'System Architect commented on analytics plan', 'Wearable API issue resolved', 'Data pipeline stability improved'];
-const files = ['habit_data_schema.json', 'widget_spec_v3.fig', 'analytics_spec_v2.md', 'api_integration_guide.pdf', 'discovery_notes.docx'];
+const starterTasks: string[] = [];
+const updates: string[] = [];
+const files: string[] = [];
 
 export default function ProjectsPage() {
   const [screen, setScreen] = useState<Screen>('list');
@@ -77,8 +77,10 @@ export default function ProjectsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [draftSaved, setDraftSaved] = useState(false);
-  const [taskCount, setTaskCount] = useState(starterTasks.length);
-  const [milestoneCount, setMilestoneCount] = useState(5);
+  const [taskCount, setTaskCount] = useState(0);
+  const [metricCount, setMetricCount] = useState(0);
+  const [resourceLinks, setResourceLinks] = useState<string[]>([]);
+  const [milestoneCount, setMilestoneCount] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const selectedProject = projects.find((p) => p.id === selectedId);
@@ -118,7 +120,7 @@ export default function ProjectsPage() {
         category: projectToEdit.category,
         priority: projectToEdit.priority,
         status: projectToEdit.status,
-        startDate: 'May 11, 2025',
+        startDate: '',
         dueDate: projectToEdit.dueDate,
         agent: projectToEdit.agent,
         tags: projectToEdit.category,
@@ -133,22 +135,27 @@ export default function ProjectsPage() {
   }
 
   function createProject() {
+    if (!draft.name.trim()) {
+      setDraftSaved(true);
+      return;
+    }
+
     const created: Project = {
       id: slug(draft.name || `project-${projects.length + 1}`),
-      name: draft.name || 'Project Name',
-      description: draft.description || 'One-sentence description will appear here.',
+      name: draft.name.trim(),
+      description: draft.description.trim() || 'No data right now',
       icon: draft.category === 'Dashboard' ? '▦' : draft.category === 'Automation' ? '⌘' : draft.category === 'Content' ? '▷' : '◉',
       status: draft.status,
       priority: draft.priority,
       category: draft.category,
-      nextStep: draft.nextStep || 'Define the immediate next action.',
+      nextStep: draft.nextStep.trim() || 'No data right now',
       progress: draft.progress,
-      lastWorked: 'Today',
+      lastWorked: 'No data right now',
       dueLabel: 'Due',
-      dueDate: draft.dueDate || 'May 25, 2025',
-      agent: draft.agent || 'Not assigned',
-      blockedBy: 'Waiting on final API permissions from provider.',
-      notes: draft.notes || 'Focus on a clear goal, next step, and review cadence.',
+      dueDate: draft.dueDate.trim() || 'No data right now',
+      agent: draft.agent.trim() || 'No data right now',
+      blockedBy: 'No data right now',
+      notes: draft.notes.trim() || 'No data right now',
     };
     setProjects((current) => [created, ...current.filter((p) => p.id !== created.id)]);
     setSelectedId(created.id);
@@ -156,7 +163,7 @@ export default function ProjectsPage() {
   }
 
   if (screen === 'add') {
-    return <AddProjectScreen draft={draft} setDraft={setDraft} draftSaved={draftSaved} onSaveDraft={() => setDraftSaved(true)} onCreate={createProject} onBack={() => setScreen('list')} taskCount={taskCount} setTaskCount={setTaskCount} milestoneCount={milestoneCount} setMilestoneCount={setMilestoneCount} />;
+    return <AddProjectScreen draft={draft} setDraft={setDraft} draftSaved={draftSaved} onSaveDraft={() => setDraftSaved(true)} onCreate={createProject} onBack={() => setScreen('list')} taskCount={taskCount} setTaskCount={setTaskCount} milestoneCount={milestoneCount} setMilestoneCount={setMilestoneCount} metricCount={metricCount} setMetricCount={setMetricCount} resourceLinks={resourceLinks} setResourceLinks={setResourceLinks} />;
   }
 
   if (screen === 'overview' && selectedProject) {
@@ -213,7 +220,7 @@ export default function ProjectsPage() {
       </section>}
 
       {hasProjects && <TimelinePanel projects={projects} />}
-      {hasProjects && <FooterPanels />}
+
     </main>
   );
 }
@@ -230,8 +237,15 @@ function EmptyProjectsState({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-function AddProjectScreen({ draft, setDraft, draftSaved, onSaveDraft, onCreate, onBack, taskCount, setTaskCount, milestoneCount, setMilestoneCount }: { draft: Draft; setDraft: (draft: Draft) => void; draftSaved: boolean; onSaveDraft: () => void; onCreate: () => void; onBack: () => void; taskCount: number; setTaskCount: (updater: (count: number) => number) => void; milestoneCount: number; setMilestoneCount: (updater: (count: number) => number) => void }) {
+function AddProjectScreen({ draft, setDraft, draftSaved, onSaveDraft, onCreate, onBack, taskCount, setTaskCount, milestoneCount, setMilestoneCount, metricCount, setMetricCount, resourceLinks, setResourceLinks }: { draft: Draft; setDraft: (draft: Draft) => void; draftSaved: boolean; onSaveDraft: () => void; onCreate: () => void; onBack: () => void; taskCount: number; setTaskCount: (updater: (count: number) => number) => void; milestoneCount: number; setMilestoneCount: (updater: (count: number) => number) => void; metricCount: number; setMetricCount: (updater: (count: number) => number) => void; resourceLinks: string[]; setResourceLinks: (updater: (links: string[]) => string[]) => void }) {
   const update = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft({ ...draft, [key]: value });
+  const [linkDraft, setLinkDraft] = useState('');
+  function addResourceLink() {
+    const clean = linkDraft.trim();
+    if (!clean) return;
+    setResourceLinks((links) => [...links, clean]);
+    setLinkDraft('');
+  }
 
   return (
     <main className="projects-page projects-hud-page add-project-page fade-in">
@@ -255,15 +269,15 @@ function AddProjectScreen({ draft, setDraft, draftSaved, onSaveDraft, onCreate, 
           <FormPanel step="2" title="Project Structure & Progress" subtitle="Map the lifecycle, milestones, and success metrics.">
             <label className="range-field"><span>Initial Progress <b>{draft.progress}%</b></span><input type="range" min="0" max="100" value={draft.progress} onChange={(e) => update('progress', Number(e.target.value))} /></label>
             <div className="lifecycle-line">{lifecycle.map((item) => <span key={item}>◎<small>{item}</small></span>)}</div>
-            <div className="milestone-metric-grid"><div className="mini-table"><h3>Milestones</h3>{Array.from({ length: milestoneCount }).map((_, index) => <div key={index} className="mini-row"><span>::</span><input value={['Project Kickoff & Research', 'Design & Architecture', 'Build & Development', 'Testing & QA', 'Launch & Handover'][index] ?? `Milestone ${index + 1}`} readOnly /><button type="button">▣</button></div>)}<button type="button" className="inline-add" onClick={() => setMilestoneCount((count) => count + 1)}>＋ Add Milestone</button></div><div className="mini-table"><h3>Success Metrics / Goal Outcomes</h3>{[1, 2, 3].map((item) => <div key={item} className="mini-row metric"><span>◈</span><input value="Define a key success metric..." readOnly /></div>)}<button type="button" className="inline-add">＋ Add Metric</button></div></div>
+            <div className="milestone-metric-grid"><div className="mini-table"><h3>Milestones</h3>{milestoneCount === 0 ? <p className="empty-inline">No data right now</p> : Array.from({ length: milestoneCount }).map((_, index) => <div key={index} className="mini-row"><span>::</span><input value={`Milestone ${index + 1}`} readOnly /></div>)}<button type="button" className="inline-add" onClick={() => setMilestoneCount((count) => count + 1)}>＋ Add Milestone</button></div><div className="mini-table"><h3>Success Metrics / Goal Outcomes</h3>{metricCount === 0 ? <p className="empty-inline">No data right now</p> : Array.from({ length: metricCount }).map((_, index) => <div key={index} className="mini-row metric"><span>◈</span><input value={`Metric ${index + 1}`} readOnly /></div>)}<button type="button" className="inline-add" onClick={() => setMetricCount((count) => count + 1)}>＋ Add Metric</button></div></div>
           </FormPanel>
 
           <FormPanel step="3" title="Initial Tasks" subtitle="Define the first set of actionable tasks.">
             <button type="button" className="inline-add panel-corner" onClick={() => setTaskCount((count) => count + 1)}>＋ Add Task</button>
-            <div className="task-table">{Array.from({ length: taskCount }).map((_, index) => <div key={index} className="task-row"><span>::</span><b>{starterTasks[index] ?? `New project task ${index + 1}`}</b><small>{agents[index % agents.length]}</small><em>{index < 2 ? 'High' : index < 4 ? 'Medium' : 'Low'}</em><button type="button">•••</button></div>)}</div>
+            <div className="task-table">{taskCount === 0 ? <p className="empty-inline">No data right now</p> : Array.from({ length: taskCount }).map((_, index) => <div key={index} className="task-row"><span>::</span><b>{starterTasks[index] ?? `New project task ${index + 1}`}</b><small>{draft.agent || 'No data right now'}</small><em>{draft.priority}</em></div>)}</div>
           </FormPanel>
 
-          <FormPanel step="4" title="Resources & Files" subtitle="Upload files, references, and links that support this project."><div className="resource-grid"><UploadBox title="Needed Files" /><UploadBox title="References" /><div className="link-box"><h3>Linked Docs</h3><div><input placeholder="Paste link to document or resource..." /><button type="button">＋ Add Link</button></div><small>No links added yet</small></div></div></FormPanel>
+          <FormPanel step="4" title="Resources & Files" subtitle="Upload files, references, and links that support this project."><div className="resource-grid"><UploadBox title="Needed Files" /><UploadBox title="References" /><div className="link-box"><h3>Linked Docs</h3><div><input placeholder="Paste link to document or resource..." value={linkDraft} onChange={(event) => setLinkDraft(event.target.value)} /><button type="button" onClick={addResourceLink}>＋ Add Link</button></div><small>{resourceLinks.length === 0 ? 'No data right now' : `${resourceLinks.length} link${resourceLinks.length === 1 ? '' : 's'} added`}</small></div></div></FormPanel>
 
           <div className="bottom-create-bar"><div><span className="panel-icon tiny">◉</span><strong>Ready to create your project?</strong><small>Review all details on this page and create your project to get started.</small></div><button type="button" className="ghost-action" onClick={onSaveDraft}>Save Draft</button><button type="button" className="projects-new-button compact" onClick={onCreate}>＋ Create Project</button></div>
         </div>
@@ -282,30 +296,30 @@ function AddProjectScreen({ draft, setDraft, draftSaved, onSaveDraft, onCreate, 
 function ProjectOverviewScreen({ project, menuOpen, setMenuOpen, onBack, onEdit, onAddTask, taskCount, milestoneCount, setMilestoneCount }: { project: Project; menuOpen: boolean; setMenuOpen: (open: boolean) => void; onBack: () => void; onEdit: () => void; onAddTask: () => void; taskCount: number; milestoneCount: number; setMilestoneCount: (updater: (count: number) => number) => void }) {
   return (
     <main className="projects-page projects-hud-page overview-page fade-in">
-      <div className="page-switch-row"><button type="button" className="back-link" onClick={onBack}>← Back to Projects</button><div className="top-action-row"><button type="button" className="ghost-action cyan" onClick={onEdit}>✎ Edit Project</button><button type="button" className="ghost-action cyan" onClick={() => document.getElementById('task-board')?.scrollIntoView({ behavior: 'smooth' })}>▦ Open Board</button><button type="button" className="square-action" onClick={() => setMenuOpen(!menuOpen)}>⋮</button>{menuOpen && <div className="mini-menu"><button type="button" onClick={() => setMenuOpen(false)}>Duplicate</button><button type="button" onClick={() => setMenuOpen(false)}>Archive</button></div>}</div></div>
+      <div className="page-switch-row"><button type="button" className="back-link" onClick={onBack}>← Back to Projects</button><div className="top-action-row"><button type="button" className="ghost-action cyan" onClick={onEdit}>✎ Edit Project</button><button type="button" className="ghost-action cyan" onClick={() => document.getElementById('task-board')?.scrollIntoView({ behavior: 'smooth' })}>▦ Open Board</button><button type="button" className="square-action" onClick={() => setMenuOpen(!menuOpen)}>⋮</button>{menuOpen && <div className="mini-menu"><span>No actions available</span></div>}</div></div>
       <section className="overview-title"><div className="project-card-icon large">{project.icon}</div><div><h1>{project.name}</h1><p>{project.description}</p></div><span className="status active">{project.status}</span><span className={`priority ${slug(project.priority)}`}>{project.priority} Priority</span></section>
-      <section className="overview-metric-strip"><Metric title="Overall Progress" value={`${project.progress}%`} note="+14% vs last 7 days" progress={project.progress} /><Metric title="Last worked on" value={project.lastWorked} icon="◷" /><Metric title="Due date" value={project.dueDate} note="in 5 days" icon="▣" /><Metric title="Assigned agent" value={project.agent} icon="⌘" /><Metric title="Category" value={`${project.category} / Productivity`} icon="▱" /></section>
+      <section className="overview-metric-strip"><Metric title="Overall Progress" value={`${project.progress}%`} note="No data right now" progress={project.progress} /><Metric title="Last worked on" value={project.lastWorked} icon="◷" /><Metric title="Due date" value={project.dueDate} icon="▣" /><Metric title="Assigned agent" value={project.agent} icon="⌘" /><Metric title="Category" value={project.category} icon="▱" /></section>
 
       <section className="overview-grid two-col">
-        <article className="project-panel"><SectionTitle icon="ⓘ" title="Project Overview" /><InfoList items={[['Current Goal', project.nextStep], ['Next Step', 'Connect wearable data and improve analytics.'], ['Why It Matters', 'This system will help users build consistent habits through real-time insights and smart automation.'], ['Notes', project.notes]]} /></article>
-        <article className="project-panel"><SectionTitle icon="☷" title="AI Project Summary" /><p className="panel-copy">{project.name} is tracking well with strong progress and clear momentum. Core dashboard components are taking shape and live data integration is almost complete.</p><h4>What’s going well</h4><ul className="check-list"><li>Dashboard layout and components are finalized</li><li>Habit data pipeline is stable and performing well</li><li>Agents are actively contributing and on track</li></ul><p className="priority-note">Recommended priority <span className={`priority ${slug(project.priority)}`}>{project.priority}</span></p></article>
+        <article className="project-panel"><SectionTitle icon="ⓘ" title="Project Overview" /><InfoList items={[['Current Goal', project.nextStep], ['Next Step', 'No data right now'], ['Why It Matters', 'No data right now'], ['Notes', project.notes]]} /></article>
+        <article className="project-panel"><SectionTitle icon="☷" title="AI Project Summary" /><p className="panel-copy">No data right now.</p><h4>What’s going well</h4><ul className="check-list"><li>No data right now</li></ul><p className="priority-note">Recommended priority <span className={`priority ${slug(project.priority)}`}>{project.priority}</span></p></article>
       </section>
 
       <section className="overview-grid two-col">
-        <article className="project-panel"><SectionTitle icon="◌" title="Milestones & Timeline" /><div className="lifecycle-line compact-line">{lifecycle.map((item) => <span className={item === 'Build' ? 'active' : ''} key={item}>◎<small>{item}</small></span>)}</div><div className="simple-table">{Array.from({ length: milestoneCount }).map((_, index) => <p key={index}><span>{['Dashboard layout finalized', 'Habit widgets connected', 'Live data integration', 'Testing & polish', 'Launch & feedback'][index] ?? `Milestone ${index + 1}`}</span><small>{['May 5, 2025', 'May 12, 2025', 'May 20, 2025', 'May 25, 2025', 'May 31, 2025'][index] ?? 'Jun 4, 2025'}</small><b>{index < 2 ? 'Completed' : index === 2 ? 'In Progress' : 'Upcoming'}</b></p>)}</div><button type="button" className="inline-add" onClick={() => setMilestoneCount((count) => count + 1)}>＋ Add Milestone</button></article>
-        <article className="project-panel" id="task-board"><SectionTitle icon="▦" title="Task Board Snapshot" /><div className="kanban-grid">{['To Do', 'In Progress', 'Review', 'Done'].map((column, columnIndex) => <div key={column} className={`kanban-column col-${columnIndex}`}><h3>{column}<span>{[4, 3, 2, 6][columnIndex]}</span></h3>{Array.from({ length: columnIndex === 0 ? Math.min(taskCount, 4) : columnIndex + 1 }).map((_, index) => <p key={index}>{['Improve analytics visualizations', 'Connect wearable data API', 'Set up alert notifications', 'Dashboard layout finalized'][columnIndex] ?? `Task ${index + 1}`}</p>)}<button type="button" onClick={onAddTask}>＋ Add Task</button></div>)}</div></article>
+        <article className="project-panel"><SectionTitle icon="◌" title="Milestones & Timeline" /><div className="lifecycle-line compact-line">{lifecycle.map((item) => <span className={item === 'Build' ? 'active' : ''} key={item}>◎<small>{item}</small></span>)}</div><div className="simple-table">{milestoneCount === 0 ? <p><span>No data right now</span><small>—</small><b>Empty</b></p> : Array.from({ length: milestoneCount }).map((_, index) => <p key={index}><span>{`Milestone ${index + 1}`}</span><small>No data right now</small><b>Empty</b></p>)}</div><button type="button" className="inline-add" onClick={() => setMilestoneCount((count) => count + 1)}>＋ Add Milestone</button></article>
+        <article className="project-panel" id="task-board"><SectionTitle icon="▦" title="Task Board Snapshot" /><div className="kanban-grid">{['To Do', 'In Progress', 'Review', 'Done'].map((column, columnIndex) => <div key={column} className={`kanban-column col-${columnIndex}`}><h3>{column}<span>{columnIndex === 0 ? taskCount : 0}</span></h3>{columnIndex === 0 && taskCount > 0 ? Array.from({ length: taskCount }).map((_, index) => <p key={index}>{`Task ${index + 1}`}</p>) : <p>No data right now</p>}<button type="button" onClick={onAddTask}>＋ Add Task</button></div>)}</div></article>
       </section>
 
       <section className="overview-grid mixed">
-        <article className="project-panel"><SectionTitle icon="◎" title="Current Focus" /><InfoList items={[['Current Task', project.nextStep], ['Blocked By', project.blockedBy], ['Needed Files', 'wearable_api_docs.pdf · analytics_spec_v2.md'], ['Sub-agents Involved', 'Data Analyst · System Architect · AI Engineer']]} /></article>
-        <article className="project-panel"><SectionTitle icon="⌁" title="Recent Activity" /><ul className="activity-list">{updates.map((item, index) => <li key={item}><span>{index < 3 ? 'Today' : 'Yesterday'}, {['9:42 AM', '8:15 AM', '7:05 AM', '11:30 PM', '6:22 PM'][index]}</span>{item}<small>by {agents[index % agents.length]}</small></li>)}</ul></article>
-        <article className="project-panel"><SectionTitle icon="▤" title="Resources & Files" /><ul className="file-stack">{files.map((file) => <li key={file}>▱ <span>{file}</span></li>)}</ul><button type="button" className="text-link">View all files →</button></article>
-        <article className="project-panel"><SectionTitle icon="◇" title="Dependencies / Blockers" /><ul className="dependency-list"><li>Wearable API permissions <span className="priority high">High</span></li><li>Third-party analytics SDK <span className="priority medium">Medium</span></li><li>Data retention policy review <span className="priority low">Low</span></li></ul><button type="button" className="text-link">Manage dependencies →</button></article>
-        <article className="project-panel metrics-panel"><SectionTitle icon="⌁" title="Metrics" /><div className="metric-donut">{project.progress}%</div><div className="metric-boxes"><p><span>Open Tasks</span><b>{taskCount + 4}</b></p><p><span>Days Active</span><b>23</b></p><p><span>Upcoming Deadlines</span><b>2 / 5</b></p></div></article>
+        <article className="project-panel"><SectionTitle icon="◎" title="Current Focus" /><InfoList items={[['Current Task', project.nextStep], ['Blocked By', project.blockedBy], ['Needed Files', 'No data right now'], ['Sub-agents Involved', 'No data right now']]} /></article>
+        <article className="project-panel"><SectionTitle icon="⌁" title="Recent Activity" /><p>No data right now</p></article>
+        <article className="project-panel"><SectionTitle icon="▤" title="Resources & Files" /><p>No data right now</p></article>
+        <article className="project-panel"><SectionTitle icon="◇" title="Dependencies / Blockers" /><p>No data right now</p></article>
+        <article className="project-panel metrics-panel"><SectionTitle icon="⌁" title="Metrics" /><div className="metric-donut">{project.progress}%</div><div className="metric-boxes"><p><span>Open Tasks</span><b>{taskCount}</b></p><p><span>Days Active</span><b>0</b></p><p><span>Upcoming Deadlines</span><b>0</b></p></div></article>
       </section>
 
-      <section className="overview-grid two-col"><article className="project-panel"><SectionTitle icon="☑" title="Project Notes" /><ul className="notes-list"><li><b>Focus on data quality</b><span>Live data accuracy is critical for habit predictions.</span></li><li><b>User feedback loop</b><span>Plan an in-app feedback widget after launch.</span></li><li><b>Performance target</b><span>Dashboard load time should be under 1.5s.</span></li></ul></article><article className="project-panel next-actions-panel"><SectionTitle icon="☑" title="Next Actions" /><ol>{[project.nextStep, 'Finalize analytics dashboard and charts', 'Set up habit prediction model', 'Write integration and performance tests', 'Review and fix outstanding issues', 'Prepare for internal QA and beta testing'].map((item) => <li key={item}>{item}</li>)}</ol></article></section>
-      <article className="project-panel schedule-panel"><SectionTitle icon="▣" title="Upcoming Schedule" /><div className="schedule-cards">{['Integration Sync', 'Analytics Review', 'Milestone: Live Data Integration', 'QA Checkpoint', 'Launch & Feedback'].map((item, index) => <div key={item}><small>{['Tomorrow', 'Fri', 'Sun', 'Wed', 'Sat'][index]} · May {21 + index * 2}</small><b>{item}</b><span>{index === 2 ? 'All day' : 'Team standby & API update'}</span></div>)}</div></article>
+      <section className="overview-grid two-col"><article className="project-panel"><SectionTitle icon="☑" title="Project Notes" /><p>{project.notes}</p></article><article className="project-panel next-actions-panel"><SectionTitle icon="☑" title="Next Actions" /><ol><li>{project.nextStep}</li></ol></article></section>
+      <article className="project-panel schedule-panel"><SectionTitle icon="▣" title="Upcoming Schedule" /><p>No data right now</p></article>
     </main>
   );
 }
@@ -315,19 +329,15 @@ function ProjectCard({ project, onOpen }: { project: Project; onOpen: () => void
 }
 
 function ProjectDetailCard({ project, onOpen }: { project: Project; onOpen: () => void }) {
-  return <article className="project-panel detail-panel"><button type="button" aria-label={`Open ${project.name}`} className="detail-open" onClick={onOpen}>↗</button><div className="panel-heading"><span className="panel-icon">{project.icon}</span><h2>{project.name} <small>– Project Details</small></h2></div><dl><div><dt>Current Task</dt><dd>{project.nextStep}</dd></div><div><dt>Blocked By</dt><dd>{project.blockedBy}</dd></div><div><dt>Needed Files</dt><dd className="file-list"><span>▱ habit_data_schema.json</span><span>▱ widget_spec_v3.fig</span></dd></div><div><dt>Assigned Agent</dt><dd><span className="agent-chip">⌘ {project.agent}</span></dd></div><div><dt>Notes</dt><dd>{project.notes}</dd></div></dl></article>;
+  return <article className="project-panel detail-panel"><button type="button" aria-label={`Open ${project.name}`} className="detail-open" onClick={onOpen}>↗</button><div className="panel-heading"><span className="panel-icon">{project.icon}</span><h2>{project.name} <small>– Project Details</small></h2></div><dl><div><dt>Current Task</dt><dd>{project.nextStep}</dd></div><div><dt>Blocked By</dt><dd>{project.blockedBy}</dd></div><div><dt>Needed Files</dt><dd>No data right now</dd></div><div><dt>Assigned Agent</dt><dd><span className="agent-chip">⌘ {project.agent}</span></dd></div><div><dt>Notes</dt><dd>{project.notes}</dd></div></dl></article>;
 }
 
 function TimelinePanel({ projects }: { projects: Project[] }) {
   return <section className="project-panel timeline-panel"><div className="timeline-head"><div className="panel-heading"><span className="panel-icon">☷</span><div><h2>Project Timeline Overview</h2><p>Track projects across the full lifecycle.</p></div></div><div className="timeline-stages">{lifecycle.map((stage) => <span key={stage} className={stage === 'Build' ? 'active' : ''}>{stage}</span>)}</div></div><div className="timeline-rows">{projects.slice(0, 4).map((item) => <div className="timeline-row" key={item.id}><span>{item.name}</span><div className="timeline-track"><i style={{ width: `${item.progress}%` }} /></div><strong>{item.progress}%</strong></div>)}</div></section>;
 }
 
-function FooterPanels() {
-  return <section className="project-footer-grid"><article className="project-panel updates-panel"><h3>Recent Updates</h3><ul>{updates.slice(0, 4).map((text, index) => <li key={text}><span>{text}</span><small>{index === 0 ? 'Today 8:42 AM' : 'Yesterday 4:10 PM'}</small></li>)}</ul><button type="button" className="text-link">View all updates →</button></article><article className="project-panel insights-panel"><h3>Insights</h3><div className="insight-row cyan"><b>Most Active Project</b><span>Discipline OS<br />10 this week</span></div><div className="insight-row green"><b>Top Performer</b><span>Marketing Automation<br />100% efficiency</span></div><div className="insight-row red"><b>At Risk</b><span>Voice Command System<br />Low progress</span></div><button type="button" className="text-link">View all insights →</button></article><article className="project-panel calendar-panel"><div className="calendar-heading"><h3>Calendar Overview</h3><button type="button">This Week⌄</button></div><div className="calendar-grid">{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => <div key={day}><strong>{day}</strong><span>✓</span><span>⌘</span><span>○</span><span>◇</span></div>)}</div><button type="button" className="text-link">View full calendar →</button></article><article className="project-panel deadlines-panel"><h3>Upcoming Deadlines</h3><ul>{['Discipline OS', 'Jarvis Assistant', 'Agent Workflow', 'Content Engine'].map((name, index) => <li key={name}><span>{name}</span><small>May {25 + index * 2}, 2025</small><b>{3 + index * 3} days</b></li>)}</ul><button type="button" className="text-link">View all deadlines →</button></article></section>;
-}
-
 function ProjectPreview({ draft }: { draft: Draft }) {
-  return <SidePanel title="Project Preview" icon="◉"><div className="project-preview-card"><div className="project-card-icon tiny">▱</div><div><h3>{draft.name || 'Project Name'}</h3><p>{draft.description || 'One-sentence description will appear here...'}</p></div><span className="status active">{draft.status}</span><div className="project-progress-line"><strong>{draft.progress}%</strong><div><i style={{ width: `${draft.progress}%` }} /></div></div><footer><small>Due<br /><b>{draft.dueDate || 'May 11, 2025'}</b></small><small>Agent<br /><b>{draft.agent || 'Not assigned'}</b></small></footer></div></SidePanel>;
+  return <SidePanel title="Project Preview" icon="◉"><div className="project-preview-card"><div className="project-card-icon tiny">▱</div><div><h3>{draft.name || 'No data right now'}</h3><p>{draft.description || 'No data right now'}</p></div><span className="status active">{draft.status}</span><div className="project-progress-line"><strong>{draft.progress}%</strong><div><i style={{ width: `${draft.progress}%` }} /></div></div><footer><small>Due<br /><b>{draft.dueDate || 'No data right now'}</b></small><small>Agent<br /><b>{draft.agent || 'No data right now'}</b></small></footer></div></SidePanel>;
 }
 
 function StatCard({ label, value, note, icon }: { label: string; value: string; note: string; icon: string }) {
@@ -351,11 +361,11 @@ function ChoiceGroup({ label, options, value, onChange, variant }: { label: stri
 }
 
 function UploadBox({ title }: { title: string }) {
-  return <div className="upload-box"><h3>▱ {title}</h3><button type="button">☁<span>Drag & drop files here<br />or click to upload</span></button><small>Supported: PDF, DOCX, XLSX, PPTX, ZIP</small></div>;
+  return <div className="upload-box"><h3>▱ {title}</h3><label className="upload-button">☁<span>Choose files<br />from this device</span><input type="file" multiple hidden /></label><small>Supported: PDF, DOCX, XLSX, PPTX, ZIP</small></div>;
 }
 
 function AgentSuggestion({ name, role, tag }: { name: string; role: string; tag: string }) {
-  return <button type="button" className="agent-suggestion"><span className="project-card-icon tiny">◉</span><b>{name}<small>{role}</small></b><em>{tag}</em></button>;
+  return <div className="agent-suggestion" role="note"><span className="project-card-icon tiny">◉</span><b>{name}<small>{role}</small></b><em>{tag}</em></div>;
 }
 
 function SectionTitle({ icon, title }: { icon: string; title: string }) {
@@ -371,7 +381,7 @@ function Metric({ title, value, note, icon, progress }: { title: string; value: 
 }
 
 function project(id: string, name: string, description: string, icon: string, status: ProjectStatus, priority: Priority, category: string, nextStep: string, progress: number, lastWorked: string, dueDate: string, agent: string): Project {
-  return { id, name, description, icon, status, priority, category, nextStep, progress, lastWorked, dueLabel: status === 'Finished' ? 'Completed on' : 'Due', dueDate, agent, blockedBy: 'Waiting on live data API from wearables.', notes: 'Live data integration will unlock predictive habit insights.' };
+  return { id, name, description, icon, status, priority, category, nextStep, progress, lastWorked, dueLabel: status === 'Finished' ? 'Completed on' : 'Due', dueDate, agent, blockedBy: 'No data right now', notes: 'No data right now' };
 }
 
 function priorityWeight(priority: Priority) {

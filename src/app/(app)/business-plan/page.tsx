@@ -6,12 +6,9 @@ export default function BusinessPlanPage() {
       <section className="business-placeholder-panel hud-card">
         <span className="hud-kicker">Business</span>
         <h1>Plan</h1>
-        <p>A planning surface for business objectives, next moves, and operating routines.</p>
-        <div className="business-placeholder-list">
-          <article><span>01</span><p>Define weekly business target</p></article>
-          <article><span>02</span><p>Map active agent responsibilities</p></article>
-          <article><span>03</span><p>Review project bottlenecks</p></article>
-          <article><span>04</span><p>Prepare outreach sequence</p></article>
+        <p>No business plan data right now.</p>
+        <div className="business-placeholder-list" aria-label="Business plan empty state">
+          <article><span>—</span><p>No data right now</p></article>
         </div>
       </section>
     </main>

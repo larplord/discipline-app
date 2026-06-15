@@ -1,5 +1,5 @@
 import { LifeDetailPage } from '@/components/fitness/LifeDetailPage';
 
 export default function PrsDetailPage() {
-  return <LifeDetailPage eyebrow="Health" title="Personal Records" subtitle="A focused record board from the current Hevy CSV import. No new sync system added yet." icon="♕" backHref="/fitness" backLabel="Health" primaryAction="Review next lift" stats={[{ label: 'Tracked PRs', value: '12', note: 'from archive' }, { label: 'Latest PR', value: 'Jun 2', note: 'leg extension' }, { label: 'Next target', value: 'Bench', note: 'milestone active' }]} items={[{ title: 'Bench Press', meta: '235 x 1', detail: 'Current key lift record', tone: 'cyan' }, { title: 'Squat', meta: '225 x 5', detail: 'Strong recent lower-body marker', tone: 'good' }, { title: 'Romanian Deadlift', meta: '155 x 8', detail: 'Posterior-chain baseline', tone: 'cyan' }]} sideTitle="Next improvements" sideItems={["Keep progressive overload modest", "Rotate legs or pull work next", "Use form quality before chasing load"]} />;
+  return <LifeDetailPage eyebrow="Health" title="Personal Records" subtitle="A focused record board from the current Hevy CSV import. No new sync system added yet." icon="♕" backHref="/fitness" backLabel="Health" primaryAction="Review next lift" stats={[]} items={[]} sideTitle="Next improvements" sideItems={[]} />;
 }
