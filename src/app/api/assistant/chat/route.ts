@@ -5,6 +5,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { getAdminDb } from '@/lib/firebase/admin';
 import { assistantErrorStatus, verifyAssistantRequest } from '@/lib/assistant/auth';
 import { loadAssistantContext, formatAssistantContext } from '@/lib/assistant/context';
+import { loadLocalArchiveContext, formatLocalArchiveContext } from '@/lib/assistant/localArchive';
 import { normalizeAssistantActions, type AssistantAction } from '@/lib/assistant/actions';
 import { normalizeMemorySensitivity, normalizeMemoryStatus, normalizeMemoryType, type AssistantMemoryCandidate } from '@/lib/assistant/memory';
 import { ASSISTANT_MEMORY_RULES, NOEN_PERSONALITY } from '@/lib/assistant/personality';
@@ -28,7 +29,7 @@ type AssistantModelResult = {
 
 function formatClientSnapshot(snapshot: unknown) {
   if (!snapshot || typeof snapshot !== 'object') return 'APP SNAPSHOT\nNo app snapshot available.';
-  return `APP SNAPSHOT FROM DASHBOARD\n${JSON.stringify(snapshot, null, 2).slice(0, 12000)}\n\nPersistence note: Firebase Admin is unavailable, so long-term memory, vault index, and saved chat history are not active for this request.`;
+  return `APP SNAPSHOT FROM DASHBOARD\n${JSON.stringify(snapshot, null, 2).slice(0, 12000)}\n\nPersistence note: Firebase Admin is unavailable, so Firestore-backed dashboard memory and saved dashboard chat history are not active for this request. Local Hermes conversation archive and Obsidian vault context may still be available separately.`;
 }
 
 const ACTION_OUTPUT_RULES = `
@@ -365,6 +366,8 @@ export async function POST(req: Request) {
       persistenceEnabled = false;
     }
 
+    const localArchiveContext = await loadLocalArchiveContext(message);
+    const localArchiveText = formatLocalArchiveContext(localArchiveContext);
     const recentHistory = history.slice(-10).map((m) => ({ role: m.role, content: m.content }));
 
     const messages = [
@@ -372,6 +375,7 @@ export async function POST(req: Request) {
       { role: 'system' as const, content: ASSISTANT_MEMORY_RULES },
       { role: 'system' as const, content: ACTION_OUTPUT_RULES },
       { role: 'system' as const, content: contextText },
+      { role: 'system' as const, content: localArchiveText },
       ...recentHistory,
       { role: 'user' as const, content: message },
     ];
