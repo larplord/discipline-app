@@ -446,3 +446,94 @@
 .assistant-input-row input {
   font-size: 1rem;
 }
+/* Subagent bay */
+.assistant-subagent-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 26px 12px;
+  padding: 14px;
+  border: 1px solid rgba(0,229,255,0.16);
+  border-radius: 18px;
+  background: rgba(0,229,255,0.055);
+}
+
+.assistant-subagent-panel span,
+.assistant-subagent-runs span {
+  display: block;
+  color: #78F3FF;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.assistant-subagent-panel strong,
+.assistant-subagent-runs strong {
+  display: block;
+  margin-top: 4px;
+  color: #ffffff;
+}
+
+.assistant-subagent-panel p {
+  margin: 6px 0 0;
+  color: rgba(232, 251, 255, 0.72);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.assistant-subagent-panel button {
+  border: 1px solid rgba(0,229,255,0.28);
+  border-radius: 999px;
+  background: rgba(0,229,255,0.14);
+  color: #e8fbff;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 10px 14px;
+  white-space: nowrap;
+}
+
+.assistant-subagent-panel button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.assistant-subagent-runs {
+  display: grid;
+  gap: 10px;
+  margin: 0 26px 12px;
+}
+
+.assistant-subagent-runs article {
+  border: 1px solid rgba(0,229,255,0.12);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(5,10,18,0.5);
+}
+
+.assistant-subagent-runs ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: rgba(245, 253, 255, 0.86);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.assistant-chat-dashboard .assistant-subagent-panel,
+.assistant-chat-dashboard .assistant-subagent-runs {
+  margin-left: 14px;
+  margin-right: 14px;
+}
+
+@media (max-width: 640px) {
+  .assistant-subagent-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .assistant-subagent-panel button {
+    width: 100%;
+  }
+}
+

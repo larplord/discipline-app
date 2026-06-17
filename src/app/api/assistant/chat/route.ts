@@ -1,21 +1,21 @@
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { NextResponse } from 'next/server';
 import { FieldValue } from 'firebase-admin/firestore';
-import { getAdminAuth, getAdminDb } from '@/lib/firebase/admin';
+import { getAdminDb } from '@/lib/firebase/admin';
+import { assistantErrorStatus, verifyAssistantRequest } from '@/lib/assistant/auth';
 import { loadAssistantContext, formatAssistantContext } from '@/lib/assistant/context';
 import { normalizeAssistantActions, type AssistantAction } from '@/lib/assistant/actions';
 import { normalizeMemorySensitivity, normalizeMemoryStatus, normalizeMemoryType, type AssistantMemoryCandidate } from '@/lib/assistant/memory';
 import { ASSISTANT_MEMORY_RULES, NOEN_PERSONALITY } from '@/lib/assistant/personality';
+
+const execFileAsync = promisify(execFile);
 
 export const runtime = 'nodejs';
 
 type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
-};
-
-type VerifiedUser = {
-  uid: string;
-  email?: string;
 };
 
 type AssistantModelResult = {
@@ -25,52 +25,6 @@ type AssistantModelResult = {
   conversationSummary?: string;
   vaultDrafts: Array<{ title: string; folder?: string; content: string; reason?: string }>;
 };
-
-function getAllowedEmails() {
-  return (process.env.ASSISTANT_ALLOWED_EMAILS ?? process.env.NEXT_PUBLIC_ASSISTANT_ALLOWED_EMAILS ?? '')
-    .split(',')
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-async function verifyWithFirebaseRest(token: string): Promise<VerifiedUser> {
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  if (!apiKey) throw new Error('Firebase API key is missing.');
-
-  const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ idToken: token }),
-  });
-
-  if (!res.ok) throw new Error('Invalid Firebase auth token.');
-  const data = await res.json();
-  const user = data.users?.[0];
-  if (!user?.localId) throw new Error('Invalid Firebase auth token.');
-  return { uid: String(user.localId), email: user.email ? String(user.email) : undefined };
-}
-
-async function verifyRequest(req: Request): Promise<VerifiedUser> {
-  const authHeader = req.headers.get('authorization') ?? '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : '';
-  if (!token) throw new Error('Missing auth token.');
-
-  let verified: VerifiedUser;
-  try {
-    const decoded = await getAdminAuth().verifyIdToken(token);
-    verified = { uid: decoded.uid, email: decoded.email };
-  } catch (e) {
-    console.warn('[assistant/chat] Firebase Admin auth unavailable, using REST auth fallback.', e);
-    verified = await verifyWithFirebaseRest(token);
-  }
-
-  const allowedEmails = getAllowedEmails();
-  const email = String(verified.email ?? '').toLowerCase();
-  if (allowedEmails.length > 0 && !allowedEmails.includes(email)) {
-    throw new Error('This assistant is private.');
-  }
-  return verified;
-}
 
 function formatClientSnapshot(snapshot: unknown) {
   if (!snapshot || typeof snapshot !== 'object') return 'APP SNAPSHOT\nNo app snapshot available.';
@@ -171,11 +125,48 @@ function normalizeVaultDrafts(value: unknown): AssistantModelResult['vaultDrafts
   return drafts;
 }
 
+function parseAssistantResult(raw: string): AssistantModelResult {
+  const cleaned = raw
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```$/i, '')
+    .trim();
+
+  try {
+    const parsed = JSON.parse(cleaned || '{}') as Record<string, unknown>;
+    return {
+      reply: String(parsed.reply ?? cleaned ?? 'No response returned.'),
+      actions: normalizeAssistantActions(parsed.actions),
+      memoryUpdates: normalizeMemoryUpdates(parsed.memoryUpdates, 5),
+      conversationSummary: typeof parsed.conversationSummary === 'string' ? parsed.conversationSummary.slice(0, 1200) : undefined,
+      vaultDrafts: normalizeVaultDrafts(parsed.vaultDrafts),
+    };
+  } catch {
+    return { reply: cleaned || 'No response returned.', actions: [], memoryUpdates: [], vaultDrafts: [] };
+  }
+}
+
+async function callHermes(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>): Promise<AssistantModelResult> {
+  const hermesPath = process.env.HERMES_CLI_PATH || 'hermes';
+  const transcript = messages.map((message) => `${message.role.toUpperCase()}:\n${message.content}`).join('\n\n---\n\n');
+  const prompt = `${transcript}\n\nYou are replying to the DisciplineOS dashboard. Return ONLY compact valid JSON matching the requested schema. No markdown fences.`;
+
+  const { stdout, stderr } = await execFileAsync(hermesPath, ['chat', '-Q', '--source', 'dashboard-assistant', '-q', prompt], {
+    cwd: process.cwd(),
+    timeout: Number(process.env.ASSISTANT_HERMES_TIMEOUT_MS ?? 90000),
+    maxBuffer: 1024 * 1024,
+  });
+
+  const raw = String(stdout || '').trim();
+  if (!raw) throw new Error(`Hermes returned no output. ${String(stderr || '').slice(0, 300)}`.trim());
+  return parseAssistantResult(raw);
+}
+
 async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>): Promise<AssistantModelResult> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return {
-      reply: 'Assistant backend is wired, but OPENAI_API_KEY is not set yet. Add it in the server/Vercel environment before live chat works. done',
+      reply: 'Assistant backend is wired, but neither Hermes nor OPENAI_API_KEY is available in this server environment yet.',
       actions: [],
       memoryUpdates: [],
       vaultDrafts: [],
@@ -204,17 +195,18 @@ async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant
 
   const data = await res.json();
   const raw = String(data.choices?.[0]?.message?.content ?? '{}');
+  return parseAssistantResult(raw);
+}
+
+async function callAssistantModel(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>): Promise<AssistantModelResult> {
+  const backend = (process.env.ASSISTANT_BACKEND || 'hermes').toLowerCase();
+  if (backend === 'openai') return callOpenAI(messages);
+
   try {
-    const parsed = JSON.parse(raw) as Record<string, unknown>;
-    return {
-      reply: String(parsed.reply ?? 'No response returned.'),
-      actions: normalizeAssistantActions(parsed.actions),
-      memoryUpdates: normalizeMemoryUpdates(parsed.memoryUpdates, 5),
-      conversationSummary: typeof parsed.conversationSummary === 'string' ? parsed.conversationSummary.slice(0, 1200) : undefined,
-      vaultDrafts: normalizeVaultDrafts(parsed.vaultDrafts),
-    };
-  } catch {
-    return { reply: raw || 'No response returned.', actions: [], memoryUpdates: [], vaultDrafts: [] };
+    return await callHermes(messages);
+  } catch (e) {
+    console.warn('[assistant/chat] Hermes backend unavailable, falling back to OpenAI if configured.', e);
+    return callOpenAI(messages);
   }
 }
 
@@ -296,7 +288,7 @@ async function saveAssistantState(uid: string, userMessage: string, result: Assi
 export async function POST(req: Request) {
   let body: Record<string, unknown> = {};
   try {
-    const verified = await verifyRequest(req);
+    const verified = await verifyAssistantRequest(req);
     const uid = verified.uid;
     body = await req.json();
     const message = String(body.message ?? '').trim();
@@ -328,7 +320,7 @@ export async function POST(req: Request) {
       { role: 'user' as const, content: message },
     ];
 
-    const result = await callOpenAI(messages);
+    const result = await callAssistantModel(messages);
     const fallbackMemory = result.memoryUpdates.length === 0 ? fallbackMemoryFromUserMessage(message) : null;
     const memoryUpdateCount = result.memoryUpdates.length + (fallbackMemory ? 1 : 0);
 
@@ -350,7 +342,7 @@ export async function POST(req: Request) {
   } catch (e) {
     console.error('[assistant/chat]', e);
     const message = e instanceof Error ? e.message : 'Assistant request failed.';
-    const status = message.includes('private') || message.includes('auth') || message.includes('token') ? 401 : 500;
+    const status = assistantErrorStatus(message);
     return NextResponse.json({ error: message }, { status });
   }
 }

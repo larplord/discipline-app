@@ -13,6 +13,17 @@ type ChatMessage = {
   actions?: AssistantAction[];
 };
 
+type SubagentRun = {
+  id: string;
+  name: string;
+  kind: string;
+  title: string;
+  status: string;
+  summary: string;
+  nextActions: string[];
+  risks: string[];
+};
+
 const STARTER_PROMPTS = [
   'Based on my app data, what should I do next?',
   'What am I avoiding right now?',
@@ -29,6 +40,8 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
   ]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [subagentBusy, setSubagentBusy] = useState(false);
+  const [subagentRuns, setSubagentRuns] = useState<SubagentRun[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [appliedActions, setAppliedActions] = useState<Record<string, string>>({});
 
@@ -83,6 +96,29 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
     ];
   }
 
+  function buildAppSnapshot() {
+    return {
+      habits: habits.map((habit) => ({
+        id: habit.id,
+        name: habit.name,
+        category: habit.category,
+        doneToday: !!dayLog[habit.id],
+      })),
+      focusToday,
+      goals: goals.map((goal) => ({
+        id: goal.id,
+        title: goal.title,
+        priority: goal.priority,
+        deadline: goal.deadline,
+        milestones: goal.milestones?.map((milestone) => ({ id: milestone.id, text: milestone.text, done: milestone.done })),
+      })),
+      journal,
+      identityProfile,
+      projects: [],
+      projectsNote: 'No data right now unless Daniel has created projects in Firestore.',
+    };
+  }
+
   async function sendMessage(textOverride?: string) {
     const text = (textOverride ?? input).trim();
     if (!text || busy) return;
@@ -105,24 +141,7 @@ export function AssistantChat({ mode = 'full' }: { mode?: 'full' | 'dashboard' }
         body: JSON.stringify({
           message: text,
           history: nextMessages.slice(-12),
-          appSnapshot: {
-            habits: habits.map((habit) => ({
-              id: habit.id,
-              name: habit.name,
-              category: habit.category,
-              doneToday: !!dayLog[habit.id],
-            })),
-            focusToday,
-            goals: goals.map((goal) => ({
-              id: goal.id,
-              title: goal.title,
-              priority: goal.priority,
-              deadline: goal.deadline,
-              milestones: goal.milestones?.map((milestone) => ({ id: milestone.id, text: milestone.text, done: milestone.done })),
-            })),
-            journal,
-            identityProfile,
-          },
+          appSnapshot: buildAppSnapshot(),
         }),
       });
       const data = await res.json();
@@ -164,6 +183,46 @@ I found one likely matching fitness habit. Use the button below to mark it compl
       setMessages((current) => [...current, { role: 'assistant', content: `Setup issue: ${message}` }]);
     } finally {
       setBusy(false);
+    }
+  }
+  async function spawnProjectScout() {
+    if (subagentBusy) return;
+    setSubagentBusy(true);
+    setError(null);
+
+    try {
+      const token = await getFirebaseAuth().currentUser?.getIdToken();
+      if (!token) throw new Error('You must be signed in.');
+
+      const res = await fetch('/api/assistant/subagents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          task: input.trim() || 'Review my current dashboard context and tell me the next useful project move.',
+          appSnapshot: buildAppSnapshot(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Subagent request failed.');
+      const agent = data.agent as SubagentRun;
+      setSubagentRuns((current) => [agent, ...current].slice(0, 3));
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          content: `Project Scout completed.\n\n${agent.summary}\n\nNext actions:\n${agent.nextActions.length ? agent.nextActions.map((action) => `• ${action}`).join('\n') : '• No data right now'}`,
+        },
+      ]);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Subagent request failed.';
+      setError(message);
+      setMessages((current) => [...current, { role: 'assistant', content: `Subagent issue: ${message}` }]);
+    } finally {
+      setSubagentBusy(false);
     }
   }
 
@@ -243,6 +302,31 @@ I found one likely matching fitness habit. Use the button below to mark it compl
           <span>{focusToday} focus</span>
           <span>{goals.length} goals</span>
           <span>{Math.round(identityProfile.totalScore ?? 0)} XP</span>
+        </div>
+      )}
+
+      <div className="assistant-subagent-panel">
+        <div>
+          <span>Subagent bay</span>
+          <strong>Project Scout</strong>
+          <p>{subagentRuns[0]?.summary ?? 'Ready to inspect your current dashboard context. No data right now until you run it.'}</p>
+        </div>
+        <button type="button" onClick={() => void spawnProjectScout()} disabled={subagentBusy || busy}>
+          {subagentBusy ? 'Running…' : 'Run subagent'}
+        </button>
+      </div>
+
+      {subagentRuns.length > 0 && (
+        <div className="assistant-subagent-runs" aria-label="Recent subagent reports">
+          {subagentRuns.map((run) => (
+            <article key={run.id}>
+              <span>{run.name} · {run.status}</span>
+              <strong>{run.title}</strong>
+              <ul>
+                {(run.nextActions.length ? run.nextActions : ['No data right now']).map((action) => <li key={action}>{action}</li>)}
+              </ul>
+            </article>
+          ))}
         </div>
       )}
 
