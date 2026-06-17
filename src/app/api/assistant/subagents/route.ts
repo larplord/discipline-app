@@ -42,8 +42,65 @@ function parseSubagentResult(raw: string): Required<SubagentResult> {
   }
 }
 
+const HERMES_CLI_CANDIDATES = [
+  process.env.HERMES_CLI_PATH,
+  '/usr/local/lib/hermes-agent/venv/bin/hermes',
+  '/root/.local/bin/hermes',
+  'hermes',
+].filter((candidate): candidate is string => Boolean(candidate));
+
+async function runHermesPrompt(prompt: string) {
+  if (process.env.HERMES_API_BASE_URL) {
+    const baseUrl = process.env.HERMES_API_BASE_URL.replace(/\/$/, '');
+    const apiKey = process.env.HERMES_API_KEY;
+    if (!apiKey) throw new Error('Hermes API bridge is not configured.');
+
+    const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-Hermes-Session-Key': 'disciplineos-dashboard-subagent',
+      },
+      body: JSON.stringify({
+        model: process.env.HERMES_API_MODEL || 'hermes-agent',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.2,
+        stream: false,
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Hermes API bridge failed: ${res.status} ${text.slice(0, 500)}`);
+    }
+
+    const data = await res.json();
+    return String(data.choices?.[0]?.message?.content ?? '').trim();
+  }
+
+  const errors: string[] = [];
+  for (const hermesPath of HERMES_CLI_CANDIDATES) {
+    try {
+      const { stdout, stderr } = await execFileAsync(hermesPath, ['chat', '-Q', '--source', 'dashboard-subagent', '-q', prompt], {
+        cwd: process.cwd(),
+        timeout: Number(process.env.ASSISTANT_SUBAGENT_TIMEOUT_MS ?? 120000),
+        maxBuffer: 1024 * 1024,
+      });
+
+      const raw = String(stdout || '').trim();
+      if (!raw) throw new Error(`Project Scout returned no output. ${String(stderr || '').slice(0, 300)}`.trim());
+      return raw;
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      errors.push(`${hermesPath}: ${message.slice(0, 240)}`);
+    }
+  }
+
+  throw new Error(`Hermes CLI unavailable. Tried: ${errors.join(' | ')}`);
+}
+
 async function runProjectScout(task: string, appSnapshot: unknown) {
-  const hermesPath = process.env.HERMES_CLI_PATH || 'hermes';
   const prompt = `
 You are Project Scout, a focused JARVIS dashboard subagent for Daniel's DisciplineOS dashboard.
 
@@ -69,14 +126,8 @@ Return ONLY compact valid JSON:
 }
 `;
 
-  const { stdout, stderr } = await execFileAsync(hermesPath, ['chat', '-Q', '--source', 'dashboard-subagent', '-q', prompt], {
-    cwd: process.cwd(),
-    timeout: Number(process.env.ASSISTANT_SUBAGENT_TIMEOUT_MS ?? 120000),
-    maxBuffer: 1024 * 1024,
-  });
-
-  const raw = String(stdout || '').trim();
-  if (!raw) throw new Error(`Project Scout returned no output. ${String(stderr || '').slice(0, 300)}`.trim());
+  const raw = await runHermesPrompt(prompt);
+  if (!raw) throw new Error('Project Scout returned no output.');
   return parseSubagentResult(raw);
 }
 

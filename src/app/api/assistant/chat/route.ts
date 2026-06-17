@@ -146,20 +146,75 @@ function parseAssistantResult(raw: string): AssistantModelResult {
   }
 }
 
-async function callHermes(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>): Promise<AssistantModelResult> {
-  const hermesPath = process.env.HERMES_CLI_PATH || 'hermes';
-  const transcript = messages.map((message) => `${message.role.toUpperCase()}:\n${message.content}`).join('\n\n---\n\n');
-  const prompt = `${transcript}\n\nYou are replying to the DisciplineOS dashboard. Return ONLY compact valid JSON matching the requested schema. No markdown fences.`;
+const HERMES_CLI_CANDIDATES = [
+  process.env.HERMES_CLI_PATH,
+  '/usr/local/lib/hermes-agent/venv/bin/hermes',
+  '/root/.local/bin/hermes',
+  'hermes',
+].filter((candidate): candidate is string => Boolean(candidate));
 
-  const { stdout, stderr } = await execFileAsync(hermesPath, ['chat', '-Q', '--source', 'dashboard-assistant', '-q', prompt], {
-    cwd: process.cwd(),
-    timeout: Number(process.env.ASSISTANT_HERMES_TIMEOUT_MS ?? 90000),
-    maxBuffer: 1024 * 1024,
+function dashboardPrompt(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>) {
+  const transcript = messages.map((message) => `${message.role.toUpperCase()}:\n${message.content}`).join('\n\n---\n\n');
+  return `${transcript}\n\nYou are replying to the DisciplineOS dashboard. Return ONLY compact valid JSON matching the requested schema. No markdown fences.`;
+}
+
+async function callHermesCli(prompt: string): Promise<AssistantModelResult> {
+  const errors: string[] = [];
+
+  for (const hermesPath of HERMES_CLI_CANDIDATES) {
+    try {
+      const { stdout, stderr } = await execFileAsync(hermesPath, ['chat', '-Q', '--source', 'dashboard-assistant', '-q', prompt], {
+        cwd: process.cwd(),
+        timeout: Number(process.env.ASSISTANT_HERMES_TIMEOUT_MS ?? 90000),
+        maxBuffer: 1024 * 1024,
+      });
+
+      const raw = String(stdout || '').trim();
+      if (!raw) throw new Error(`Hermes returned no output. ${String(stderr || '').slice(0, 300)}`.trim());
+      return parseAssistantResult(raw);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      errors.push(`${hermesPath}: ${message.slice(0, 240)}`);
+    }
+  }
+
+  throw new Error(`Hermes CLI unavailable. Tried: ${errors.join(' | ')}`);
+}
+
+async function callHermesApi(prompt: string): Promise<AssistantModelResult> {
+  const baseUrl = process.env.HERMES_API_BASE_URL?.replace(/\/$/, '');
+  const apiKey = process.env.HERMES_API_KEY;
+  if (!baseUrl || !apiKey) throw new Error('Hermes API bridge is not configured.');
+
+  const res = await fetch(`${baseUrl}/v1/chat/completions`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'X-Hermes-Session-Key': 'disciplineos-dashboard-assistant',
+    },
+    body: JSON.stringify({
+      model: process.env.HERMES_API_MODEL || 'hermes-agent',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.2,
+      stream: false,
+    }),
   });
 
-  const raw = String(stdout || '').trim();
-  if (!raw) throw new Error(`Hermes returned no output. ${String(stderr || '').slice(0, 300)}`.trim());
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Hermes API bridge failed: ${res.status} ${text.slice(0, 500)}`);
+  }
+
+  const data = await res.json();
+  const raw = String(data.choices?.[0]?.message?.content ?? '{}');
   return parseAssistantResult(raw);
+}
+
+async function callHermes(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>): Promise<AssistantModelResult> {
+  const prompt = dashboardPrompt(messages);
+  if (process.env.HERMES_API_BASE_URL) return callHermesApi(prompt);
+  return callHermesCli(prompt);
 }
 
 async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>): Promise<AssistantModelResult> {
