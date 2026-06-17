@@ -30,11 +30,6 @@ const LIFE_NAV: NavItem[] = [
   { label: '???', href: '/goals', icon: '?' },
 ];
 
-const AGENT_NAV: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: '◎' },
-  { label: 'Assistant', href: '/assistant', icon: '◉' },
-];
-
 export function getNavSection(pathname: string) {
   if (pathname.startsWith('/work-agents') || pathname.startsWith('/projects') || pathname.startsWith('/business-activity') || pathname.startsWith('/business-plan')) return 'business';
   if (pathname.startsWith('/fitness') || pathname.startsWith('/routine') || pathname.startsWith('/habits') || pathname.startsWith('/goals') || pathname.startsWith('/journal') || pathname.startsWith('/identity') || pathname.startsWith('/focus')) return 'life';
@@ -73,7 +68,7 @@ export function MainBottomNav() {
 export function SectionTopNav() {
   const pathname = usePathname();
   const section = getNavSection(pathname);
-  const items = section === 'business' ? BUSINESS_NAV : section === 'life' ? LIFE_NAV : AGENT_NAV;
+  const items = section === 'business' ? BUSINESS_NAV : section === 'life' ? LIFE_NAV : [];
 
   if (items.length === 0) return null;
 

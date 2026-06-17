@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AgentOrbInterface } from '@/components/AgentOrbInterface';
 import '@/styles/pages/Dashboard.css';
 
 export default function DashboardPage() {
@@ -22,13 +23,8 @@ export default function DashboardPage() {
           </div>
         </aside>
 
-        <section className="agent-orb-stage" aria-label="Agent voice interface">
-          <div className="agent-orb-shell" aria-hidden="true">
-            <div className="agent-orb-rings" />
-            <div className="agent-orb-core" />
-            <div className="agent-orb-sheen" />
-          </div>
-          <span className="sr-only">Agent voice interface</span>
+        <section className="agent-orb-stage" aria-label="Agent voice and text interface">
+          <AgentOrbInterface />
         </section>
 
         <aside className="agent-panel agent-activity-panel">
