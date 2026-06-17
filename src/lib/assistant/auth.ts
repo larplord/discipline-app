@@ -30,9 +30,18 @@ async function verifyWithFirebaseRest(token: string): Promise<VerifiedAssistantU
 }
 
 export async function verifyAssistantRequest(req: Request): Promise<VerifiedAssistantUser> {
+  const singleOperatorMode = process.env.ASSISTANT_SINGLE_OPERATOR_MODE === 'true';
+  const singleOperatorHeader = req.headers.get('x-single-operator') === 'true';
+
   const authHeader = req.headers.get('authorization') ?? '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : '';
-  if (!token) throw new Error('Missing auth token.');
+
+  if (!token) {
+    if (singleOperatorMode && singleOperatorHeader) {
+      return { uid: 'local-operator', email: 'local-operator@discipline-os.local' };
+    }
+    throw new Error('Missing auth token.');
+  }
 
   let verified: VerifiedAssistantUser;
   try {

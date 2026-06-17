@@ -6,9 +6,6 @@ import { getFirestore, type Firestore } from 'firebase/firestore';
 import { app } from '../../../lib/firebase';
 
 export function getFirebaseApp(): FirebaseApp {
-  if (typeof window === 'undefined') {
-    throw new Error('Firebase client SDK must only run in the browser.');
-  }
   return app;
 }
 

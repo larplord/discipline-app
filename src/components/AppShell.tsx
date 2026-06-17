@@ -220,36 +220,24 @@ function ShellInner({ children }: { children: ReactNode }) {
   );
 }
 
+const SINGLE_OPERATOR_UID = 'local-operator';
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
-  const router = useRouter();
+  const effectiveUid = user?.uid ?? SINGLE_OPERATOR_UID;
 
   useEffect(() => {
-    console.log('[DisciplineOS][AppShell] state', { loading, hasUser: !!user, uid: user?.uid ?? null });
-    if (!loading && !user) {
-      console.log('[DisciplineOS][AppShell] redirect → /login');
-      router.replace('/login');
-    }
-  }, [loading, user, router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
-        <p className="text-muted">Loading…</p>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
-        <p className="text-muted">Redirecting…</p>
-      </div>
-    );
-  }
+    console.log('[DisciplineOS][AppShell] state', {
+      loading,
+      hasUser: !!user,
+      uid: user?.uid ?? null,
+      effectiveUid,
+      mode: user ? 'firebase-auth' : 'single-operator',
+    });
+  }, [effectiveUid, loading, user]);
 
   return (
-    <UserDataProvider uid={user.uid}>
+    <UserDataProvider uid={effectiveUid}>
       <ShellInner>{children}</ShellInner>
     </UserDataProvider>
   );

@@ -39,14 +39,15 @@ export function AgentOrbInterface() {
 
     try {
       const token = await getFirebaseAuth().currentUser?.getIdToken();
-      if (!token) throw new Error('You must be signed in.');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'X-Single-Operator': 'true',
+      };
+      if (token) headers.Authorization = `Bearer ${token}`;
 
       const res = await fetch('/api/assistant/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify({
           message: text,
           history: nextMessages.slice(-8),
