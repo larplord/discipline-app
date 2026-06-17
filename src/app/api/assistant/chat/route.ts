@@ -166,7 +166,7 @@ async function callOpenAI(messages: Array<{ role: 'system' | 'user' | 'assistant
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return {
-      reply: 'Assistant backend is wired, but neither Hermes nor OPENAI_API_KEY is available in this server environment yet.',
+      reply: 'Assistant backend is wired, but OPENAI_API_KEY is not available in this server environment.',
       actions: [],
       memoryUpdates: [],
       vaultDrafts: [],
@@ -205,8 +205,9 @@ async function callAssistantModel(messages: Array<{ role: 'system' | 'user' | 'a
   try {
     return await callHermes(messages);
   } catch (e) {
-    console.warn('[assistant/chat] Hermes backend unavailable, falling back to OpenAI if configured.', e);
-    return callOpenAI(messages);
+    console.warn('[assistant/chat] Hermes backend unavailable.', e);
+    if (process.env.ASSISTANT_OPENAI_FALLBACK === 'true') return callOpenAI(messages);
+    throw new Error('Hermes backend is unavailable in this server environment. OpenAI fallback is disabled so dashboard requests do not use platform.openai.com.');
   }
 }
 
