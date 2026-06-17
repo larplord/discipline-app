@@ -51,7 +51,7 @@ const HERMES_CLI_CANDIDATES = [
 
 async function runHermesPrompt(prompt: string) {
   if (process.env.HERMES_API_BASE_URL) {
-    const baseUrl = process.env.HERMES_API_BASE_URL.replace(/\/$/, '');
+    const baseUrl = process.env.HERMES_API_BASE_URL.replace(/\/$/, '').replace(/\/v1$/, '');
     const apiKey = process.env.HERMES_API_KEY;
     if (!apiKey) throw new Error('Hermes API bridge is not configured.');
 

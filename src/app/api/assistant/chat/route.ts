@@ -183,7 +183,7 @@ async function callHermesCli(prompt: string): Promise<AssistantModelResult> {
 }
 
 async function callHermesApi(prompt: string): Promise<AssistantModelResult> {
-  const baseUrl = process.env.HERMES_API_BASE_URL?.replace(/\/$/, '');
+  const baseUrl = process.env.HERMES_API_BASE_URL?.replace(/\/$/, '').replace(/\/v1$/, '');
   const apiKey = process.env.HERMES_API_KEY;
   if (!baseUrl || !apiKey) throw new Error('Hermes API bridge is not configured.');
 
@@ -263,7 +263,7 @@ async function callAssistantModel(messages: Array<{ role: 'system' | 'user' | 'a
   } catch (e) {
     console.warn('[assistant/chat] Hermes backend unavailable.', e);
     if (process.env.ASSISTANT_OPENAI_FALLBACK === 'true') return callOpenAI(messages);
-    throw new Error('Hermes backend is unavailable in this server environment. OpenAI fallback is disabled so dashboard requests do not use platform.openai.com.');
+    throw new Error('Hermes backend is unavailable in this server environment. If this is Vercel, set HERMES_API_BASE_URL and HERMES_API_KEY to a secured Hermes bridge; Vercel cannot run the local Hermes CLI. OpenAI fallback is disabled so dashboard requests do not use platform.openai.com.');
   }
 }
 
