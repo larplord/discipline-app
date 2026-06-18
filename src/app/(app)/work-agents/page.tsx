@@ -20,16 +20,12 @@ type Approval = {
   owner: string;
   risk: 'Medium' | 'High';
   detail: string;
+  context: string;
+  changes: string[];
+  goal: string;
 };
 
-type Activity = {
-  time: string;
-  agent: string;
-  text: string;
-  action: string;
-};
-
-type ChatLine = {
+type LaneLine = {
   speaker: string;
   text: string;
   time: string;
@@ -42,12 +38,6 @@ type CurrentAction = {
   age: string;
 };
 
-type Thought = {
-  agent: string;
-  text: string;
-  time: string;
-};
-
 type StandbyTask = {
   title: string;
   detail: string;
@@ -58,30 +48,59 @@ const agents: Array<{ name: string; status: AgentStatus }> = [];
 
 const projects: Project[] = [
   { name: 'Discipline OS', label: 'Active', progress: 86, detail: 'AI-powered productivity and execution system.' },
-  { name: 'Jarvis Assistant', label: 'Build', progress: 62, detail: 'Voice-first assistant surface and command memory.' },
+  { name: 'Noen Assistant', label: 'Build', progress: 62, detail: 'Voice-first assistant surface and command memory.' },
   { name: 'Content Engine', label: 'Queue', progress: 48, detail: 'Content generation and publishing engine.' },
   { name: 'Agent Workflow', label: 'Review', progress: 71, detail: 'Multi-agent task automation, approvals, and handoffs.' },
 ];
 
 const approvals: Approval[] = [
-  { title: 'API connection review', kind: 'Review', owner: 'Hermes', risk: 'Medium', detail: 'Confirm secure bridge settings before live actions.' },
-  { title: 'Dashboard update approval', kind: 'Approval', owner: 'Design Agent', risk: 'High', detail: 'Final operator pass before pushing the command layout.' },
+  {
+    title: 'API connection review',
+    kind: 'Review',
+    owner: 'Noen',
+    risk: 'Medium',
+    detail: 'Confirm secure bridge settings before live actions.',
+    context: 'Dashboard assistant route needs a protected backend API bridge before commands can run outside the browser.',
+    goal: 'Allow voice/dashboard requests to hand off cleanly without exposing credentials or creating fake live execution.',
+    changes: ['Check environment variables', 'Confirm server-only route protection', 'Keep browser transcript handoff explicit'],
+  },
+  {
+    title: 'Dashboard update approval',
+    kind: 'Approval',
+    owner: 'Design Agent',
+    risk: 'High',
+    detail: 'Final operator pass before pushing the command layout.',
+    context: 'Work Agents visual structure has changed and needs Daniel’s approval before treating it as the new command surface.',
+    goal: 'Make sure the page matches the intended cockpit before deployment becomes the default.',
+    changes: ['Review Work Agents layout', 'Leave comments or requested changes', 'Approve only after visual pass'],
+  },
 ];
 
-const activitySeed: Activity[] = [
-  { time: '10:45 AM', agent: 'Marketing Agent', text: 'completed audience segmentation for Q2 campaigns.', action: 'View Report' },
-  { time: '10:43 AM', agent: 'Content Agent', text: 'drafted blog post “Focus Mode: 5 Ways to Win Your Day”.', action: 'Review Draft' },
-  { time: '10:42 AM', agent: 'Analyst Agent', text: 'updated KPI dashboard with latest performance metrics.', action: 'Open Dashboard' },
-  { time: '10:41 AM', agent: 'Automation Agent', text: 'synced Zapier integration — 12 workflows active.', action: 'View Integration' },
-  { time: '10:40 AM', agent: 'Support Agent', text: 'resolved ticket #4821 — customer login issue.', action: 'View Ticket' },
-];
-
-const chatSeed: ChatLine[] = [
-  { speaker: 'Hermes (Noen)', text: 'Morning team. Let’s align on Discipline OS launch plan and clear the open reviews.', time: '10:47 AM', self: true },
-  { speaker: 'Marketing Agent', text: 'Starting audience segmentation for Q2. Insights ready in 30 minutes.', time: '10:42 AM' },
-  { speaker: 'Analyst Agent', text: 'Updated the KPI dashboard. Traffic is up 18% WoW over last week.', time: '10:36 AM' },
-  { speaker: 'Content Agent', text: 'Drafting the blog on Focus Mode. ETA 1 hour.', time: '10:34 AM' },
-  { speaker: 'Hermes (Noen)', text: 'Create summary from yesterday’s sprint.', time: '10:31 AM', self: true },
+const laneSeed: Array<{ title: string; subtitle: string; lines: LaneLine[] }> = [
+  {
+    title: 'Planning Lane',
+    subtitle: 'briefs / scope',
+    lines: [
+      { speaker: 'Noen', text: 'Keeping the current brief focused on Agent, Business, Work Agents, and Projects.', time: 'standby', self: true },
+      { speaker: 'Planner', text: 'Health remains locked for this pass.', time: 'standby' },
+    ],
+  },
+  {
+    title: 'Build Lane',
+    subtitle: 'implementation',
+    lines: [
+      { speaker: 'Builder', text: 'Waiting for an approved project/workflow before showing real execution data.', time: 'standby' },
+      { speaker: 'Design', text: 'Future modules are marked clearly as future, not live.', time: 'standby' },
+    ],
+  },
+  {
+    title: 'Review Lane',
+    subtitle: 'approval gate',
+    lines: [
+      { speaker: 'Reviewer', text: 'Needs Review opens a detail panel with context, changes, comment, and approval controls.', time: 'standby' },
+      { speaker: 'Noen', text: 'Operator comments stay local until a real backend is connected.', time: 'standby', self: true },
+    ],
+  },
 ];
 
 const actionSeed: CurrentAction[] = [
@@ -94,14 +113,6 @@ const actionSeed: CurrentAction[] = [
   { agent: 'Support Agent', task: 'Responding to ticket #4821', age: '7m ago' },
 ];
 
-const thoughtSeed: Thought[] = [
-  { agent: 'Marketing Agent', text: 'Analyzing audience segments to identify high-intent groups.', time: '10:47 AM' },
-  { agent: 'Research Agent', text: 'Scanning competitor positioning opportunities.', time: '10:44 AM' },
-  { agent: 'Analyst Agent', text: 'Detected traffic anomaly in referral channels.', time: '10:43 AM' },
-  { agent: 'Automation Agent', text: 'Optimizing automation flow to reduce manual steps.', time: '10:41 AM' },
-  { agent: 'Hermes (Noen)', text: 'Cross-linking goals, agent priorities, and dependency risks.', time: '10:40 AM' },
-];
-
 const standbySeed: StandbyTask[] = [
   { title: 'Define Q2 campaign messaging', detail: 'For audience tree.' },
   { title: 'Research Agent recommendation', detail: 'Five competitor insights.' },
@@ -111,7 +122,7 @@ const standbySeed: StandbyTask[] = [
 ];
 
 const treeNodes = [
-  { key: 'Hermes (Noen)', label: 'Hermes (Noen)', detail: 'Command & Orchestration', icon: '🤖' },
+  { key: 'Noen', label: 'Noen', detail: 'Command & Orchestration', icon: '🤖' },
   { key: 'Business Manager', label: 'Business Manager', detail: 'Strategy & Execution', icon: '💼' },
   { key: 'Life Coach', label: 'Life Coach', detail: 'Growth & Wellbeing', icon: '♡' },
   { key: 'Marketing Agent', label: 'Marketing Agent', detail: 'Campaigns', icon: '📊' },
@@ -124,17 +135,17 @@ const dispatchSteps: DispatchStep[] = ['Intake', 'Assign', 'Verify', 'Push'];
 export default function WorkAgentsPage() {
   const [filter, setFilter] = useState<FilterStatus>('All');
   const [selectedProject, setSelectedProject] = useState(projects[0]);
-  const [treeFocus, setTreeFocus] = useState('Hermes (Noen)');
+  const [treeFocus, setTreeFocus] = useState('Noen');
+  const [selectedApproval, setSelectedApproval] = useState<Approval | null>(approvals[0]);
   const [handledApprovals, setHandledApprovals] = useState<string[]>([]);
-  const [activity, setActivity] = useState(activitySeed);
-  const [chatLines, setChatLines] = useState(chatSeed);
+  const [lanes, setLanes] = useState(laneSeed);
   const [actions, setActions] = useState(actionSeed);
-  const [thoughts, setThoughts] = useState(thoughtSeed);
   const [standbyTasks, setStandbyTasks] = useState(standbySeed);
   const [chatDraft, setChatDraft] = useState('');
+  const [reviewComment, setReviewComment] = useState('');
   const [dispatchStep, setDispatchStep] = useState<DispatchStep>('Intake');
-  const [listening, setListening] = useState(false);
   const [workspacePreview, setWorkspacePreview] = useState(false);
+  const [notice, setNotice] = useState('Ready. Live Updates are intentionally blank until real agent telemetry is connected.');
 
   const statusCounts = useMemo(() => ({
     Online: agents.filter((agent) => agent.status === 'Online').length,
@@ -150,24 +161,23 @@ export default function WorkAgentsPage() {
   const emptyAgentSlots = Math.max(MAX_AGENT_SLOTS - filteredAgents.length, 0);
 
   function logSystemUpdate(update: string) {
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setActivity((current) => [
-      { time: now, agent: 'Hermes', text: update, action: 'Open Dashboard' },
-      ...current,
-    ].slice(0, 5));
-    setThoughts((current) => [
-      { agent: 'Hermes (Noen)', text: `Operator command registered: ${update}`, time: now },
-      ...current,
-    ].slice(0, 5));
+    setNotice(update);
+  }
+
+  function openApproval(item: Approval) {
+    setSelectedApproval(item);
+    setReviewComment('');
+    logSystemUpdate(`${item.title} opened in the review gate.`);
   }
 
   function handleApproval(item: Approval) {
     setHandledApprovals((current) => Array.from(new Set([...current, item.title])));
-    logSystemUpdate(`${item.title} marked handled by ${item.owner}.`);
+    logSystemUpdate(`${item.title} approved locally by operator gate.`);
   }
 
-  function handleActivityAction(item: Activity) {
-    logSystemUpdate(`${item.action} opened for ${item.agent}.`);
+  function requestChanges(item: Approval) {
+    const suffix = reviewComment.trim() ? ` Comment: ${reviewComment.trim()}` : '';
+    logSystemUpdate(`${item.title} marked for requested changes.${suffix}`);
   }
 
   function handleChatSubmit(event: FormEvent<HTMLFormElement>) {
@@ -175,20 +185,18 @@ export default function WorkAgentsPage() {
     const message = chatDraft.trim();
     if (!message) return;
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    setChatLines((current) => [
-      ...current,
-      { speaker: 'You', text: message, time: now, self: true },
-      { speaker: 'Hermes (Noen)', text: 'Instruction captured. I’ll route it through the visible execution queue.', time: now },
-    ].slice(-6));
-    setActions((current) => [{ agent: 'Hermes (Noen)', task: message, age: 'now' }, ...current].slice(0, 7));
-    logSystemUpdate('Team instruction staged in live collaboration.');
+    setLanes((current) => current.map((lane, index) => index === 0
+      ? { ...lane, lines: [...lane.lines, { speaker: 'Daniel', text: message, time: now, self: true }].slice(-4) }
+      : lane));
+    setActions((current) => [{ agent: 'Noen', task: message, age: 'now' }, ...current].slice(0, 7));
+    logSystemUpdate('Operator note added to Planning Lane.');
     setChatDraft('');
   }
 
   function assignTask() {
     setStandbyTasks((current) => current.slice(1));
-    setActions((current) => [{ agent: 'Hermes (Noen)', task: 'Assigned next standby task', age: 'now' }, ...current].slice(0, 7));
-    logSystemUpdate('Next standby task assigned.');
+    setActions((current) => [{ agent: 'Noen', task: 'Assigned next standby task', age: 'now' }, ...current].slice(0, 7));
+    logSystemUpdate('Next standby task assigned locally.');
   }
 
   function exportBriefing() {
@@ -197,7 +205,7 @@ export default function WorkAgentsPage() {
 
   function advanceDispatch(step: DispatchStep) {
     setDispatchStep(step);
-    logSystemUpdate(`Dispatch routine moved to ${step}.`);
+    logSystemUpdate(`Future execution routine moved to ${step}.`);
   }
 
   return (
@@ -213,7 +221,7 @@ export default function WorkAgentsPage() {
               <button
                 type="button"
                 key={node.key}
-                className={`tree-node tree-${node.key.toLowerCase().replaceAll(' ', '-').replace(/[()]/g, '')} ${treeFocus === node.key ? 'active' : ''}`}
+                className={`tree-node tree-${node.key.toLowerCase().replaceAll(' ', '-')} ${treeFocus === node.key ? 'active' : ''}`}
                 onClick={() => {
                   setTreeFocus(node.key);
                   logSystemUpdate(`${node.label} tree node inspected.`);
@@ -257,14 +265,14 @@ export default function WorkAgentsPage() {
             {approvals.map((item) => {
               const handled = handledApprovals.includes(item.title);
               return (
-                <div className={`approval-row ${handled ? 'handled' : ''}`} key={item.title}>
+                <button type="button" className={`approval-row approval-button ${handled ? 'handled' : ''}`} key={item.title} onClick={() => openApproval(item)}>
                   <span>
                     <strong>{item.title}</strong>
                     <small>{item.owner} · Risk {item.risk}</small>
                     <em>{item.detail}</em>
                   </span>
-                  <button type="button" onClick={() => handleApproval(item)}>{handled ? 'Handled' : item.kind}</button>
-                </div>
+                  <i>{handled ? 'Handled' : 'Open'}</i>
+                </button>
               );
             })}
           </div>
@@ -279,7 +287,10 @@ export default function WorkAgentsPage() {
                   type="button"
                   key={status}
                   className={filter === status ? 'active' : ''}
-                  onClick={() => setFilter(status)}
+                  onClick={() => {
+                    setFilter(status);
+                    logSystemUpdate(`${status} roster filter selected.`);
+                  }}
                 >
                   {status}<small>{status === 'All' ? MAX_AGENT_SLOTS : statusCounts[status]}</small>
                 </button>
@@ -296,90 +307,67 @@ export default function WorkAgentsPage() {
           </div>
         </section>
 
-        <article className="work-panel activity-band-panel" aria-label="Live agent activity">
-          <div className="activity-table">
-            {activity.map((item) => (
-              <div className="activity-row" key={`${item.time}-${item.agent}-${item.text}`}>
-                <time>{item.time}</time>
-                <span><b>{item.agent}</b> {item.text}</span>
-                <button type="button" onClick={() => handleActivityAction(item)}>{item.action} <i>↗</i></button>
-              </div>
-            ))}
+        <article className="work-panel activity-band-panel blank-activity-panel" aria-label="Live agent activity">
+          <div className="blank-live-updates">
+            <span className="hud-kicker">Live Updates / Auto Refresh</span>
+            <strong>No live agent telemetry connected yet.</strong>
+            <small>Blank by design until real backend activity is available.</small>
           </div>
-          <div className="activity-footer"><i /> Live updates · Auto-refresh</div>
+          <div className="activity-footer"><i /> {notice}</div>
         </article>
 
         <article className="work-panel collaboration-panel">
           <div className="work-panel-heading compact-heading">
             <span className="hud-kicker">Live Agent Collaboration</span>
-            <div className="collab-controls"><span>● Live</span><button type="button" onClick={() => logSystemUpdate('Collaboration panel expanded.')}>↗</button><button type="button" onClick={() => logSystemUpdate('Collaboration panel closed.')}>×</button></div>
+            <div className="collab-controls"><span>Local standby</span><button type="button" onClick={() => logSystemUpdate('Collaboration lanes expanded locally.')}>↗</button></div>
           </div>
-          <div className="collab-columns">
-            <section className="team-chat">
-              <div className="mini-heading"><span>Team Chat</span><b>AI Agents</b></div>
-              <div className="chat-log" aria-live="polite">
-                {chatLines.map((message) => (
-                  <p className={message.self ? 'self' : ''} key={`${message.speaker}-${message.time}-${message.text}`}>
-                    <strong>{message.speaker}</strong>
-                    <small>{message.time}</small>
-                    {message.text}
-                  </p>
-                ))}
-              </div>
-              <form onSubmit={handleChatSubmit} className="chat-form">
-                <input value={chatDraft} onChange={(event) => setChatDraft(event.target.value)} placeholder="Message the team…" aria-label="Message the team" />
-                <button type="submit">➤</button>
-              </form>
-            </section>
-
-            <section>
-              <div className="mini-heading"><span>Current Actions</span><b>{actions.length}</b></div>
-              <div className="activity-list current-actions">
-                {actions.map((action) => (
-                  <span key={`${action.agent}-${action.task}-${action.age}`}><b>{action.agent}</b><em>{action.task}</em><small>{action.age}</small><i>Working</i></span>
-                ))}
-              </div>
-              <div className="quick-actions">
-                <button type="button" onClick={exportBriefing}>Export briefing</button>
-                <button type="button" onClick={assignTask}>Assign task</button>
-              </div>
-            </section>
+          <div className="collab-lanes">
+            {lanes.map((lane) => (
+              <section className="collab-lane" key={lane.title}>
+                <div className="mini-heading"><span>{lane.title}</span><b>{lane.lines.length}</b></div>
+                <small className="lane-subtitle">{lane.subtitle}</small>
+                <div className="chat-log compact-chat" aria-live="polite">
+                  {lane.lines.map((message) => (
+                    <p className={message.self ? 'self' : ''} key={`${lane.title}-${message.speaker}-${message.time}-${message.text}`}>
+                      <strong>{message.speaker}</strong>
+                      <small>{message.time}</small>
+                      {message.text}
+                    </p>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
+          <form onSubmit={handleChatSubmit} className="chat-form wide-chat-form">
+            <input value={chatDraft} onChange={(event) => setChatDraft(event.target.value)} placeholder="Add a note to the collaboration lanes…" aria-label="Message the team" />
+            <button type="submit">➤</button>
+          </form>
         </article>
 
         <aside className="right-intel-column">
-          <article className="work-panel jarvis-voice-panel">
-            <div className="work-panel-heading compact-heading">
-              <span className="hud-kicker">JARVIS Voice</span>
-              <button type="button" className="panel-menu" onClick={() => setListening((current) => !current)}>{listening ? 'Pause' : 'Arm'}</button>
-            </div>
-            <div className={`voice-core ${listening ? 'speaking' : ''}`}>
-              <i />
-              <strong>{listening ? 'Listening' : 'Speaking'}</strong>
-            </div>
-            <div className="voice-wave" aria-hidden="true"><span /><span /><span /><span /><span /><span /><span /></div>
-            <p>
-              Voice Agents are now linked into Work Agents. Commands can route through projects, review gates, activity logs, and the visible execution queue.
-            </p>
-            <small>{listening ? 'Listening for your summary…' : 'Tap Arm to keep voice command-ready.'}</small>
-            <button type="button" className="voice-orb-button" onClick={() => setListening((current) => !current)} aria-label="Toggle JARVIS voice"><i /></button>
-          </article>
-
-          <article className="work-panel thought-panel">
-            <div className="mini-heading"><span>Thought Stream</span><b>{thoughts.length}</b></div>
-            <div className="thought-stream">
-              {thoughts.map((thought) => (
-                <p key={`${thought.agent}-${thought.time}-${thought.text}`}>
-                  <strong>{thought.agent}</strong>
-                  <small>{thought.time}</small>
-                  {thought.text}
-                </p>
-              ))}
-            </div>
+          <article className="work-panel review-detail-panel">
+            <div className="mini-heading"><span>Review Gate</span><b>{selectedApproval ? '1' : '0'}</b></div>
+            {selectedApproval ? (
+              <div className="review-detail">
+                <strong>{selectedApproval.title}</strong>
+                <small>{selectedApproval.owner} · {selectedApproval.kind} · Risk {selectedApproval.risk}</small>
+                <p>{selectedApproval.context}</p>
+                <dl>
+                  <div><dt>Workflow / Project Context</dt><dd>{selectedProject.name}</dd></div>
+                  <div><dt>Goal</dt><dd>{selectedApproval.goal}</dd></div>
+                </dl>
+                <ul>{selectedApproval.changes.map((change) => <li key={change}>{change}</li>)}</ul>
+                <textarea value={reviewComment} onChange={(event) => setReviewComment(event.target.value)} placeholder="Leave a comment or requested change…" />
+                <div className="review-actions">
+                  <button type="button" onClick={() => requestChanges(selectedApproval)}>Request Change</button>
+                  <button type="button" onClick={() => handleApproval(selectedApproval)}>Approve</button>
+                </div>
+              </div>
+            ) : <p className="empty-inline">No review selected.</p>}
           </article>
 
           <article className="work-panel standby-panel">
-            <div className="mini-heading"><span>{treeFocus === 'Hermes (Noen)' ? 'No agent selected' : treeFocus}</span><b>{standbyTasks.length}</b></div>
+            <div className="mini-heading"><span>{treeFocus}</span><b>{standbyTasks.length}</b></div>
             <div className="standby-list">
               {standbyTasks.map((task) => (
                 <button type="button" key={`${task.title}-${task.detail}`} onClick={assignTask}>
@@ -391,11 +379,24 @@ export default function WorkAgentsPage() {
           </article>
         </aside>
 
+        <article className="work-panel current-actions-panel" aria-label="Current actions">
+          <div className="mini-heading"><span>Current Actions</span><b>{actions.length}</b></div>
+          <div className="activity-list current-actions">
+            {actions.map((action) => (
+              <span key={`${action.agent}-${action.task}-${action.age}`}><b>{action.agent}</b><em>{action.task}</em><small>{action.age}</small><i>Working</i></span>
+            ))}
+          </div>
+          <div className="quick-actions">
+            <button type="button" onClick={exportBriefing}>Export briefing</button>
+            <button type="button" onClick={assignTask}>Assign task</button>
+          </div>
+        </article>
+
         <article className="work-panel workspace-panel">
           <div className="workspace-copy">
-            <span className="hud-kicker">3D Workspace Future</span>
-            <h2>3D Workspace Future</h2>
-            <p>In the future, this will become a 3D collaborative workspace where we can meet, discuss, and build together in real time.</p>
+            <span className="hud-kicker">Future Feature</span>
+            <h2>3D Workspace</h2>
+            <p>Future collaborative workspace preview. This is intentionally not represented as live execution yet.</p>
             <button type="button" onClick={() => {
               setWorkspacePreview((current) => !current);
               logSystemUpdate('3D workspace preview toggled.');
@@ -407,7 +408,7 @@ export default function WorkAgentsPage() {
         </article>
 
         <article className="work-panel dispatch-panel">
-          <span className="hud-kicker">Execution Routine</span>
+          <span className="hud-kicker">Future Execution Routine</span>
           <div className="dispatch-track">
             {dispatchSteps.map((step) => (
               <button type="button" key={step} className={dispatchStep === step ? 'active' : ''} onClick={() => advanceDispatch(step)}>

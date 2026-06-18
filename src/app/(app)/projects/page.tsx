@@ -60,7 +60,7 @@ const initialProjects: Project[] = [];
 
 const statusFilters = ['All Projects', 'Active', 'Paused', 'Finished', 'Needs Review'];
 const categories = ['All', 'AI', 'Dashboard', 'Content', 'Automation', 'Personal'];
-const agents = ['Jarvis Assistant', 'Agent Workflow', 'Content Engine', 'System Architect', 'Data Analyst', 'AI Engineer'];
+const agents = ['Noen Assistant', 'Agent Workflow', 'Content Engine', 'System Architect', 'Data Analyst', 'AI Engineer'];
 const lifecycle = ['Idea', 'Planning', 'Design', 'Build', 'Testing', 'Launch'];
 const starterTasks: string[] = [];
 const updates: string[] = [];
@@ -283,10 +283,9 @@ function AddProjectScreen({ draft, setDraft, draftSaved, onSaveDraft, onCreate, 
         </div>
 
         <aside className="add-side-column">
-          <ProjectPreview draft={draft} />
-          <SidePanel title="Suggested Agents" icon="♧"><AgentSuggestion name="Jarvis Assistant" role="AI Designer" tag="Best Match" /><AgentSuggestion name="Agent Workflow" role="Workflow Lead" tag="Strong Fit" /><AgentSuggestion name="Content Engine" role="Content Strategist" tag="Good Fit" /></SidePanel>
-          <SidePanel title="Quick Tips" icon="☼"><ul className="tips-list"><li>Write a clear one-sentence description.</li><li>Set the next step to something actionable.</li><li>Add tags to make your project easy to discover.</li><li>Break the project into measurable milestones.</li></ul></SidePanel>
-          <SidePanel title="Recommended Timeline" icon="◷"><div className="timeline-recommendations"><p><b>Start Date</b><span>Today</span></p><p><b>Target Midpoint</b><span>In 6 weeks</span></p><p><b>Target Completion</b><span>In 8 weeks</span></p><p><b>Buffer Time</b><span>+1 week</span></p></div></SidePanel>
+          <SidePanel title="Suggested Agents" icon="♧"><AgentSuggestion name="Noen Assistant" role="AI Designer" tag="Best Match" /><AgentSuggestion name="Agent Workflow" role="Workflow Lead" tag="Strong Fit" /><AgentSuggestion name="Content Engine" role="Content Strategist" tag="Good Fit" /></SidePanel>
+          <SidePanel title="Activity" icon="⌁"><p className="empty-inline">No data right now</p></SidePanel>
+          <SidePanel title="Plan" icon="□"><p className="empty-inline">No data right now</p></SidePanel>
         </aside>
       </section>
     </main>
@@ -334,10 +333,6 @@ function ProjectDetailCard({ project, onOpen }: { project: Project; onOpen: () =
 
 function TimelinePanel({ projects }: { projects: Project[] }) {
   return <section className="project-panel timeline-panel"><div className="timeline-head"><div className="panel-heading"><span className="panel-icon">☷</span><div><h2>Project Timeline Overview</h2><p>Track projects across the full lifecycle.</p></div></div><div className="timeline-stages">{lifecycle.map((stage) => <span key={stage} className={stage === 'Build' ? 'active' : ''}>{stage}</span>)}</div></div><div className="timeline-rows">{projects.slice(0, 4).map((item) => <div className="timeline-row" key={item.id}><span>{item.name}</span><div className="timeline-track"><i style={{ width: `${item.progress}%` }} /></div><strong>{item.progress}%</strong></div>)}</div></section>;
-}
-
-function ProjectPreview({ draft }: { draft: Draft }) {
-  return <SidePanel title="Project Preview" icon="◉"><div className="project-preview-card"><div className="project-card-icon tiny">▱</div><div><h3>{draft.name || 'No data right now'}</h3><p>{draft.description || 'No data right now'}</p></div><span className="status active">{draft.status}</span><div className="project-progress-line"><strong>{draft.progress}%</strong><div><i style={{ width: `${draft.progress}%` }} /></div></div><footer><small>Due<br /><b>{draft.dueDate || 'No data right now'}</b></small><small>Agent<br /><b>{draft.agent || 'No data right now'}</b></small></footer></div></SidePanel>;
 }
 
 function StatCard({ label, value, note, icon }: { label: string; value: string; note: string; icon: string }) {

@@ -88,7 +88,7 @@ function containsStopPhrase(text: string) {
   return STOP_PHRASES.some((phrase) => normalized.includes(phrase));
 }
 
-function getPreferredJarvisVoice() {
+function getPreferredNoenVoice() {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return undefined;
 
   const voices = window.speechSynthesis.getVoices();
@@ -123,7 +123,7 @@ export function FloatingVoiceAssistant() {
   const [expanded, setExpanded] = useState(false);
   const [keepListening, setKeepListening] = useState(false);
   const [transcript, setTranscript] = useState('');
-  const [lastReply, setLastReply] = useState('Voice standby. Tap to keep JARVIS listening while you move through the command centre.');
+  const [lastReply, setLastReply] = useState('Voice standby. Tap to keep Noen listening while you move through the command centre.');
   const [error, setError] = useState<string | null>(null);
   const [spokenVoiceName, setSpokenVoiceName] = useState('System voice');
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -148,7 +148,7 @@ export function FloatingVoiceAssistant() {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return undefined;
 
     const updateVoiceName = () => {
-      const voice = getPreferredJarvisVoice();
+      const voice = getPreferredNoenVoice();
       setSpokenVoiceName(voice ? voice.name : 'System voice');
     };
 
@@ -245,7 +245,7 @@ export function FloatingVoiceAssistant() {
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(cleanForSpeech(reply));
-    const preferredVoice = getPreferredJarvisVoice();
+    const preferredVoice = getPreferredNoenVoice();
     if (preferredVoice) {
       utterance.voice = preferredVoice;
       utterance.lang = preferredVoice.lang;
@@ -406,7 +406,7 @@ export function FloatingVoiceAssistant() {
     }
   }
 
-  function stopListening(message = 'Voice standby. Tap to keep JARVIS listening while you move through the command centre.') {
+  function stopListening(message = 'Voice standby. Tap to keep Noen listening while you move through the command centre.') {
     setKeepListening(false);
     keepListeningRef.current = false;
     isFinalizingRef.current = false;
@@ -454,11 +454,11 @@ export function FloatingVoiceAssistant() {
             : 'Standby';
 
   return (
-    <aside className={`floating-voice-assistant ${expanded ? 'expanded' : ''} ${voiceState}`} aria-label="Persistent JARVIS voice assistant">
+    <aside className={`floating-voice-assistant ${expanded ? 'expanded' : ''} ${voiceState}`} aria-label="Persistent Noen voice assistant">
       {expanded && (
         <section className="floating-voice-panel" aria-live="polite">
           <header>
-            <span>JARVIS Voice</span>
+            <span>Noen Voice</span>
             <button type="button" onClick={() => setExpanded(false)} aria-label="Collapse voice panel">×</button>
           </header>
           <div className="floating-voice-status-row">

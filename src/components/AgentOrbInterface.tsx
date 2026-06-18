@@ -315,16 +315,16 @@ export function AgentOrbInterface() {
           {error && <div className="agent-text-error agent-voice-error">{error}</div>}
         </div>
       ) : (
-        <section className="agent-text-console" aria-label="JARVIS text console">
+        <section className="agent-text-console" aria-label="Noen text console">
           <header>
-            <span>JARVIS text interface</span>
+            <span>Noen text interface</span>
             <strong>{orbState === 'thinking' ? 'Thinking…' : 'Online'}</strong>
           </header>
 
           <div className="agent-text-stream">
             {messages.slice(-5).map((message, index) => (
               <article key={`${message.role}-${index}`} className={message.role}>
-                <span>{message.role === 'assistant' ? 'JARVIS' : 'Daniel'}</span>
+                <span>{message.role === 'assistant' ? 'Noen' : 'Daniel'}</span>
                 <p>{message.content}</p>
               </article>
             ))}
@@ -342,7 +342,7 @@ export function AgentOrbInterface() {
             <input
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Type to JARVIS..."
+              placeholder="Type to Noen..."
               disabled={orbState === 'thinking'}
             />
             <button type="submit" disabled={!input.trim() || orbState === 'thinking'}>

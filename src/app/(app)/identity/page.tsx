@@ -72,7 +72,7 @@ const LEVELS_UI = [
   },
   {
     min: 6000,
-    title: 'JARVIS Command Center',
+    title: 'Noen Command Center',
     rank: 7,
     desc: 'The long-term vision: a private AI command center that helps run your life, projects, and execution.',
     icon: '👑',
