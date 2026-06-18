@@ -24,22 +24,20 @@ type Approval = {
   title: string;
   kind: 'Review' | 'Approval';
   owner: string;
+  detail: string;
+  nextStep: string;
+  risk: string;
 };
 
-const agents: Agent[] = [
-  { name: 'Marketing Agent', icon: '◌', role: 'Campaigns, hooks, and launch angles', task: 'Drafting audience hooks', status: 'Working', load: 72 },
-  { name: 'Content Agent', icon: '✦', role: 'Scripts, posts, and publishing cadence', task: 'Building short-form queue', status: 'Online', load: 56 },
-  { name: 'Design Agent', icon: '◇', role: 'Layouts, thumbnails, and visual systems', task: 'Refining dashboard assets', status: 'Review', load: 63 },
-  { name: 'Video Creator', icon: '▣', role: 'Edits, reels, captions, and exports', task: 'Clipping content engine test', status: 'Working', load: 81 },
-  { name: 'Analyst Agent', icon: '⌁', role: 'Metrics, signal checks, and insight reports', task: 'Scanning conversion gaps', status: 'Online', load: 44 },
-  { name: 'Research Agent', icon: '⌕', role: 'Market, competitor, and source research', task: 'Collecting competitor references', status: 'Working', load: 68 },
-  { name: 'Sales Agent', icon: '↗', role: 'Offers, CRM prompts, and follow-up plays', task: 'Sequencing warm leads', status: 'Online', load: 39 },
-  { name: 'Support Agent', icon: '□', role: 'Inbox triage and response drafts', task: 'Watching response queue', status: 'Online', load: 31 },
-  { name: 'Automation Agent', icon: '⚙', role: 'Systems, triggers, and routine automation', task: 'Mapping API handoff', status: 'Review', load: 77 },
-  { name: 'Workflow Agent', icon: '⟲', role: 'SOPs, checklists, and operator routines', task: 'Organising agent protocol', status: 'Working', load: 59 },
-  { name: 'Planning Agent', icon: '☷', role: 'Milestones, plans, and dependency tracking', task: 'Updating sprint priorities', status: 'Online', load: 47 },
-  { name: 'Life Coach Agent', icon: '♡', role: 'Recovery, discipline, and daily alignment', task: 'Holding evening check-in', status: 'Online', load: 35 },
-];
+type DispatchStep = 'Intake' | 'Assign' | 'Verify' | 'Push';
+
+type DispatchStepItem = {
+  step: DispatchStep;
+  detail: string;
+};
+
+const MAX_AGENT_SLOTS = 9;
+const agents: Agent[] = [];
 
 const projects: Project[] = [
   { name: 'Discipline OS', label: 'Active', progress: 86, detail: 'Primary operating dashboard and command centre.' },
@@ -49,10 +47,38 @@ const projects: Project[] = [
 ];
 
 const approvals: Approval[] = [
-  { title: 'Copy review', kind: 'Review', owner: 'Content Agent' },
-  { title: 'Agent handoff approval', kind: 'Approval', owner: 'Workflow Agent' },
-  { title: 'API connection review', kind: 'Review', owner: 'Automation Agent' },
-  { title: 'Dashboard update approval', kind: 'Approval', owner: 'Design Agent' },
+  {
+    title: 'Copy review',
+    kind: 'Review',
+    owner: 'Content Agent',
+    detail: 'Confirm the hook, CTA, and publish order before any content is queued.',
+    nextStep: 'Open draft packet and approve or rewrite the lead angle.',
+    risk: 'Medium',
+  },
+  {
+    title: 'Agent handoff approval',
+    kind: 'Approval',
+    owner: 'Workflow Agent',
+    detail: 'A cross-agent routine needs Daniel’s sign-off before it can become the default handoff path.',
+    nextStep: 'Check owner, deadline, and rollback route.',
+    risk: 'High',
+  },
+  {
+    title: 'API connection review',
+    kind: 'Review',
+    owner: 'Automation Agent',
+    detail: 'Credential routing and hosted bridge settings must be verified before live assistant actions run.',
+    nextStep: 'Verify server-side env only; no client-side secret exposure.',
+    risk: 'High',
+  },
+  {
+    title: 'Dashboard update approval',
+    kind: 'Approval',
+    owner: 'Design Agent',
+    detail: 'Layout changes are staged visually and need a final operator pass before push.',
+    nextStep: 'Confirm spacing, empty states, and mobile fit.',
+    risk: 'Medium',
+  },
 ];
 
 const actionSeed = [
@@ -67,9 +93,16 @@ const thoughtSeed = [
   'Planning Agent moved dashboard polish ahead of content batching.',
 ];
 
+const dispatchSteps: DispatchStepItem[] = [
+  { step: 'Intake', detail: 'Capture Daniel’s spoken or typed request from this page.' },
+  { step: 'Assign', detail: 'Route the task to the correct project agent and owner.' },
+  { step: 'Verify', detail: 'Run the local check before treating the work as done.' },
+  { step: 'Push', detail: 'Ship the verified change through the Git routine.' },
+];
+
 export default function WorkAgentsPage() {
   const [filter, setFilter] = useState<'All' | AgentStatus>('All');
-  const [selectedAgent, setSelectedAgent] = useState(agents[0]);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(agents[0] ?? null);
   const [selectedProject, setSelectedProject] = useState(projects[0]);
   const [messages, setMessages] = useState(['Hermes: Work agents online. Select an agent or send a team instruction.']);
   const [chatDraft, setChatDraft] = useState('');
@@ -78,11 +111,14 @@ export default function WorkAgentsPage() {
   const [handledApprovals, setHandledApprovals] = useState<string[]>([]);
   const [treeFocus, setTreeFocus] = useState('Hermes');
   const [workspaceMode, setWorkspaceMode] = useState<'Map' | 'Preview'>('Map');
+  const [dispatchStep, setDispatchStep] = useState<DispatchStep>('Intake');
 
   const filteredAgents = useMemo(
-    () => (filter === 'All' ? agents : agents.filter((agent) => agent.status === filter)),
+    () => (filter === 'All' ? agents : agents.filter((agent) => agent.status === filter)).slice(0, MAX_AGENT_SLOTS),
     [filter],
   );
+
+  const emptyAgentSlots = Math.max(MAX_AGENT_SLOTS - filteredAgents.length, 0);
 
   const statusCounts = useMemo(() => ({
     Online: agents.filter((agent) => agent.status === 'Online').length,
@@ -105,8 +141,9 @@ export default function WorkAgentsPage() {
     event.preventDefault();
     const message = chatDraft.trim();
     if (!message) return;
-    setMessages((current) => [...current, `You: ${message}`, `${selectedAgent.name}: Instruction received. I will stage the next action for review.`].slice(-6));
-    pushSystemUpdate(`${selectedAgent.name} received team instruction`);
+    const agentName = selectedAgent?.name ?? 'Agent roster';
+    setMessages((current) => [...current, `You: ${message}`, `${agentName}: Instruction received. I will stage the next action for review.`].slice(-6));
+    pushSystemUpdate(`${agentName} received team instruction`);
     setChatDraft('');
   }
 
@@ -117,13 +154,52 @@ export default function WorkAgentsPage() {
   }
 
   function launchProtocol(label: string) {
-    setMessages((current) => [...current, `Hermes: ${label} protocol staged for ${selectedAgent.name}.`].slice(-6));
+    setMessages((current) => [...current, `Hermes: ${label} protocol staged for ${selectedAgent?.name ?? 'the roster queue'}.`].slice(-6));
     pushSystemUpdate(`${label} protocol staged`);
+  }
+
+  function advanceDispatch(step: DispatchStep) {
+    setDispatchStep(step);
+    setTreeFocus('Hermes');
+    setMessages((current) => [
+      ...current,
+      `Hermes: Dispatch moved to ${step}. ${selectedAgent?.name ?? 'No agent selected'} remains attached to ${selectedProject.name}.`,
+    ].slice(-6));
+    pushSystemUpdate(`Operator dispatch moved to ${step}`);
   }
 
   return (
     <main className="work-agents-page hud-page fade-in">
       <section className="work-command-grid" aria-label="Work agents command centre">
+        <article className="work-panel dispatch-panel">
+          <div>
+            <span className="hud-kicker">Operator Dispatch</span>
+            <h1>Task execution queue</h1>
+            <p>
+              Voice or typed commands from this page now resolve into a visible routine: capture the request,
+              assign the right agent, verify the work, then push when the local check is clean.
+            </p>
+          </div>
+          <div className="dispatch-track" aria-label="Dispatch routine status">
+            {dispatchSteps.map((item) => (
+              <button
+                type="button"
+                key={item.step}
+                className={dispatchStep === item.step ? 'active' : ''}
+                onClick={() => advanceDispatch(item.step)}
+              >
+                <strong>{item.step}</strong>
+                <small>{item.detail}</small>
+              </button>
+            ))}
+          </div>
+          <div className="dispatch-summary" aria-label="Current dispatch packet">
+            <span><b>Project</b>{selectedProject.name}</span>
+            <span><b>Agent</b>{selectedAgent?.name ?? 'No agent selected'}</span>
+            <span><b>Stage</b>{dispatchStep}</span>
+          </div>
+        </article>
+
         <article className="work-panel agent-tree-panel">
           <div className="work-panel-heading">
             <span className="hud-kicker">Agent Tree</span>
@@ -181,7 +257,9 @@ export default function WorkAgentsPage() {
                 <div className={`approval-row ${handled ? 'handled' : ''}`} key={item.title}>
                   <span>
                     <strong>{item.title}</strong>
-                    <small>{item.owner}</small>
+                    <small>{item.owner} · Risk {item.risk}</small>
+                    <em>{item.detail}</em>
+                    <i>{item.nextStep}</i>
                   </span>
                   <button type="button" onClick={() => handleApproval(item)}>
                     {handled ? 'Handled' : item.kind}
@@ -203,7 +281,7 @@ export default function WorkAgentsPage() {
                   className={filter === status ? 'active' : ''}
                   onClick={() => setFilter(status)}
                 >
-                  {status}<small>{status === 'All' ? agents.length : statusCounts[status]}</small>
+                  {status}<small>{status === 'All' ? `${agents.length}/${MAX_AGENT_SLOTS}` : statusCounts[status]}</small>
                 </button>
               ))}
             </div>
@@ -213,7 +291,7 @@ export default function WorkAgentsPage() {
               <button
                 type="button"
                 key={agent.name}
-                className={`agent-card status-${agent.status.toLowerCase()} ${selectedAgent.name === agent.name ? 'active' : ''}`}
+                className={`agent-card status-${agent.status.toLowerCase()} ${selectedAgent?.name === agent.name ? 'active' : ''}`}
                 onClick={() => selectAgent(agent)}
               >
                 <span className="agent-card-status"><i />{agent.status}</span>
@@ -224,13 +302,16 @@ export default function WorkAgentsPage() {
                 <span className="load-line"><b style={{ width: `${agent.load}%` }} /></span>
               </button>
             ))}
+            {Array.from({ length: emptyAgentSlots }).map((_, index) => (
+              <div className="agent-card empty-agent-slot" key={`empty-agent-slot-${index}`} aria-hidden="true" />
+            ))}
           </div>
         </section>
 
         <article className="work-panel collaboration-panel">
           <div className="work-panel-heading">
             <span className="hud-kicker">Live Agent Collaboration</span>
-            <strong>{selectedAgent.name}</strong>
+            <strong>{selectedAgent?.name ?? 'No agent selected'}</strong>
           </div>
           <div className="collab-columns">
             <div className="team-chat">
