@@ -189,6 +189,7 @@ export function FloatingVoiceAssistant() {
       const res = await fetch('/api/assistant/chat', {
         method: 'POST',
         headers,
+        credentials: 'same-origin',
         body: JSON.stringify({
           message: cleanText,
           history: [
@@ -203,8 +204,23 @@ export function FloatingVoiceAssistant() {
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Assistant request failed.');
+      const contentType = res.headers.get('content-type') ?? '';
+      const rawBody = await res.text();
+      const data = contentType.includes('application/json')
+        ? JSON.parse(rawBody || '{}') as { reply?: unknown; error?: unknown }
+        : null;
+
+      if (!res.ok) {
+        const serverMessage = typeof data?.error === 'string' ? data.error : rawBody.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        const friendlyMessage = res.status === 401
+          ? 'Dashboard access expired. Reopen the private dashboard link, then try the orb again.'
+          : serverMessage || `Assistant request failed with HTTP ${res.status}.`;
+        throw new Error(friendlyMessage);
+      }
+
+      if (!data) {
+        throw new Error('Assistant returned a web page instead of JSON. Reopen the private dashboard link and try again.');
+      }
 
       const reply = String(data.reply ?? 'No response returned.');
       setLastReply(reply);
