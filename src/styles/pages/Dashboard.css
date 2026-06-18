@@ -2828,12 +2828,20 @@
 }
 
 .agent-orb-shell {
+  position: relative;
   border: 0;
   padding: 0;
   color: inherit;
   cursor: pointer;
   background: transparent;
   transition: transform 220ms ease, filter 220ms ease;
+}
+
+.agent-voice-stack {
+  display: grid;
+  place-items: center;
+  gap: clamp(4.5rem, 8vh, 5.8rem);
+  width: min(100%, 560px);
 }
 
 .agent-orb-shell:hover,
@@ -2889,6 +2897,41 @@
   margin-top: 0.2rem;
   color: rgba(239, 246, 255, 0.88);
   font-size: 0.86rem;
+}
+
+.agent-voice-readout {
+  width: min(100%, 28rem);
+  min-height: 5.4rem;
+  padding: 0.82rem 0.92rem;
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(8, 47, 73, 0.22), rgba(2, 6, 23, 0.72)),
+    rgba(3, 7, 18, 0.72);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255,255,255,0.04);
+  backdrop-filter: blur(14px);
+}
+
+.agent-voice-readout span {
+  display: block;
+  margin-bottom: 0.36rem;
+  color: #67e8f9;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.agent-voice-readout p {
+  margin: 0;
+  color: rgba(239, 246, 255, 0.86);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.agent-voice-error {
+  width: min(100%, 28rem);
 }
 
 @keyframes agent-orb-click-wake {
