@@ -3099,3 +3099,102 @@
     flex-direction: column;
   }
 }
+
+/* Agent home refinement — route cards around the persistent orb */
+.command-route-list,
+.command-status-stack {
+  gap: 0.75rem;
+}
+
+.command-route-card,
+.command-status-card {
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.command-route-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 5.25rem;
+}
+
+.command-route-card:hover,
+.command-status-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(65, 229, 255, 0.34);
+  box-shadow: 0 0 26px rgba(0, 217, 255, 0.1);
+  background: rgba(2, 19, 31, 0.78);
+}
+
+.command-route-icon {
+  width: 2.45rem;
+  height: 2.45rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #53efff;
+  border: 1px solid rgba(83, 239, 255, 0.28);
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.18), rgba(0, 229, 255, 0.035));
+  box-shadow: 0 0 18px rgba(0, 229, 255, 0.12);
+}
+
+.command-route-card em,
+.command-status-card b {
+  color: #72f4ff;
+  font-size: 0.65rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agent-orb-context-strip {
+  width: min(31rem, 92vw);
+  margin: 0 auto 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(83, 239, 255, 0.18);
+  border-radius: 1rem;
+  background: rgba(1, 14, 24, 0.58);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.75rem;
+  align-items: center;
+  text-align: left;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025), 0 0 28px rgba(0, 229, 255, 0.055);
+}
+
+.agent-orb-context-strip span {
+  grid-row: span 2;
+  color: #061018;
+  background: #53efff;
+  border-radius: 999px;
+  padding: 0.32rem 0.62rem;
+  font-size: 0.62rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agent-orb-context-strip strong {
+  color: #ecfeff;
+  font-size: 0.82rem;
+}
+
+.agent-orb-context-strip small {
+  color: rgba(222, 249, 252, 0.58);
+}
+
+.command-status-card.green .agent-activity-dot { background: #67e8a5; }
+.command-status-card.blue .agent-activity-dot { background: #60a5fa; }
+.command-status-card.cyan .agent-activity-dot { background: #22d3ee; }
+.command-status-card.gold .agent-activity-dot { background: #fbbf24; }
+
+@media (max-width: 640px) {
+  .command-route-card { grid-template-columns: auto 1fr; }
+  .command-route-card em { grid-column: 2; }
+  .agent-orb-context-strip { grid-template-columns: 1fr; text-align: center; }
+  .agent-orb-context-strip span { grid-row: auto; justify-self: center; }
+}

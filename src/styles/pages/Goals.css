@@ -12,7 +12,6 @@
 
 .goal-card {
   padding: 0;
-  cursor: pointer;
   overflow: hidden;
   border: 1px solid var(--border);
   background: var(--bg-card);
@@ -34,6 +33,26 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1.1rem 1.2rem 1rem;
+}
+
+.goal-open-area {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  text-align: left;
+  flex: 1;
+  cursor: pointer;
+  font: inherit;
+}
+
+.goal-open-area:hover .goal-title {
+  color: var(--accent-light);
+}
+
+.expand-button {
+  color: var(--accent-light);
 }
 
 .goal-title-row {

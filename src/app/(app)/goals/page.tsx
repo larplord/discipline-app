@@ -196,8 +196,8 @@ function GoalSection({
           const open = expanded === g.id;
           return (
             <div key={g.id} className={`card goal-card ${open ? 'expanded' : ''}`}>
-              <div className="goal-header" onClick={() => onOpen(g.id)} role="presentation">
-                <div>
+              <div className="goal-header">
+                <button type="button" className="goal-open-area" onClick={() => onOpen(g.id)}>
                   <div className="goal-title-row">
                     <span className="goal-title">{g.title}</span>
                     <span className={`priority-dot ${g.priority}`} />
@@ -206,15 +206,17 @@ function GoalSection({
                     <span className="text-xs text-muted">{g.deadline ?? 'No deadline'}</span>
                     <span className="text-xs text-accent">{pct}%</span>
                   </div>
-                </div>
+                </button>
                 <div className="goal-actions">
-                  <button type="button" className="btn-icon" onClick={(e) => { e.stopPropagation(); onEdit(g); }}>
+                  <button type="button" className="btn-icon" onClick={() => onEdit(g)} aria-label={`Edit ${g.title}`}>
                     ✎
                   </button>
-                  <button type="button" className="btn-icon" onClick={(e) => { e.stopPropagation(); onDelete(g.id); }}>
+                  <button type="button" className="btn-icon" onClick={() => onDelete(g.id)} aria-label={`Delete ${g.title}`}>
                     🗑
                   </button>
-                  <span className="expand-icon">▶</span>
+                  <button type="button" className="btn-icon expand-button" onClick={() => setExpanded(open ? null : g.id)} aria-expanded={open} aria-label={`${open ? 'Collapse' : 'Expand'} ${g.title} milestones`}>
+                    {open ? '▼' : '▶'}
+                  </button>
                 </div>
               </div>
               {open && (
