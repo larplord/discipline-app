@@ -27,7 +27,7 @@ const LIFE_NAV: NavItem[] = [
   { label: 'Health', href: '/fitness', icon: '✚' },
   { label: 'Sleep', href: '/fitness/sleep', icon: '☾' },
   { label: 'Daily', href: '/fitness/daily', icon: '☼' },
-  { label: '???', href: '/goals', icon: '?' },
+  { label: 'Infinity Stones', href: '/fitness/infinity-stones', icon: '∞' },
 ];
 
 export function getNavSection(pathname: string) {

@@ -33,13 +33,19 @@ export async function verifyAssistantRequest(req: Request): Promise<VerifiedAssi
   const singleOperatorMode = process.env.ASSISTANT_SINGLE_OPERATOR_MODE === 'true';
   const singleOperatorHeader = req.headers.get('x-single-operator') === 'true';
 
+  // Private VPS mode: the dashboard is already protected by the server-side
+  // access-token gate, and browser assistant clients intentionally identify as
+  // the single local operator when no Firebase session is available. Accept this
+  // path before inspecting Authorization so a token-gate/private bearer value is
+  // not mistaken for a Firebase ID token.
+  if (singleOperatorMode && singleOperatorHeader) {
+    return { uid: 'local-operator', email: 'local-operator@discipline-os.local' };
+  }
+
   const authHeader = req.headers.get('authorization') ?? '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : '';
 
   if (!token) {
-    if (singleOperatorMode && singleOperatorHeader) {
-      return { uid: 'local-operator', email: 'local-operator@discipline-os.local' };
-    }
     throw new Error('Missing auth token.');
   }
 

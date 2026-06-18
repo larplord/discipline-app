@@ -12,7 +12,9 @@ function isPublicAsset(pathname: string) {
 }
 
 function stripAccessToken(req: NextRequest) {
-  const forwardedHost = req.headers.get('x-forwarded-host') || req.headers.get('host') || req.nextUrl.host;
+  const hostHeader = req.headers.get('host') || req.nextUrl.host;
+  const forwardedHostHeader = req.headers.get('x-forwarded-host');
+  const forwardedHost = forwardedHostHeader && !forwardedHostHeader.startsWith('localhost') ? forwardedHostHeader : hostHeader;
   const forwardedProto = req.headers.get('x-forwarded-proto') || req.nextUrl.protocol.replace(':', '') || 'https';
   const cleanUrl = new URL(req.nextUrl.pathname + req.nextUrl.search, `${forwardedProto}://${forwardedHost}`);
   cleanUrl.searchParams.delete('access_token');
