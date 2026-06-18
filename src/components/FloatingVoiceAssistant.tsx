@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { usePathname } from 'next/navigation';
 import { getFirebaseAuth } from '@/lib/firebase/client';
 
@@ -426,9 +426,19 @@ export function FloatingVoiceAssistant() {
       stopListening();
       return;
     }
+    setExpanded(true);
+    setError(null);
+    setTranscript('Arming microphone…');
+    setVoiceState('listening');
     setKeepListening(true);
     keepListeningRef.current = true;
     startListening();
+  }
+
+  function handleOrbActivation(event: PointerEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleListening();
   }
 
   const stateLabel = voiceState === 'listening'
@@ -467,7 +477,8 @@ export function FloatingVoiceAssistant() {
         className="floating-voice-button"
         aria-pressed={keepListening}
         aria-label={keepListening ? 'Stop persistent voice assistant' : 'Start persistent voice assistant'}
-        onClick={toggleListening}
+        onPointerUp={handleOrbActivation}
+        onClick={(event) => event.preventDefault()}
         onDoubleClick={() => setExpanded((current) => !current)}
       >
         <span className="floating-voice-pulse" />
