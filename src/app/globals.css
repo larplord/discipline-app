@@ -1515,6 +1515,13 @@ html, body {
   white-space: pre-wrap;
 }
 
+.floating-voice-hint {
+  margin: 0;
+  color: rgba(103, 232, 249, 0.62);
+  font-size: 0.64rem;
+  line-height: 1.35;
+}
+
 .floating-voice-error {
   margin-top: 0.58rem;
   color: #fecaca;
