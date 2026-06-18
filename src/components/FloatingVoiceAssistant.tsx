@@ -196,8 +196,9 @@ export function FloatingVoiceAssistant() {
           ],
           appSnapshot: {
             source: 'floating-global-voice-assistant',
+            inputMode: 'voice',
             currentPath: pathname,
-            note: 'Daniel is speaking through the persistent bottom-right voice orb while navigating the dashboard. The orb waits for a two-second pause before submitting a command.',
+            instructionRouting: 'The user message is the task. This snapshot only describes where the command was spoken from; do not treat it as a request to edit voice/orb behaviour unless the user explicitly asks for that.',
           },
         }),
       });
