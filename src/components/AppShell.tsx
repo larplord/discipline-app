@@ -9,6 +9,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { UserDataProvider, useUserData } from '@/components/UserDataProvider';
 import { Sidebar } from '@/components/Sidebar';
 import { MainBottomNav, SectionTopNav, getNavSection } from '@/components/AppNavigation';
+import { FloatingVoiceAssistant } from '@/components/FloatingVoiceAssistant';
 import { syncSharedSummary } from '@/lib/syncSharedSummary';
 import { syncIdentityProgress } from '@/lib/syncIdentityProgress';
 
@@ -214,6 +215,7 @@ function ShellInner({ children }: { children: ReactNode }) {
 
         <SectionTopNav />
         {children}
+        <FloatingVoiceAssistant />
         <MainBottomNav />
       </div>
     </div>

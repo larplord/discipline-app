@@ -1399,3 +1399,203 @@ html, body {
   .hud-main-nav-item { padding: 0.42rem 0.55rem; }
   .hud-main-icon { width: 2rem; height: 2rem; font-size: 0.92rem; }
 }
+
+/* Persistent bottom-right JARVIS voice assistant */
+.floating-voice-assistant {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: calc(6.35rem + env(safe-area-inset-bottom, 0px));
+  z-index: 80;
+  display: grid;
+  justify-items: end;
+  gap: 0.72rem;
+  pointer-events: none;
+}
+
+.floating-voice-panel,
+.floating-voice-button {
+  pointer-events: auto;
+}
+
+.floating-voice-panel {
+  width: min(22rem, calc(100vw - 2rem));
+  padding: 0.82rem;
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(34, 211, 238, 0.16), transparent 14rem),
+    linear-gradient(145deg, rgba(4, 18, 30, 0.92), rgba(2, 6, 23, 0.86));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.48), 0 0 48px rgba(34, 211, 238, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+  backdrop-filter: blur(18px);
+  animation: floating-voice-rise 180ms ease-out both;
+}
+
+.floating-voice-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.72rem;
+}
+
+.floating-voice-panel header span {
+  color: #67e8f9;
+  font-size: 0.65rem;
+  font-weight: 950;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.floating-voice-panel header button {
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: rgba(226, 232, 240, 0.86);
+  cursor: pointer;
+}
+
+.floating-voice-status-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.1rem 0.55rem;
+  align-items: center;
+  margin-bottom: 0.7rem;
+}
+
+.floating-voice-status-row i {
+  grid-row: span 2;
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 999px;
+  background: #22d3ee;
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.86);
+}
+
+.floating-voice-assistant.listening .floating-voice-status-row i,
+.floating-voice-assistant.listening .floating-voice-pulse {
+  animation: floating-voice-pulse 1.15s ease-in-out infinite;
+}
+
+.floating-voice-assistant.thinking .floating-voice-status-row i,
+.floating-voice-assistant.thinking .floating-voice-core {
+  background: #60a5fa;
+  box-shadow: 0 0 24px rgba(96, 165, 250, 0.9);
+}
+
+.floating-voice-assistant.speaking .floating-voice-status-row i,
+.floating-voice-assistant.speaking .floating-voice-core {
+  background: #a78bfa;
+  box-shadow: 0 0 24px rgba(167, 139, 250, 0.9);
+}
+
+.floating-voice-assistant.error .floating-voice-status-row i,
+.floating-voice-assistant.error .floating-voice-core {
+  background: #fb7185;
+  box-shadow: 0 0 20px rgba(251, 113, 133, 0.8);
+}
+
+.floating-voice-status-row strong {
+  color: rgba(241, 245, 249, 0.95);
+  font-size: 0.88rem;
+}
+
+.floating-voice-status-row small {
+  color: rgba(203, 213, 225, 0.66);
+  font-size: 0.69rem;
+}
+
+.floating-voice-transcript,
+.floating-voice-error {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.84);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.floating-voice-error {
+  margin-top: 0.58rem;
+  color: #fecaca;
+}
+
+.floating-voice-button {
+  position: relative;
+  width: 4.1rem;
+  height: 4.1rem;
+  border: 1px solid rgba(34, 211, 238, 0.32);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255,255,255,0.92), rgba(103, 232, 249, 0.84) 16%, rgba(14, 116, 144, 0.58) 48%, rgba(2, 6, 23, 0.92) 76%);
+  color: #ecfeff;
+  cursor: pointer;
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.48), 0 0 44px rgba(34, 211, 238, 0.34), inset 0 0 28px rgba(255,255,255,0.12);
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.floating-voice-button:hover,
+.floating-voice-button:focus-visible {
+  outline: none;
+  transform: translateY(-1px) scale(1.03);
+  filter: brightness(1.08);
+}
+
+.floating-voice-pulse {
+  position: absolute;
+  inset: -0.55rem;
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  border-radius: inherit;
+  opacity: 0.8;
+  z-index: -1;
+}
+
+.floating-voice-core {
+  font-size: 2.2rem;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(255,255,255,0.72);
+}
+
+.floating-voice-button em {
+  position: absolute;
+  right: -0.2rem;
+  bottom: -0.1rem;
+  min-width: 1.75rem;
+  padding: 0.16rem 0.3rem;
+  border-radius: 999px;
+  background: rgba(2, 6, 23, 0.92);
+  border: 1px solid rgba(34, 211, 238, 0.28);
+  color: #67e8f9;
+  font-size: 0.55rem;
+  font-style: normal;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+@keyframes floating-voice-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+@keyframes floating-voice-rise {
+  from { opacity: 0; transform: translateY(0.75rem) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 640px) {
+  .floating-voice-assistant {
+    right: max(0.82rem, env(safe-area-inset-right, 0px));
+    bottom: calc(5.85rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .floating-voice-button {
+    width: 3.65rem;
+    height: 3.65rem;
+  }
+
+  .floating-voice-core {
+    font-size: 1.95rem;
+  }
+}
