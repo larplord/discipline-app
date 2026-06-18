@@ -11,6 +11,7 @@ import { normalizeMemorySensitivity, normalizeMemoryStatus, normalizeMemoryType,
 import { ASSISTANT_MEMORY_RULES, NOEN_PERSONALITY } from '@/lib/assistant/personality';
 
 const execFileAsync = promisify(execFile);
+const DEFAULT_HERMES_TIMEOUT_MS = 35000;
 
 export const runtime = 'nodejs';
 
@@ -172,12 +173,13 @@ function dashboardPrompt(messages: Array<{ role: 'system' | 'user' | 'assistant'
 
 async function callHermesCli(prompt: string): Promise<AssistantModelResult> {
   const errors: string[] = [];
+  const timeout = Number(process.env.ASSISTANT_HERMES_TIMEOUT_MS ?? DEFAULT_HERMES_TIMEOUT_MS);
 
   for (const hermesPath of HERMES_CLI_CANDIDATES) {
     try {
       const { stdout, stderr } = await execFileAsync(hermesPath, ['chat', '-Q', '--source', 'dashboard-assistant', '-q', prompt], {
         cwd: process.cwd(),
-        timeout: Number(process.env.ASSISTANT_HERMES_TIMEOUT_MS ?? 90000),
+        timeout,
         maxBuffer: 1024 * 1024,
       });
 
@@ -186,7 +188,12 @@ async function callHermesCli(prompt: string): Promise<AssistantModelResult> {
       return parseAssistantResult(raw);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
+      const timedOut = /timed out|timeout|ETIMEDOUT/i.test(message);
       errors.push(`${hermesPath}: ${message.slice(0, 240)}`);
+
+      if (timedOut) {
+        throw new Error(`Hermes assistant timed out after ${Math.round(timeout / 1000)}s. Try the request again in a moment, or ask from Telegram if it is a build/deploy task.`);
+      }
     }
   }
 

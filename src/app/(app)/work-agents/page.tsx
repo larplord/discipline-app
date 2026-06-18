@@ -110,7 +110,6 @@ export default function WorkAgentsPage() {
   const [thoughts, setThoughts] = useState(thoughtSeed);
   const [handledApprovals, setHandledApprovals] = useState<string[]>([]);
   const [treeFocus, setTreeFocus] = useState('Hermes');
-  const [workspaceMode, setWorkspaceMode] = useState<'Map' | 'Preview'>('Map');
   const [dispatchStep, setDispatchStep] = useState<DispatchStep>('Intake');
 
   const filteredAgents = useMemo(
@@ -200,73 +199,86 @@ export default function WorkAgentsPage() {
           </div>
         </article>
 
-        <article className="work-panel agent-tree-panel">
+        <article className="work-panel command-overview-panel">
           <div className="work-panel-heading">
-            <span className="hud-kicker">Agent Tree</span>
-            <strong>{treeFocus}</strong>
-          </div>
-          <div className="agent-tree" aria-label="Agent hierarchy">
-            {['Hermes', 'Business Manager', 'Life Coach', 'Marketing Agent', 'Video Creator', 'Analyst'].map((node) => (
-              <button
-                type="button"
-                key={node}
-                className={`tree-node tree-${node.toLowerCase().replaceAll(' ', '-')} ${treeFocus === node ? 'active' : ''}`}
-                onClick={() => {
-                  setTreeFocus(node);
-                  pushSystemUpdate(`${node} tree node inspected`);
-                }}
-              >
-                <span>{node === 'Hermes' ? '◎' : node.includes('Agent') || node === 'Video Creator' ? '◌' : '▱'}</span>
-                <strong>{node}</strong>
-                <small>{node === 'Hermes' ? 'Command & Orchestration' : node === 'Life Coach' ? 'Daily alignment' : 'Business routine'}</small>
-              </button>
-            ))}
-          </div>
-        </article>
-
-        <article className="work-panel projects-panel">
-          <div className="work-panel-heading">
-            <span className="hud-kicker">Projects / Status</span>
+            <span className="hud-kicker">Agent Tree / Projects / Review</span>
             <strong>{selectedProject.name}</strong>
           </div>
-          <div className="project-stack">
-            {projects.map((project) => (
-              <button
-                type="button"
-                key={project.name}
-                className={`project-row ${selectedProject.name === project.name ? 'active' : ''}`}
-                onClick={() => {
-                  setSelectedProject(project);
-                  pushSystemUpdate(`${project.name} project opened`);
-                }}
-              >
-                <span>
-                  <strong>{project.name}</strong>
-                  <small>{project.detail}</small>
-                </span>
-                <em>{project.label}</em>
-                <i style={{ '--progress': `${project.progress}%` } as CSSProperties} />
-              </button>
-            ))}
-          </div>
-          <div className="approval-stack" aria-label="Needs review">
-            <h2>Needs review</h2>
-            {approvals.map((item) => {
-              const handled = handledApprovals.includes(item.title);
-              return (
-                <div className={`approval-row ${handled ? 'handled' : ''}`} key={item.title}>
-                  <span>
-                    <strong>{item.title}</strong>
-                    <small>{item.owner} · Risk {item.risk}</small>
-                    <em>{item.detail}</em>
-                    <i>{item.nextStep}</i>
-                  </span>
-                  <button type="button" onClick={() => handleApproval(item)}>
-                    {handled ? 'Handled' : item.kind}
+          <div className="overview-columns">
+            <section className="overview-section tree-section" aria-label="Agent tree and project status">
+              <div className="section-heading">
+                <span>Agent tree</span>
+                <strong>{treeFocus}</strong>
+              </div>
+              <div className="agent-tree" aria-label="Agent hierarchy">
+                {['Hermes', 'Business Manager', 'Life Coach', 'Marketing Agent', 'Video Creator', 'Analyst'].map((node) => (
+                  <button
+                    type="button"
+                    key={node}
+                    className={`tree-node tree-${node.toLowerCase().replaceAll(' ', '-')} ${treeFocus === node ? 'active' : ''}`}
+                    onClick={() => {
+                      setTreeFocus(node);
+                      pushSystemUpdate(`${node} tree node inspected`);
+                    }}
+                  >
+                    <span>{node === 'Hermes' ? '◎' : node.includes('Agent') || node === 'Video Creator' ? '◌' : '▱'}</span>
+                    <strong>{node}</strong>
                   </button>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            </section>
+
+            <section className="overview-section project-section" aria-label="Projects and status">
+              <div className="section-heading">
+                <span>Projects / Status</span>
+                <strong>{selectedProject.label}</strong>
+              </div>
+              <div className="project-stack">
+                {projects.map((project) => (
+                  <button
+                    type="button"
+                    key={project.name}
+                    className={`project-row ${selectedProject.name === project.name ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedProject(project);
+                      pushSystemUpdate(`${project.name} project opened`);
+                    }}
+                  >
+                    <span>
+                      <strong>{project.name}</strong>
+                      <small>{project.detail}</small>
+                    </span>
+                    <em>{project.label}</em>
+                    <i style={{ '--progress': `${project.progress}%` } as CSSProperties} />
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <section className="overview-section review-section" aria-label="Needs review">
+              <div className="section-heading">
+                <span>Needs review</span>
+                <strong>{approvals.length}</strong>
+              </div>
+              <div className="approval-stack">
+                {approvals.map((item) => {
+                  const handled = handledApprovals.includes(item.title);
+                  return (
+                    <div className={`approval-row ${handled ? 'handled' : ''}`} key={item.title}>
+                      <span>
+                        <strong>{item.title}</strong>
+                        <small>{item.owner} · Risk {item.risk}</small>
+                        <em>{item.detail}</em>
+                        <i>{item.nextStep}</i>
+                      </span>
+                      <button type="button" onClick={() => handleApproval(item)}>
+                        {handled ? 'Handled' : item.kind}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           </div>
         </article>
 
@@ -350,18 +362,11 @@ export default function WorkAgentsPage() {
         </article>
 
         <article className="work-panel workspace-panel">
-          <span className="hud-kicker">3D Workspace Future</span>
-          <h2>{workspaceMode === 'Preview' ? 'Preview mode armed' : 'Spatial command map'}</h2>
-          <p>A future workspace for dragging agents, projects, approvals, and routines into one operator map.</p>
-          <div className={`workspace-orbit ${workspaceMode.toLowerCase()}`} aria-hidden="true">
-            <span>Hermes</span><i /><i /><i />
+          <div className="work-panel-heading">
+            <span className="hud-kicker">3D Workspace Future</span>
+            <strong>Blank canvas</strong>
           </div>
-          <button type="button" onClick={() => {
-            setWorkspaceMode((current) => current === 'Map' ? 'Preview' : 'Map');
-            pushSystemUpdate('3D workspace preview toggled');
-          }}>
-            {workspaceMode === 'Preview' ? 'Return to Map' : 'Preview 3D Workspace'}
-          </button>
+          <div className="workspace-blank" aria-label="Blank 3D workspace placeholder" />
         </article>
       </section>
     </main>
